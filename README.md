@@ -1,6 +1,6 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest gameboy game editor version 0.95
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95
 
 Place the mystic quest gameboy rom in the same folder of this script.  The md5sum of the english version should be **24cd3bdf490ef2e1aa6a8af380eccd78**
 
