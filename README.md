@@ -12,4 +12,6 @@ A folder named **en** (for english) will be created with all the maps, scripts, 
 To encode the rom run
 **python3 mystic-editor.py -e**
 
+Feel free to join our discord server
+https://discord.gg/mdTDMKh5FR
 
