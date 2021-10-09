@@ -2022,7 +2022,7 @@ class RomSplitter:
 
   def _exportTexto(self, array, filePath):
 
-    g = open(filePath, 'w')
+    g = open(filePath, 'w', encoding="utf-8")
 
     i = 1
     renglon = []
@@ -2170,7 +2170,7 @@ class RomSplitter:
     lines= scripts.encodeTxt()
     # lo grabo
     filepath = path + '/scripts.txt'
-    f = open(filepath, 'w')
+    f = open(filepath, 'w', encoding="utf-8")
     strTxt = '\n'.join(lines)
     f.write(strTxt)
     f.close()
@@ -2357,7 +2357,7 @@ class RomSplitter:
     romName = Address.instance().romName
     path = './' + romName + '/items.txt'
     # lo exporto al items.txt
-    f = open(path, 'w')
+    f = open(path, 'w', encoding="utf-8")
     f.write(string)
     f.close()
 
@@ -2379,7 +2379,7 @@ class RomSplitter:
     romName = Address.instance().romName
     path = './' + romName + '/weapons.txt'
     # lo exporto al weapons.txt
-    f = open(path, 'w')
+    f = open(path, 'w', encoding="utf-8")
     f.write(string)
     f.close()
 

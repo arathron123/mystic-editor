@@ -4,6 +4,11 @@ Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game 
 
 Place the mystic quest gameboy rom in the same folder of this script.  The md5sum of the english version should be **24cd3bdf490ef2e1aa6a8af380eccd78**
 
+To run this script you need the following python libraries: pypng, Pillow.  
+You can install them with the following commands
+pip install pypng
+pip install Pillow
+
 To decode the rom run
 **python3 mystic-editor.py -d**
 
