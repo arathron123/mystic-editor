@@ -10282,10 +10282,10 @@ def main(argv):
   # hago copia de seguridad de las roms stock que encuentre en el directorio actual
   RomSplitter.instance().protectStockRoms()
 
-#  romPath = './stockRoms/en.gb'
+  romPath = './stockRoms/en.gb'
 #  romPath = './stockRoms/fr.gb'
 #  romPath = './stockRoms/de.gb'
-  romPath = './stockRoms/jp.gb'
+#  romPath = './stockRoms/jp.gb'
 #  romPath = './game.gb'
   Address.instance().detectRomLanguage(romPath)
   RomSplitter.instance().configure()
