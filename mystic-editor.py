@@ -224,6 +224,7 @@ class Address:
     self.cantScripts_en = 0x054a
     self.cantScripts_de = 0x054d
     self.cantScripts_fr = 0x054d
+    self.cantScripts_jp = 0x0549
     self.cantScripts = self.cantScripts_en
 
     # cosas del diccionario
@@ -349,7 +350,7 @@ class Address:
       self.addrDictionary = self.addrDictionary_jp
       self.cantDictionary = self.cantDictionary_jp
       self.addrScriptAddrDic = self.addrScriptAddrDic_jp
-      self.cantScripts = self.cantScripts_en # ??
+      self.cantScripts = self.cantScripts_jp
 
       self.addrIntro = self.addrIntro_jp
       self.addrMagic = self.addrMagic_jp
@@ -2047,8 +2048,7 @@ class RomSplitter:
 
 
   def scriptDecode(self, addr):
-    script = Script()
-    script.addr = addr
+    script = Script(addr)
 
     banco = 0x0d
     if(addr >= 0x4000):
@@ -2116,7 +2116,7 @@ class RomSplitter:
       if(char == '\n'):
 
         lang = Address.instance().language
-        if(lang == ENGLISH):
+        if(lang == ENGLISH or lang == JAPAN):
           code = 0x00
         else: 
           code = 0x1a
@@ -2287,6 +2287,7 @@ class RomSplitter:
       byte2 = script.addr % 0x100
       # y la agrego al array
       array.extend([byte2, byte1])
+
     # quemo el diccionario de addr en el bank08
     RomSplitter.instance().burnBank(bank, addr, array)
 
@@ -2574,7 +2575,7 @@ class Comando:
     self.array = None
     self.lines = None
 
-    # en principio no tiene script propio (solo FOR, IF)
+    # en principio no tiene script propio (solo FOR, IF, ELSE)
     self.script = None
 
     self.nro = None
@@ -2593,14 +2594,16 @@ class Comando:
     """ lo decodifica """
     self.array = array
 
+#    print('len array: ' + str(len(self.array)))
     self.textMode = textMode
-    # si el array está vacío
+    # si se terminó el bloque de IF
     if(len(self.array) == 0):
-      # es que terminó un bloque de IF
       self.strCode = 'ENDIF\n'
       self.size = 0
       self.strHex = '' # Util.instance().strHexa(self.array[0:self.size])
-      return
+
+      return textMode
+
 
     # si no está en modo texto
     if(textMode == False):
@@ -2694,17 +2697,27 @@ class Comando:
     elif(self.nro == 0x00):
       self.size = 1
       self.strCode = 'END\n'
-
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
 
+    # es un ELSE
     elif(self.nro == 0x01):
-      arg1 = self.array[1]
-      self.size = 2
+      cantBytes = self.array[1]
+
+#      print('--- array: ' + Util.instance().strHexa(self.array))
+#      print('--- cantBytes: {:02x}'.format(cantBytes))
+
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-      self.strCode = 'SMALL_JUMP_FW {:02x}\n'.format(arg1)
+#      self.strCode = 'SMALL_JUMP_FW {:02x}\n'.format(arg1)
+      self.strCode = 'ELSE\n'
+      self.size = 2 + cantBytes
 
+      bloque = Script(self.addr + 2)
+      bloqueArray = self.array[2:2+cantBytes]
+      bloque.decodeRom(bloqueArray)
+      self.script = bloque
 
+#      print('bloqueArray: ' + Util.instance().strHexa(bloqueArray))
 
     elif(self.nro == 0x02):
       arg1 = self.array[1]
@@ -2715,6 +2728,7 @@ class Comando:
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
 
+    # FOR
     elif(self.nro == 0x03):
       cant = self.array[1]
       cantBytes = self.array[2] 
@@ -2730,7 +2744,7 @@ class Comando:
 
 
     # IF
-    elif(self.nro in [0x08, 0x09]):
+    elif(self.nro in [0x08, 0x09, 0x0a, 0x0b, 0x0c]):
 
       conds = []
       cond = self.array[1]
@@ -2745,48 +2759,56 @@ class Comando:
       for cond in conds:
         strCond = Variables.instance().getLabel(cond) + ' '
         strConds += strCond
-        cantBytes = self.array[1+i]
+      cantBytes = self.array[1+i]
 
       if(self.nro == 0x08):
         self.strCode = 'IF(' + strConds + ')\n' 
-      else:
+      elif(self.nro == 0x09):
         strConds = Util.instance().strHexa(conds)
         # condición sobre lo que tengo en la mano?
         self.strCode = 'IF_EQUIP(' + strConds + ')\n' 
+      elif(self.nro == 0x0a):
+        strConds = Util.instance().strHexa(conds)
+        self.strCode = 'IF3(' + strConds + ')\n' 
+      elif(self.nro == 0x0b):
+        strConds = Util.instance().strHexa(conds)
+#        self.strCode = 'STRANGE_IF2(' + strConds + ') {:04x}\n'.format(cantBytes) 
+        self.strCode = 'IF4(' + strConds + ')\n'
+      elif(self.nro == 0x0c):
+        strConds = Util.instance().strHexa(conds)
+        self.strCode = 'IF5(' + strConds + ')\n' 
 
-      self.size = 2 + i + cantBytes
       self.strHex = Util.instance().strHexa(self.array[0:i+2])
 
       bloque = Script(self.addr + len(conds) + 3)
       bloqueArray = self.array[2+i:2+i+cantBytes]
+
+      self.size = 2 + i + cantBytes
+
+      # el bloque puede continuar con un ELSE
+#      bloqueArray = self.array[2+i:]
       bloque.decodeRom(bloqueArray)
+
+      # miro cual fué el último comando (antes del endif)
+      ultimoCmd = bloque.listComandos[len(bloque.listComandos)-2]
+#      print('ultimoCmd: ' + str(ultimoCmd))
+
+      # si tiene else
+      if(ultimoCmd.strCode == 'ELSE\n'):
+ 
+        # miro el largo del bloque else
+        lenElse = bloqueArray[len(bloqueArray)-1]
+#        print('lenElse: {:02x}'.format(lenElse))
+
+        bloque = Script(self.addr + len(conds) + 3)
+        # y se lo sumo al tamaño del bloque del if
+        bloqueArray = self.array[2+i:2+i+cantBytes+lenElse]
+        self.size = 2 + i + cantBytes+lenElse
+
+        # ahora si decodifico el bloque if (incluyendo su else)
+        bloque.decodeRom(bloqueArray)
+
       self.script = bloque
-
-    # IF raro
-    elif(self.nro in [0x0a, 0x0b, 0x0c]):
-
-      conds = []
-      cond = self.array[1]
-      i = 1
-      while(cond != 0x00):
-        conds.append(cond)
-        cond = self.array[1+i]
-        i += 1
-
-      strConds = Util.instance().strHexa(conds)
-      arg = self.array[1+i]
-
-      if(self.nro == 0x0a):
-        self.strCode = 'STRANGE_IF1(' + strConds + ') {:02x}'.format(arg) +'\n' 
-      elif(self.nro == 0x0b):
-        self.strCode = 'STRANGE_IF2(' + strConds + ') {:02x}'.format(arg) +'\n' 
-      elif(self.nro == 0x0c):
-        self.strCode = 'STRANGE_IF3(' + strConds + ') {:02x}'.format(arg) +'\n' 
-
-      self.size = 2 + i 
-      self.strHex = Util.instance().strHexa(self.array[0:i+2])
-
-#      print(self.strCode)
 
     # extras
     elif(self.nro >= 0x10 and self.nro < 0x80):
@@ -3177,7 +3199,7 @@ class Comando:
     if(line.startswith('#') or len(line) == 0):
 
 #      self.hexs.append(0x00)
-      # el sizeLines es la cantidad de renglones del comando (1 salvo FOR, IF que tienen script propio)
+      # el sizeLines es la cantidad de renglones del comando (1 salvo FOR, IF, ELSE que tienen script propio)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
@@ -3187,7 +3209,7 @@ class Comando:
 
     if(line == 'END'):
       self.hexs.append(0x00)
-      # el sizeLines es la cantidad de renglones del comando (1 salvo FOR, IF que tienen script propio)
+      # el sizeLines es la cantidad de renglones del comando (1 salvo FOR, IF, ELSE que tienen script propio)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
       return
@@ -3406,11 +3428,6 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('SCRIPT_ENTRAR_BLOQUE')):
-      self.hexs.append(0xec)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
 
     elif(line.startswith('LOAD_PERSONAJE')):
       argTxt = line[len('LOAD_PERSONAJE')+1:]
@@ -3500,17 +3517,6 @@ class Comando:
       argTxt = line[len('OBTAINS_MAGIC')+1:]
       arg = int(argTxt, 16)
       self.hexs.append(0xd6)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-    elif(line.startswith('SMALL_JUMP_FW')):
-
-      argTxt = line[len('SMALL_JUMP_FW')+1:]
-      arg = int(argTxt, 16)
-
-      self.hexs.append(0x01)
       self.hexs.append(arg)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
@@ -3605,10 +3611,8 @@ class Comando:
 
       idx0 = line.find('=')
       strArgs = line[idx0+3: len(line)-1]
-#      print('strArgs: ' + strArgs)
       strArgsSplit = strArgs.split(',')
       args = [ int(u, 16) for u in strArgsSplit ]
-#      print('args: ' + str(args))
 
       # si es el teleport 1
       if(not line[8] == '2'): 
@@ -3637,7 +3641,7 @@ class Comando:
       compactLine = compactLine.replace('<SUMO>',          u'\U0001F466')
       compactLine = compactLine.replace('<FUJI>',          u'\U0001F467')
       compactLine = compactLine.replace('<CLS>',           u'\U0001F61D')
-      compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F61E')
+      compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F47C')
       compactLine = compactLine.replace('<CARRY>',         u'\U0001F634')
       compactLine = compactLine.replace('<NI_IDEA>',       u'\U0001F624')
       compactLine = compactLine.replace('<ICON a0>', u'\U00002200')
@@ -3658,88 +3662,98 @@ class Comando:
       compactLine = compactLine.replace('<ICON af>', u'\U0000220f')
 
 
-#      print('compactLine: ' + compactLine)
+      lang = Address.instance().language
+      # si es la rom 'jp'
+      if(lang == JAPAN):
+        # tiene su propia forma de comprimir palabras
+        self.hexs = Dictionary.instance().tryJpCompress(compactLine)
+        strHex = Util.instance().strHexa(self.hexs)
+#        print('japancomprimi strHex: ' + strHex)
 
-      sizeLine = len(compactLine)
-      i = 0
-      while(i < sizeLine):
-        char = compactLine[i]
+      else:
 
-        if(char == u'\U0001F60A'):
-          self.hexs.append(0x04)
-        elif(char == u'\U0001F61E'):
-          self.hexs.append(0x00)
-        elif(char == u'\U0001F639'):
-          self.hexs.append(0x10)
-        elif(char == u'\U0001F63F'):
-          self.hexs.append(0x11)
-        elif(char == u'\U0001F610'):
-          self.hexs.append(0x12)
-        elif(char == u'\U0001F618'):
-          self.hexs.append(0x1a)
-        elif(char == u'\U0001F466'):
-          self.hexs.append(0x14)
-        elif(char == u'\U0001F467'):
-          self.hexs.append(0x15)
-        elif(char == u'\U0001F61D'):
-          self.hexs.append(0x1b)
-        elif(char == u'\U0001F634'):
-          self.hexs.append(0x1f)
-        elif(char == u'\U0001F624'):
-          self.hexs.append(0x13)
-        elif(char == u'\U00002200'):
-          self.hexs.append(0xa0)
-        elif(char == u'\U00002201'):
-          self.hexs.append(0xa1)
-        elif(char == u'\U00002202'):
-          self.hexs.append(0xa2)
-        elif(char == u'\U00002203'):
-          self.hexs.append(0xa3)
-        elif(char == u'\U00002204'):
-          self.hexs.append(0xa4)
-        elif(char == u'\U00002205'):
-          self.hexs.append(0xa5)
-        elif(char == u'\U00002206'):
-          self.hexs.append(0xa6)
-        elif(char == u'\U00002207'):
-          self.hexs.append(0xa7)
-        elif(char == u'\U00002208'):
-          self.hexs.append(0xa8)
-        elif(char == u'\U00002209'):
-          self.hexs.append(0xa9)
-        elif(char == u'\U0000220a'):
-          self.hexs.append(0xaa)
-        elif(char == u'\U0000220b'):
-          self.hexs.append(0xab)
-        elif(char == u'\U0000220c'):
-          self.hexs.append(0xac)
-        elif(char == u'\U0000220d'):
-          self.hexs.append(0xad)
-        elif(char == u'\U0000220e'):
-          self.hexs.append(0xae)
-        elif(char == u'\U0000220f'):
-          self.hexs.append(0xaf)
+        sizeLine = len(compactLine)
+        i = 0
+        while(i < sizeLine):
+          char = compactLine[i]
 
-        else:
-          # agarro dos chars seguidos
-          chars = compactLine[i:i+2]
+          if(char == u'\U0001F60A'):
+            self.hexs.append(0x04)
+          elif(char == u'\U0001F61E'):
+            self.hexs.append(0x00)
+          elif(char == u'\U0001F639'):
+            self.hexs.append(0x10)
+          elif(char == u'\U0001F63F'):
+            self.hexs.append(0x11)
+          elif(char == u'\U0001F610'):
+            self.hexs.append(0x12)
+          elif(char == u'\U0001F618'):
+            self.hexs.append(0x1a)
+          elif(char == u'\U0001F466'):
+            self.hexs.append(0x14)
+          elif(char == u'\U0001F467'):
+            self.hexs.append(0x15)
+          elif(char == u'\U0001F61D'):
+            self.hexs.append(0x1b)
+          elif(char == u'\U0001F47C'):
+            self.hexs.append(0x1d)
+          elif(char == u'\U0001F634'):
+            self.hexs.append(0x1f)
+          elif(char == u'\U0001F624'):
+            self.hexs.append(0x13)
+          elif(char == u'\U00002200'):
+            self.hexs.append(0xa0)
+          elif(char == u'\U00002201'):
+            self.hexs.append(0xa1)
+          elif(char == u'\U00002202'):
+            self.hexs.append(0xa2)
+          elif(char == u'\U00002203'):
+            self.hexs.append(0xa3)
+          elif(char == u'\U00002204'):
+            self.hexs.append(0xa4)
+          elif(char == u'\U00002205'):
+            self.hexs.append(0xa5)
+          elif(char == u'\U00002206'):
+            self.hexs.append(0xa6)
+          elif(char == u'\U00002207'):
+            self.hexs.append(0xa7)
+          elif(char == u'\U00002208'):
+            self.hexs.append(0xa8)
+          elif(char == u'\U00002209'):
+            self.hexs.append(0xa9)
+          elif(char == u'\U0000220a'):
+            self.hexs.append(0xaa)
+          elif(char == u'\U0000220b'):
+            self.hexs.append(0xab)
+          elif(char == u'\U0000220c'):
+            self.hexs.append(0xac)
+          elif(char == u'\U0000220d'):
+            self.hexs.append(0xad)
+          elif(char == u'\U0000220e'):
+            self.hexs.append(0xae)
+          elif(char == u'\U0000220f'):
+            self.hexs.append(0xaf)
 
-#          if(chars in Dictionary.instance().invDeDict.keys()):
-          if(chars in Dictionary.instance().chars()):
-#            hexy = Dictionary.instance().invDeDict[chars]
-            hexy = Dictionary.instance().encodeChars(chars)
-#            print('chars: ' + chars + ' - hex: {:02x}'.format(hexy))
-
-            i += 1
           else:
-            char = chars[0]
-#            hexy = Dictionary.instance().invDeDict[char]
-            hexy = Dictionary.instance().encodeChars(char)
-#            print('char: ' + char + ' - hex: {:02x}'.format(hexy))
-          
-          self.hexs.append(hexy)
+            # agarro dos chars seguidos
+            chars = compactLine[i:i+2]
 
-        i += 1
+#            if(chars in Dictionary.instance().invDeDict.keys()):
+            if(chars in Dictionary.instance().chars()):
+#              hexy = Dictionary.instance().invDeDict[chars]
+              hexy = Dictionary.instance().encodeChars(chars)
+#              print('chars: ' + chars + ' - hex: {:02x}'.format(hexy))
+
+              i += 1
+            else:
+              char = chars[0]
+#              hexy = Dictionary.instance().invDeDict[char]
+              hexy = Dictionary.instance().encodeChars(char)
+#              print('char: ' + char + ' - hex: {:02x}'.format(hexy))
+          
+            self.hexs.append(hexy)
+
+          i += 1
 
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
@@ -3780,8 +3794,53 @@ class Comando:
       self.sizeLines = sizeLines
       self.sizeBytes = len(self.hexs)
 
+    elif(line.startswith('ELSE')):
+
+      line0 = self.lines[0]
+      origDeep = len(line0) - len(line0.lstrip(' '))
+      sizeLines = 1
+      deep = 9999
+      bloqueLines = []
+      while( deep > origDeep and sizeLines < len(self.lines) ):
+
+        linei = self.lines[sizeLines]
+        deep = len(linei) - len(linei.lstrip(' '))
+
+#        subLine = self.lines[sizeLines].strip()
+        subLine = self.lines[sizeLines]
+        bloqueLines.append(subLine)
+        sizeLines += 1
+
+#      if(sizeLines < len(self.lines)):
+      # si retomó el nivel de profundidad
+      if(deep == origDeep):
+        # elimino el último renglón (ya es de otro bloque, o un ELSE)
+        proximo = bloqueLines.pop()
+        sizeLines -= 1
+
+
+      self.hexs.append(0x01)
+
+      bloque = Script(self.addr + 2)
+      bloque.decodeTxt(bloqueLines)
+      self.script = bloque
+
+
+      hexs = bloque.encodeRom()
+      strHex = Util.instance().strHexa(hexs)
+
+      self.hexs.append( len(hexs) )
+
+      strHex = Util.instance().strHexa(self.hexs)
+
+      self.sizeLines = sizeLines
+      self.sizeBytes = len(self.hexs)
+
 
     elif(line.startswith('IF')):
+
+      # en principio asumo que no tiene ELSE
+      hasElse = False
 
       idx0 = line.find('(')
       idx1 = line.find(')')
@@ -3793,27 +3852,39 @@ class Comando:
       # elimino el último (está vacío, por el espacio al final antes del paréntesis)
       argsTxt.pop()
 
+      line0 = self.lines[0]
+      origDeep = len(line0) - len(line0.lstrip(' '))
       sizeLines = 1
-      deep = 1
+      deep = 9999
       bloqueLines = []
-      while( deep != 0 ):
+      while( deep > origDeep and sizeLines < len(self.lines)):
 
-        subLine = self.lines[sizeLines].strip()
+        linei = self.lines[sizeLines]
+        deep = len(linei) - len(linei.lstrip(' '))
+
+#        subLine = self.lines[sizeLines].strip()
+        subLine = self.lines[sizeLines]
         bloqueLines.append(subLine)
         sizeLines += 1
 
-        if(subLine.startswith('IF')):
-          deep += 1
-        elif(subLine.startswith('ENDIF')):
-          deep -= 1
+      proximo = 'nada'
+#      if(sizeLines < len(self.lines)):
+      # si retomó el nivel de profundidad
+      if(deep == origDeep):
+        # elimino el último renglón (ya es de otro bloque, o un ELSE)
+        proximo = bloqueLines.pop()
+        sizeLines -= 1
+
+      # si lo que le sigue es un else
+      if(proximo.strip() == 'ELSE'):
+        # lo dejo indicado
+        hasElse = True
 
       if(line.startswith('IF(')):
         self.hexs.append(0x08)
 
         args = []
         for strArg in argsTxt:
-#          print('strArg: ' + strArg)
-#          arg = int(strArg, 16)
           arg = Variables.instance().getVal(strArg)
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
@@ -3837,57 +3908,67 @@ class Comando:
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
+      elif(line.startswith('IF3(')):
+        self.hexs.append(0x0a)
 
+        args = []
+        for strArg in argsTxt:
+#          print('strArg: ' + strArg)
+          arg = int(strArg, 16)
+#          arg = Variables.instance().getVal(strArg)
+#          print('arg: {:02x}'.format(arg))
+          args.append(arg)
 
+        bloque = Script(self.addr + len(args) + 3)
+        bloque.decodeTxt(bloqueLines)
+        self.script = bloque
+
+      elif(line.startswith('IF4(')):
+        self.hexs.append(0x0b)
+
+        args = []
+        for strArg in argsTxt:
+#          print('strArg: ' + strArg)
+          arg = int(strArg, 16)
+#          arg = Variables.instance().getVal(strArg)
+#          print('arg: {:02x}'.format(arg))
+          args.append(arg)
+
+        bloque = Script(self.addr + len(args) + 3)
+        bloque.decodeTxt(bloqueLines)
+        self.script = bloque
+
+      elif(line.startswith('IF5(')):
+        self.hexs.append(0x0c)
+
+        args = []
+        for strArg in argsTxt:
+#          print('strArg: ' + strArg)
+          arg = int(strArg, 16)
+#          arg = Variables.instance().getVal(strArg)
+#          print('arg: {:02x}'.format(arg))
+          args.append(arg)
+
+        bloque = Script(self.addr + len(args) + 3)
+        bloque.decodeTxt(bloqueLines)
+        self.script = bloque
 
       self.hexs.extend(args)
       self.hexs.append(0x00)
 
       hexs = bloque.encodeRom()
       strHex = Util.instance().strHexa(hexs)
-#      print('strHex: ' + strHex)
 
-      self.hexs.append( len(hexs) )
+      if(hasElse):
+        self.hexs.append( len(hexs)+2 )
+      else:
+        self.hexs.append( len(hexs) )
+
+      strHex = Util.instance().strHexa(self.hexs)
+
       self.sizeLines = sizeLines
       self.sizeBytes = len(self.hexs)
 
-
-
-    elif(line.startswith('STRANGE_IF')):
-
-      idx0 = line.find('(')
-      idx1 = line.find(')')
-
-      argTxt = line[idx0+1: idx1]
-#      print('argTxt: ' + argTxt)
-
-      argsTxt = argTxt.split(' ')
-      # elimino el último (está vacío, por el espacio al final antes del paréntesis)
-      argsTxt.pop()
-
-      args = []
-      for strArg in argsTxt:
-#        print('strArg: ' + strArg)
-        arg = int(strArg, 16)
-#        print('arg: {:02x}'.format(arg))
-        args.append(arg)
-
-      strEjec = line[idx1+1:]
-      ejec = int(strEjec, 16)
-
-      # si es el if raro 1
-      if(line[10] == '1'):
-        self.hexs.append(0x0a)
-      elif(line[10] == '2'):
-        self.hexs.append(0x0b)
-      elif(line[10] == '3'):
-        self.hexs.append(0x0c)
- 
-      self.hexs.extend( args )
-      self.hexs.append( 0x00 )
-      self.hexs.append( ejec )
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
 
 
   def __str__(self):
@@ -4291,7 +4372,6 @@ class Scripts:
       self.scripts.append(script)
 #      print('script: ' + str(script))
 
-
       import random
       rr = random.randint(0,0xff)
       gg = random.randint(0,0xff)
@@ -4326,7 +4406,12 @@ class Scripts:
 #    txt = f.read()
 #    f.close()
 
+#    f = open('./en/pruebita.txt', 'w')
+#    f.write(txt)
+#    f.close()
+
     lines = txt.splitlines()
+
     # para cada renglón
     for line in lines:
       # si no tiene CALL
@@ -4343,7 +4428,9 @@ class Scripts:
         if(idxLabel == -1):
 
           strAddr = line[idx0+5: idx0+9]
+#          print('analizando line: ' + line)
           addr = int(strAddr,16)
+#          print('analizando addr: {:04x}'.format(addr))
           # traduzco el addr en nroScript
           script = self.getScript(addr)
           strNroScript = '{:04x}'.format(script.nro)
@@ -4482,13 +4569,20 @@ class Scripts:
       # calculo addr donde termina
       proxAddr = vaPorAddr + len(subArray)
       # si empieza antes pero termina después de 0x4000 (rom 'de' y custom)
-      if(vaPorAddr < 0x4000 and proxAddr >= 0x4000):
+
+      addrDeCorte = 0x4000
+      # la rom 'jp' corta el banco un poco antes
+      if(lang == JAPAN):
+        addrDeCorte -= 4*16
+
+#      if(vaPorAddr < 0x4000 and proxAddr >= 0x4000):
+      if(vaPorAddr < addrDeCorte and proxAddr >= addrDeCorte):
         # cambio al bank siguiente
         vaPorAddr = 0x4000
         # el script anterior fué el último en entrar completo en el banco
         ultimoNroScriptBanco0d = script.nro - 1
 
-        # si la rom es 'en' ó 'fr'
+        # si la rom es 'en' ó 'fr' 
         if(lang in [ENGLISH, FRENCH]):
           # el script anterior se vuelve a copiar al principio del banco siguiente
           self.scripts[i-1].addr = 0x4000
@@ -4561,7 +4655,10 @@ class Script:
 #      print('cmd: ' + (' ' * 2*depth) + ' ' + str(cmd))
 #      string += (' ' * 2*depth) + ' ' + str(cmd) + '\n'
 #      string += (' ' * 2*depth) + str(cmd) 
-#      string += str(cmd) 
+#      string += str(cmd)
+
+      if(cmd.strCode.startswith('ELSE')):
+        depth = depth-1
 
       # si no está en modo texto
       if(cmd.textMode == False):
@@ -4572,8 +4669,10 @@ class Script:
         # y no hay que tabular
         renglon = str(cmd) 
 
-#      print('textMode: ' + str(cmd.textMode) + ' | ' + renglon)
-      string += renglon
+      # si no es un inutil endif
+      if(not cmd.strCode.startswith('ENDIF')):
+#        print('textMode: ' + str(cmd.textMode) + ' | ' + renglon)
+        string += renglon
 
       # si es un CALL (y no está comentado)
 #      if(cmd.nro == 0x02):
@@ -4602,12 +4701,11 @@ class Script:
     # si está en modo texto o no
     textMode = False
     while(True):
-
       cmd = Comando(vaPorAddr)
       textMode = cmd.decodeRom(array[idx:], textMode)
-#      print('cmd: ' + str(cmd))
-      idx += cmd.size
+#      print('cmd: ' + str(cmd) + ' size: ' + str(cmd.size))
 
+      idx += cmd.size
 #      vaPorAddr += len(cmd.hexs)
       vaPorAddr += cmd.size
 
@@ -4634,7 +4732,9 @@ class Script:
 
     vaPorAddr = self.addr
     idx = 0
-    while(True):
+#    while(True):
+    # mientras queden renglones por procesar
+    while(len(lines[idx:])>0):
 
       cmd = Comando(vaPorAddr)
       cmd.decodeTxt(lines[idx:])
@@ -7446,6 +7546,156 @@ class Dictionary:
           chary = Dictionary.instance().decodeByte(val)
           string += chary
 
+  def tryJpCompress(self, string):
+    """ for the JP rom, it compress a string """
+
+    values = []
+    while(len(string)>0):
+      val = Dictionary.instance().tryJpCompressWord(string)
+#      print('tenemos val: {:02x} para string '.format(val) + string)
+      # if it could compress
+      if(val != -1):
+        values.append(val)
+        palabra = Dictionary.instance().decodeByte(val)
+        string = string[len(palabra):]
+
+      # else, it couldn't compress
+      else:
+        char = string[0]
+
+        if(char == u'\U0001F60A'):
+          values.append(0x04)
+        elif(char == u'\U0001F61E'):
+          values.append(0x00)
+        elif(char == u'\U0001F639'):
+          values.append(0x10)
+        elif(char == u'\U0001F63F'):
+          values.append(0x11)
+        elif(char == u'\U0001F610'):
+          values.append(0x12)
+        elif(char == u'\U0001F618'):
+          values.append(0x1a)
+        elif(char == u'\U0001F466'):
+          values.append(0x14)
+        elif(char == u'\U0001F467'):
+          values.append(0x15)
+        elif(char == u'\U0001F61D'):
+          values.append(0x1b)
+        elif(char == u'\U0001F47C'):
+          values.append(0x1d)
+        elif(char == u'\U0001F634'):
+          values.append(0x1f)
+        elif(char == u'\U0001F624'):
+          values.append(0x13)
+        elif(char == u'\U00002200'):
+          values.append(0xa0)
+        elif(char == u'\U00002201'):
+          values.append(0xa1)
+        elif(char == u'\U00002202'):
+          values.append(0xa2)
+        elif(char == u'\U00002203'):
+          values.append(0xa3)
+        elif(char == u'\U00002204'):
+          values.append(0xa4)
+        elif(char == u'\U00002205'):
+          values.append(0xa5)
+        elif(char == u'\U00002206'):
+          values.append(0xa6)
+        elif(char == u'\U00002207'):
+          values.append(0xa7)
+        elif(char == u'\U00002208'):
+          values.append(0xa8)
+        elif(char == u'\U00002209'):
+          values.append(0xa9)
+        elif(char == u'\U0000220a'):
+          values.append(0xaa)
+        elif(char == u'\U0000220b'):
+          values.append(0xab)
+        elif(char == u'\U0000220c'):
+          values.append(0xac)
+        elif(char == u'\U0000220d'):
+          values.append(0xad)
+        elif(char == u'\U0000220e'):
+          values.append(0xae)
+        elif(char == u'\U0000220f'):
+          values.append(0xaf)
+        else:
+
+          # codifico el primer char
+          val = Dictionary.instance().encodeChars(char)
+          values.append(val)
+
+        string = string[1:]
+#        print('queda string: ' + string)
+
+    return values
+
+  def tryJpCompressWord(self, string):
+    """ for the JP rom, it tries to compress a string word """
+
+    lang = Address.instance().language
+
+    val = -1
+    # si es rom japonesa
+    if(lang == JAPAN):
+
+#      print('tratando de comprimir: ' + string)
+      # busco entre las palabras comprimidas
+      for i in range(0x20, 0x40):
+        palabra = self.dict[i]
+#        print('viendo {:02x} '.format(i) + palabra)
+
+        # si la palabra no está vacía y nuestro string comienza con esa palabra
+        if(len(palabra)>0 and string.startswith(palabra)):
+
+#          print('encontramos: ' + palabra + ' en ' + string)
+#          print('encontramos: ' + palabra)
+
+          # quitamos las excepciones? (algunas no las comprime aunque podría) (para que coincida con la rom)
+          if(i == 0x34 and string.startswith('ている😐😿😞')):
+            pass
+          elif(i == 0x32 and string.startswith('どうくつが あるよ')):
+            pass
+          elif(i == 0x24 and string.startswith('てにいれたら')):
+            pass
+          elif(i == 0x34 and string.startswith('ているのですか?')):
+            pass
+          elif(i == 0x29 and string.startswith('わたしておくわ!')):
+            pass
+          elif(i == 0x34 and string.startswith('ている😘マナのひみつに')):
+            pass
+          elif(i == 0x34 and string.startswith('ている😐😝ふたたび')):
+            pass
+          elif(i == 0x34 and string.startswith('ているじゃろう')):
+            pass
+          elif(i == 0x34 and string.startswith('ているんですが…')):
+            pass
+          elif(i == 0x34 and string.startswith('ているらしい😐😝おくの')):
+            pass
+          elif(i == 0x26 and string.startswith('アマンダ「やっぱり')):
+            pass
+          elif(i == 0x29 and string.startswith('わたしのしゅじん')):
+            pass
+          elif(i == 0x29 and string.startswith('わたし おいてけぼり')):
+            pass
+          elif(i == 0x26 and string.startswith('アマンダ「いっしょ')):
+            pass
+          elif(i == 0x2c and string.startswith('ちからが😘はつ')):
+            pass
+          elif(i == 0x25 and string.startswith('マナのいちぞく😐😝マナのきをま')):
+            pass
+          elif(i == 0x25 and string.startswith('マナのきをまもる')):
+            pass
+          elif(i == 0x34 and string.startswith('ている😐😝😞')):
+            pass
+          elif(i == 0x26 and string.startswith('アマンダのかたきを')):
+            pass
+
+          else:
+            val = i
+#            print(' ---> la comprimió!')
+
+    return val
 
   def decodeByte(self, byte):
     char = '·'
@@ -8230,7 +8480,9 @@ class Item:
         self.nro = int(line[idx0+4:].strip(),16)
       elif('name:' in line):
         idx0 = line.index('name:')
-        self.name = line[idx0+5:].strip()
+#        self.name = line[idx0+5:].strip()
+        # es importante el espacio en blanco al final
+        self.name = line[idx0+6:].rstrip('\n')
         self.enabled = True
       elif('nose:' in line):
         idx0 = line.index('nose:')
@@ -8257,6 +8509,8 @@ class Item:
 #        print('chary: ' + chary)
         hexy = Dictionary.instance().encodeChars(chary)
         array.append(hexy)
+
+      strHex = Util.instance().strHexa(array)
 
       faltan = 9-len(array)
       extras = [0x00]*faltan
@@ -10028,10 +10282,10 @@ def main(argv):
   # hago copia de seguridad de las roms stock que encuentre en el directorio actual
   RomSplitter.instance().protectStockRoms()
 
-  romPath = './stockRoms/en.gb'
+#  romPath = './stockRoms/en.gb'
 #  romPath = './stockRoms/fr.gb'
 #  romPath = './stockRoms/de.gb'
-#  romPath = './stockRoms/jp.gb'
+  romPath = './stockRoms/jp.gb'
 #  romPath = './game.gb'
   Address.instance().detectRomLanguage(romPath)
   RomSplitter.instance().configure()
@@ -10042,6 +10296,13 @@ def main(argv):
 #    chary = Dictionary.instance().decodeByte(i)
 #    print('{:02x} '.format(i) + chary)
 #  sys.exit(0)
+
+
+#  string = 'ちからつきたジェマ'
+#  values = Dictionary.instance().tryJpCompress(string)
+#  strHex = Util.instance().strHexa(values)
+#  print('comprimido strHex: ' + strHex)
+
 
   basePath = Address.instance().basePath
 
@@ -10272,6 +10533,7 @@ def main(argv):
 #  bank, addr = 0x0e, 0x2bba
 #  bank, addr = 0x0e, 0x11d7
 
+#  script = RomSplitter.instance().scriptDecode(1)
 #  script = RomSplitter.instance().scriptDecode(addr)
 #  string, calls = script.iterarRecursivoRom(depth=0)
 #  print('string: ' + string)
@@ -10571,7 +10833,6 @@ def main(argv):
 
   # la escucho
 #  RomSplitter.instance().testRom('./de/gbs.gb', 'vba')
-
 
 
 if __name__ == "__main__":
