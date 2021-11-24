@@ -865,7 +865,7 @@ class RomSplitter:
 
       lines = sheet.encodeTxt()
       string = '\n'.join(lines)
-      f = open(basePath + '/spriteSheets/sheet_{:02}.txt'.format(nroSpriteSheet), 'w')
+      f = open(basePath + '/spriteSheets/sheet_{:02}.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
       f.write(string)
       f.close()
 
@@ -887,7 +887,7 @@ class RomSplitter:
       # lo creo
       os.makedirs(path)
 
-    f = open(path + '/personajes.txt', 'w')
+    f = open(path + '/personajes.txt', 'w', encoding="utf-8")
 
     bank = RomSplitter.instance().banks[0x03]
     array = bank[0x1f5a:]
@@ -949,7 +949,7 @@ class RomSplitter:
   def burnPersonajes(self, filepath):
     """ quema los personajes en la rom """
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
 
@@ -1013,7 +1013,7 @@ class RomSplitter:
 
     strGrupos = '\n'.join(lines)
 
-    f = open(path + '/grupos3Personajes.txt', 'w')
+    f = open(path + '/grupos3Personajes.txt', 'w', encoding="utf-8")
     f.write(strGrupos)
     f.close()
 
@@ -1021,7 +1021,7 @@ class RomSplitter:
   def burnGrupos3Personajes(self, filepath):
     """ quema los grupos de 3 personajes """
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
 
@@ -1139,7 +1139,7 @@ class RomSplitter:
 
     lines = canciones.encodeTxt()
     strCanciones = '\n'.join(lines)
-    f = open(path + '/songs.txt', 'w')
+    f = open(path + '/songs.txt', 'w', encoding="utf-8")
     f.write(strCanciones)
     f.close()
 
@@ -1148,7 +1148,7 @@ class RomSplitter:
 
       lines = cancion.encodeTxt()
       strCancion = '\n'.join(lines)
-      f = open(path + '/song_{:02}.txt'.format(i), 'w')
+      f = open(path + '/song_{:02}.txt'.format(i), 'w', encoding="utf-8")
       f.write(strCancion)
       f.close()
 
@@ -1183,7 +1183,7 @@ class RomSplitter:
 
     canciones = Canciones()
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
     canciones.decodeTxt(lines)
@@ -1293,7 +1293,7 @@ class RomSplitter:
     header14 = [0xB6, 0x79, 0xEA, 0x79, 0x1D, 0x7A]
 
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
     canciones.decodeTxt(lines)
@@ -1730,7 +1730,7 @@ class RomSplitter:
     lines = mapas.encodeTxt()
     # lo grabo
     filepath = path + '/mapas.txt'
-    f = open(filepath, 'w')
+    f = open(filepath, 'w', encoding="utf-8")
     strTxt = '\n'.join(lines)
     f.write(strTxt)
     f.close()
@@ -1743,7 +1743,7 @@ class RomSplitter:
       # lo exporto a .txt
       lines = mapa.encodeTxt()
       strMapa = '\n'.join(lines)
-      f = open(path + '/mapa_{:02}_{:02x}.txt'.format(mapa.nroMapa, mapa.nroMapa), 'w')
+      f = open(path + '/mapa_{:02}_{:02x}.txt'.format(mapa.nroMapa, mapa.nroMapa), 'w', encoding="utf-8")
       f.write(strMapa + '\n')
       f.close()
 
@@ -1775,7 +1775,7 @@ class RomSplitter:
     path = basePath + '/mapas'
 
     mapas = Mapas()
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
     mapas.decodeTxt(lines)
@@ -1865,7 +1865,7 @@ class RomSplitter:
 #    for i in range(0,3):
 
       filepath = path + '/mapa_{:02}_{:02x}.tmx'.format(i,i)
-      f = open(filepath, 'r')
+      f = open(filepath, 'r', encoding="utf-8")
       lines = f.readlines()
       f.close()
 
@@ -2096,7 +2096,7 @@ class RomSplitter:
     romName = Address.instance().romName
     path = './' + romName + '/intro.txt'
     # lo exporto al intro.txt
-    f = open(path, 'w')
+    f = open(path, 'w', encoding="utf-8")
     f.write(string)
     f.close()
 
@@ -2105,7 +2105,7 @@ class RomSplitter:
 
     romName = Address.instance().romName
     path = './' + romName + '/intro.txt'
-    f = open(path, 'r')
+    f = open(path, 'r', encoding="utf-8")
     string = f.read()
     f.close()
 
@@ -2256,7 +2256,7 @@ class RomSplitter:
 
     scripts = Scripts()
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
     scripts.decodeTxt(lines)
@@ -2336,7 +2336,7 @@ class RomSplitter:
     romName = Address.instance().romName
     path = './' + romName + '/magic.txt'
     # lo exporto al magic.txt
-    f = open(path, 'w')
+    f = open(path, 'w', encoding="utf-8")
     f.write(string)
     f.close()
 
@@ -2388,7 +2388,7 @@ class RomSplitter:
   def burnItems(self, tipo, filepath):
     """ quema el magic.txt en la rom """
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
 
@@ -2467,7 +2467,7 @@ class RomSplitter:
 
         i += 1
 
-      f = open('./solarusQuest/data/tilesets/sheet_{:02}.dat'.format(k), 'w')
+      f = open('./solarusQuest/data/tilesets/sheet_{:02}.dat'.format(k), 'w', encoding="utf-8")
       f.write('\n'.join(lines))
       f.close()
 
@@ -2559,7 +2559,7 @@ class RomSplitter:
         lines.append('  destination = "_side",')
         lines.append('}\n')
 
-        f = open('./solarusQuest/data/maps/mapa_{:02x}_{:02}_{:02}_map.dat'.format(m, bloquex, bloquey), 'w')
+        f = open('./solarusQuest/data/maps/mapa_{:02x}_{:02}_{:02}_map.dat'.format(m, bloquex, bloquey), 'w', encoding="utf-8")
         f.write('\n'.join(lines))
         f.close()
 
@@ -4402,11 +4402,11 @@ class Scripts:
 
     # 2da pasada (rellena CALLs)
 #    filepath = path + '/scripts_00.txt'
-#    f = open(filepath, 'r')
+#    f = open(filepath, 'r', encoding="utf-8")
 #    txt = f.read()
 #    f.close()
 
-#    f = open('./en/pruebita.txt', 'w')
+#    f = open('./en/pruebita.txt', 'w', encoding="utf-8")
 #    f.write(txt)
 #    f.close()
 
@@ -6119,7 +6119,7 @@ class Mapa:
 
     strTxt = '\n'.join(lines)
 
-    f = open(filepath, 'w')
+    f = open(filepath, 'w', encoding="utf-8")
     f.write(strTxt)
     f.close()
 
@@ -6145,7 +6145,7 @@ class Mapa:
 #      mapa.importTiled(filepath)
 
 
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
 
@@ -6458,7 +6458,7 @@ class Mapa:
       lines = mapa.encodeTxt()
       strTxt = '\n'.join(lines)
 
-      f = open('./game/mapu_{:02x}.txt'.format(mapa.nroMapa), 'w')
+      f = open('./game/mapu_{:02x}.txt'.format(mapa.nroMapa), 'w', encoding="utf-8")
       f.write(strTxt)
       f.close()
 
@@ -7255,7 +7255,7 @@ class SpriteSheet:
 
     strTxt = '\n'.join(lines)
 
-    f = open(filepath, 'w')
+    f = open(filepath, 'w', encoding="utf-8")
     f.write(strTxt)
     f.close()
 
@@ -8820,7 +8820,7 @@ class Cancion:
 
     lines = self.encodeTxt()
     strTxt = '\n'.join(lines)
-    f = open(path + '/' + fileTxt, 'w')
+    f = open(path + '/' + fileTxt, 'w', encoding="utf-8")
     f.write(strTxt)
     f.close()
 
@@ -8832,7 +8832,7 @@ class Cancion:
       lines = self.encodeLilypond()
       strLily = '\n'.join(lines)
 
-      f = open(path + '/' + fileLily, 'w')
+      f = open(path + '/' + fileLily, 'w', encoding="utf-8")
       f.write(strLily)
       f.close()
 
@@ -10572,11 +10572,11 @@ def main(argv):
 #  sheet = RomSplitter.instance().spriteSheets[1]
 #  bloque.exportPngFile('./game/bloqu.png', sheet)
 
-#  f = open('./game/bloquy.txt', 'w')
+#  f = open('./game/bloquy.txt', 'w', encoding="utf-8")
 #  f.write(strLines + '\n')
 #  f.close()
 
-#  f = open('./game/bloquy.txt', 'r')
+#  f = open('./game/bloquy.txt', 'r', encoding="utf-8")
 #  lines = f.readlines()
 #  f.close()
 
@@ -10628,11 +10628,11 @@ def main(argv):
 #  sheet = RomSplitter.instance().spriteSheets[2]
 #  bloque3.exportPngFile('./game/inte.png',sheet)
 
-#  f = open('./de/bloquyint2.txt', 'w')
+#  f = open('./de/bloquyint2.txt', 'w', encoding="utf-8")
 #  f.write(strLines + '\n')
 #  f.close()
 
-#  f = open('./de/bloquyint2.txt', 'r')
+#  f = open('./de/bloquyint2.txt', 'r', encoding="utf-8")
 #  lines = f.readlines()
 #  f.close()
 
