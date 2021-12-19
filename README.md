@@ -1,11 +1,15 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.1
+
+Tutorial video here: 
+https://www.youtube.com/watch?v=XKPYtgKAiQw
 
 Place the mystic quest gameboy rom in the same folder of this script.  The md5sum of the english version should be **24cd3bdf490ef2e1aa6a8af380eccd78**
 
-To run this script you need the following python libraries: pypng, Pillow.  
+To run this script you need the following python libraries: pypng, Pillow.
 You can install them with the following commands
+
 pip install pypng
 pip install Pillow
 
@@ -19,4 +23,7 @@ To encode the rom run
 
 Feel free to join our discord server
 https://discord.gg/mdTDMKh5FR
+
+Github repository:
+https://github.com/arathron123/mystic-editor
 
