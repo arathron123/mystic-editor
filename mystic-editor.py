@@ -837,6 +837,42 @@ class RomSplitter:
         array = tileset.encodeRom()
         RomSplitter.instance().burnBank(11, 0x0000, array)
 
+  def burnSpriteSheets(self):
+
+    basePath = Address.instance().basePath
+    path = basePath + '/spriteSheets'
+
+    sheetNames = ['worldmap', 'city', 'inner', 'cave', 'title']
+    self.spriteSheets = []
+    # para cada una de los cinco spriteSheets 
+    for nroSpriteSheet in range(0,5):
+
+      sheet = SpriteSheet(16,8,nroSpriteSheet,sheetNames[nroSpriteSheet])
+
+      filepath = path + '/sheet_{:02x}.txt'.format(nroSpriteSheet)
+#      print('filepath: ' + filepath)
+
+      f = open(filepath, 'r', encoding="utf-8")
+      lines = f.readlines()
+      f.close()
+
+      sheet.decodeTxt(lines)
+
+      array = sheet.encodeRom()
+#      strArray = Util.instance().strHexa(array)
+#      print('array: ' + strArray)
+
+      addr = Address.instance().spriteSheetsAddr[nroSpriteSheet]
+      cant = Address.instance().cantSpritesInSheet[nroSpriteSheet]
+#      bank08 = RomSplitter.instance().banks[8]
+#      array = bank08[addr:addr+6*cant]
+
+      RomSplitter.instance().burnBank(0x8, addr, array)
+
+
+
+
+ 
 
   def exportSpriteSheets(self):
     """ exporta los spritesheets del bank 12 """
@@ -2668,12 +2704,12 @@ class Comando:
     self.size = 0 
 
 
-    if(self.nro in [0x05, 0x06, 0x1a, 0x1b, 0x2a, 0x88, 0x89, 0x90, 0x94, 0x95, 0x96, 0x97, 0x98, 0x9a, 0x9b, 0xa0, 0xa1, 0xa2, 0xa3, 0xa9, 0xab, 0xaf, 0xb6, 0xbc, 0xbe, 0xc7, 0xcc, 0xdc, 0xdd, 0xde, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xee, 0xfb]):
+    if(self.nro in [0x05, 0x06, 0x1a, 0x1b, 0x2a, 0x88, 0x89, 0x90, 0x94, 0x95, 0x96, 0x97, 0x98, 0x9a, 0x9b, 0xa0, 0xa1, 0xa2, 0xa3, 0xa9, 0xab, 0xb6, 0xbe, 0xcc, 0xdc, 0xdd, 0xee, 0xfb]):
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_0: ' + self.strHex + '\n'
 
-    elif(self.nro in [0x8b, 0x91, 0x9c, 0xc2, 0xc5, 0xd4, 0xd5, 0xd8, 0xd9]):
+    elif(self.nro in [0x8b, 0x91, 0x9c, 0xc2, 0xc5]):
       arg1 = self.array[1]
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
@@ -2766,17 +2802,23 @@ class Comando:
       elif(self.nro == 0x09):
         strConds = Util.instance().strHexa(conds)
         # condición sobre lo que tengo en la mano?
-        self.strCode = 'IF_EQUIP(' + strConds + ')\n' 
+        self.strCode = 'IF_HAND(' + strConds + ')\n' 
       elif(self.nro == 0x0a):
         strConds = Util.instance().strHexa(conds)
-        self.strCode = 'IF3(' + strConds + ')\n' 
+        self.strCode = 'IF_INVENTORY(' + strConds + ')\n' 
       elif(self.nro == 0x0b):
         strConds = Util.instance().strHexa(conds)
-#        self.strCode = 'STRANGE_IF2(' + strConds + ') {:04x}\n'.format(cantBytes) 
-        self.strCode = 'IF4(' + strConds + ')\n'
+        # list of possible arguments (joined by 'or')  
+        # c9 = hero
+        # c1 = moogled_hero?
+        # f1 = chocobot_over_land
+        # f5 = chocobot_over_water
+        # a9 = empty_chest or snowman
+        # 91 = idk, npc following the hero? enemy?
+        self.strCode = 'IF_TRIGGERED_ON_BY(' + strConds + ')\n'
       elif(self.nro == 0x0c):
         strConds = Util.instance().strHexa(conds)
-        self.strCode = 'IF5(' + strConds + ')\n' 
+        self.strCode = 'IF_TRIGGERED_OFF_BY(' + strConds + ')\n' 
 
       self.strHex = Util.instance().strHexa(self.array[0:i+2])
 
@@ -2910,21 +2952,22 @@ class Comando:
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xac):
-      self.strCode = 'MUESTRA_MAPITA1\n'
+      self.strCode = 'SMALLMAP_OPEN\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
     elif(self.nro == 0xad):
-      self.strCode = 'MUESTRA_MAPITA2\n'
+      self.strCode = 'SMALLMAP_IDLE\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
     elif(self.nro == 0xae):
-      self.strCode = 'MUESTRA_MAPITA3\n'
+      self.strCode = 'SMALLMAP_CLOSE\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
-
-
-
+    elif(self.nro == 0xaf):
+      self.strCode = 'OPEN_CHEST\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
 
     elif(self.nro == 0xb0):
@@ -2971,14 +3014,15 @@ class Comando:
 
 
     elif(self.nro == 0xc0):
-      self.strCode = 'REFRESH_HP\n'
+      self.strCode = 'RECOVER_HP\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc1):
-      self.strCode = 'REFRESH_MP\n'
+      self.strCode = 'RECOVER_MP\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
 
     elif(self.nro == 0xc4):
       # bitwise del argumento 
@@ -2998,37 +3042,124 @@ class Comando:
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
+    elif(self.nro == 0xc7):
+      self.strCode = 'RANDOMIZE_7E7F\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc8):
       self.strCode = 'RESET_GAME\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
+
+    elif(self.nro == 0xd0):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      self.strCode = 'INCREASE_GOLD {:02x} {:02x}\n'.format(arg1,arg2)
+      self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
     elif(self.nro == 0xd1):
       arg1 = self.array[1]
       arg2 = self.array[2]
-      self.strCode = 'COMPARE_GOLD {:02x} {:02x}\n'.format(arg1,arg2)
+      self.strCode = 'DECREASE_GOLD {:02x} {:02x}\n'.format(arg1,arg2)
       self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xd2):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      self.strCode = 'INCREASE_EXP {:02x} {:02x}\n'.format(arg1,arg2)
+      self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd3):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      self.strCode = 'DECREASE_EXP {:02x} {:02x}\n'.format(arg1,arg2)
+      self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xd4):
+      arg = self.array[1]
+      self.strCode = 'PICK_ITEM {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd5):
+      arg = self.array[1]
+      self.strCode = 'DROP_ITEM {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd6):
+      arg = self.array[1]
+      self.strCode = 'PICK_MAGIC {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd7):
+      arg = self.array[1]
+      self.strCode = 'DROP_MAGIC {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd8):
+      arg = self.array[1]
+      self.strCode = 'PICK_WEAPON {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xd9):
+      arg = self.array[1]
+      self.strCode = 'DROP_WEAPON {:02x}\n'.format(arg)
+      self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xda):
       arg = self.array[1]
       label = Variables.instance().getLabel(arg)
-      self.strCode = 'SET_ON ' + label + '\n'
+      self.strCode = 'FLAG_ON ' + label + '\n'
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
     elif(self.nro == 0xdb):
       arg = self.array[1]
       label = Variables.instance().getLabel(arg)
-      self.strCode = 'SET_OFF ' + label + '\n'
+      self.strCode = 'FLAG_OFF ' + label + '\n'
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
-    elif(self.nro == 0xd6):
-      arg = self.array[1]
-      self.strCode = 'OBTAINS_MAGIC {:02x}\n'.format(arg)
-      self.size = 2
+    elif(self.nro == 0xde):
+      self.strCode = 'CONSUME_ITEM_AT_HAND\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+ 
+
+    elif(self.nro == 0xe0):
+      self.strCode = 'OPEN_DOOR_NORTH\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe1):
+      self.strCode = 'CLOSE_DOOR_NORTH\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe2):
+      self.strCode = 'OPEN_DOOR_SOUTH\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe3):
+      self.strCode = 'CLOSE_DOOR_SOUTH\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe4):
+      self.strCode = 'OPEN_DOOR_EAST\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe5):
+      self.strCode = 'CLOSE_DOOR_EAST\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe6):
+      self.strCode = 'OPEN_DOOR_WEST\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xe7):
+      self.strCode = 'CLOSE_DOOR_WEST\n'
+      self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xe8):
@@ -3036,19 +3167,16 @@ class Comando:
       self.strCode = 'SCROLL_ABAJO\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
     elif(self.nro == 0xe9):
       # la pantalla hace scroll al bloque hacia abajo
       self.strCode = 'SCROLL_ARRIBA\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
     elif(self.nro == 0xea):
       # la pantalla hace scroll al bloque de la izquierda
       self.strCode = 'SCROLL_IZQUIERDA\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
     elif(self.nro == 0xeb):
       # la pantalla hace scroll al bloque de la derecha
       self.strCode = 'SCROLL_DERECHA\n'
@@ -3076,8 +3204,6 @@ class Comando:
       self.strCode = 'TELEPORT2 (MM,BB,XX,YY) = (' + strMm + ',' + strBb + ',' + strXx + ',' + strYy + ')\n'
       self.size = 5
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
-
 
     elif(self.nro == 0xf4):
       mm = self.array[1]
@@ -3246,6 +3372,10 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
+    elif(line.startswith('RANDOMIZE_7E7F')):
+      self.hexs.append(0xc7)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
 
     elif(line.startswith('HEROE_PASO_ADELANTE')):
       self.hexs.append(0x80)
@@ -3355,16 +3485,21 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('MUESTRA_MAPITA1')):
+    elif(line.startswith('SMALLMAP_OPEN')):
       self.hexs.append(0xac)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
-    elif(line.startswith('MUESTRA_MAPITA2')):
+    elif(line.startswith('SMALLMAP_IDLE')):
       self.hexs.append(0xad)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
-    elif(line.startswith('MUESTRA_MAPITA3')):
+    elif(line.startswith('SMALLMAP_CLOSE')):
       self.hexs.append(0xae)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('OPEN_CHEST')):
+      self.hexs.append(0xaf)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
@@ -3398,14 +3533,56 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('REFRESH_HP')):
+    elif(line.startswith('RECOVER_HP')):
       self.hexs.append(0xc0)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
-    elif(line.startswith('REFRESH_MP')):
+    elif(line.startswith('RECOVER_MP')):
       self.hexs.append(0xc1)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DISEASE')):
+      argTxt = line[len('DISEASE')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xc4)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('OPEN_DOOR_NORTH')):
+      self.hexs.append(0xe0)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_NORTH')):
+      self.hexs.append(0xe1)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_SOUTH')):
+      self.hexs.append(0xe2)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_SOUTH')):
+      self.hexs.append(0xe3)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_EAST')):
+      self.hexs.append(0xe4)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_EAST')):
+      self.hexs.append(0xe5)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_WEST')):
+      self.hexs.append(0xe6)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_WEST')):
+      self.hexs.append(0xe7)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+ 
 
     elif(line.startswith('SCROLL_ABAJO')):
       self.hexs.append(0xe8)
@@ -3452,14 +3629,6 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('DISEASE')):
-      argTxt = line[len('DISEASE')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xc4)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
 
     elif(line.startswith('SLEEP')):
       argTxt = line[len('SLEEP')+1:]
@@ -3478,8 +3647,23 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('COMPARE_GOLD')):
-      argTxt = line[len('COMPARE_GOLD')+1:]
+    elif(line.startswith('INCREASE_GOLD')):
+      argTxt = line[len('INCREASE_GOLD')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd0)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DECREASE_GOLD')):
+      argTxt = line[len('DECREASE_GOLD')+1:]
 #      arg = int(argTxt, 16)
 
       argsTxt = argTxt.split(' ')
@@ -3494,9 +3678,86 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 
+    elif(line.startswith('INCREASE_EXP')):
+      argTxt = line[len('INCREASE_EXP')+1:]
+#      arg = int(argTxt, 16)
 
-    elif(line.startswith('SET_ON')):
-      argTxt = line[len('SET_ON')+1:]
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd2)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DECREASE_EXP')):
+      argTxt = line[len('DECREASE_EXP')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd3)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+
+
+    elif(line.startswith('PICK_ITEM')):
+      argTxt = line[len('PICK_ITEM')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd4)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_ITEM')):
+      argTxt = line[len('DROP_ITEM')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd5)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PICK_MAGIC')):
+      argTxt = line[len('PICK_MAGIC')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd6)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_MAGIC')):
+      argTxt = line[len('DROP_MAGIC')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd7)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PICK_WEAPON')):
+      argTxt = line[len('PICK_WEAPON')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd8)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_WEAPON')):
+      argTxt = line[len('DROP_WEAPON')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd9)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('FLAG_ON')):
+      argTxt = line[len('FLAG_ON')+1:]
 #      arg = int(argTxt, 16)
       arg = Variables.instance().getVal(argTxt)
       self.hexs.append(0xda)
@@ -3504,8 +3765,8 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('SET_OFF')):
-      argTxt = line[len('SET_OFF')+1:]
+    elif(line.startswith('FLAG_OFF')):
+      argTxt = line[len('FLAG_OFF')+1:]
 #      arg = int(argTxt, 16)
       arg = Variables.instance().getVal(argTxt)
       self.hexs.append(0xdb)
@@ -3513,11 +3774,8 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('OBTAINS_MAGIC')):
-      argTxt = line[len('OBTAINS_MAGIC')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd6)
-      self.hexs.append(arg)
+    elif(line.startswith('CONSUME_ITEM_AT_HAND')):
+      self.hexs.append(0xde)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
@@ -3893,7 +4151,7 @@ class Comando:
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
-      elif(line.startswith('IF_EQUIP(')):
+      elif(line.startswith('IF_HAND(')):
         self.hexs.append(0x09)
 
         args = []
@@ -3908,7 +4166,7 @@ class Comando:
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
-      elif(line.startswith('IF3(')):
+      elif(line.startswith('IF_INVENTORY(')):
         self.hexs.append(0x0a)
 
         args = []
@@ -3923,7 +4181,7 @@ class Comando:
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
-      elif(line.startswith('IF4(')):
+      elif(line.startswith('IF_TRIGGERED_ON_BY(')):
         self.hexs.append(0x0b)
 
         args = []
@@ -3938,7 +4196,7 @@ class Comando:
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
-      elif(line.startswith('IF5(')):
+      elif(line.startswith('IF_TRIGGERED_OFF_BY(')):
         self.hexs.append(0x0c)
 
         args = []
@@ -4224,7 +4482,7 @@ class Variables:
       self.variables[0x6f] = 'ARRIBA_DEL_CHOCOBO'
       self.variables[0x70] = 'CHOCOBOT_SOBRE_AGUA'
       # cuando nos hacen una pregunta si-no
-      self.variables[0x7f] = 'ELIGIMOS_NO'
+#      self.variables[0x7f] = 'ELIGIMOS_NO'
 
       # nombres de los monstruos grandes
       self.monstruos[0x00] = 'LEE_DRACULA'
@@ -8291,7 +8549,7 @@ class AparicionPersonaje:
     lines.append('valMin: {:02x}'.format(self.valMin))
     lines.append('valMax: {:02x}'.format(self.valMax))
     lines.append('values: {:02x} {:02x} {:02x} {:02x}'.format(self.values[0], self.values[1], self.values[2], self.values[3]))
-    lines.append('extras: ' + Util.instance().strHexa(self.extras))
+    lines.append('position_xy: ' + Util.instance().strHexa(self.extras))
     lines.append('cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1]))
 
     return lines
@@ -8317,8 +8575,8 @@ class AparicionPersonaje:
         strVals = strVals.split()
         vals = [int(strVal,16) for strVal in strVals]
         self.values = vals
-      elif(line.startswith('extras:')):
-        strExts = line[7:].strip()
+      elif(line.startswith('position_xy:')):
+        strExts = line[12:].strip()
 #        print('strExts: ' + strExts)
         strExts = strExts.split()
         exts = [int(strExt,16) for strExt in strExts]
@@ -8332,7 +8590,7 @@ class AparicionPersonaje:
 
   def __str__(self):
     strExtras = Util.instance().strHexa(self.extras)
-    string = 'nro{:03} addr {:04x} | minmax: {:02x} {:02x} values: {:02x} {:02x} {:02x} {:02x} extras: '.format(self.nro, self.addr, self.valMin, self.valMax, self.values[0], self.values[1], self.values[2], self.values[3]) + strExtras + ' cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1])
+    string = 'nro{:03} addr {:04x} | minmax: {:02x} {:02x} values: {:02x} {:02x} {:02x} {:02x} position_xy: '.format(self.nro, self.addr, self.valMin, self.valMax, self.values[0], self.values[1], self.values[2], self.values[3]) + strExtras + ' cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1])
     return string
 
 ##########################################################
@@ -8415,10 +8673,45 @@ class Item:
 
     self.nro = -1
     self.name = ''
-    self.nose = []
+
+    # the 7 bytes that encodes the behaviour of the item
+#    self.nose = []
+
+    # ---byte0
+    # si el item se puede usar varias veces antes de consumirse (0 ó 1)
+    self.multiuse = 0
+    # si el item no lo podemos vender (0 ó 1)
+    self.unsellable = 0
+    self.bit_unknown_1 = 0
+    self.bit_unknown_2 = 0
+    self.bit_unknown_3 = 0
+    self.bit_unknown_4 = 0
+    # MP cost (between 0 and 3)
+    self.magic_cost = 0
+
+    # ---byte1
+    self.bit_unknown_5 = 0
+    # original quantity of consumable multi-use item (between 0 and 7)
+    self.quantity = 0
+    # if it is a shield, helmet, armor or weapon (0 or 1)
+    self.shield = 0
+    self.helmet = 0
+    self.armor = 0
+    self.weapon = 0
+
+    # ---byte2: not sure, seems to be how much HP recover in some items
+    self.hp = 0x00
+    # ---byte3: not sure, seems to be how much MP recover in some items
+    self.mp = 0x00
+    # ---byte4: the attack or defense points, whatever corresponds
+    self.attack_defense_points = 0x00
+    # ---byte5 and byte6: the value of the item when you want to buy it
+    self.gold_value = 0x0000
+
     self.enabled = False
     # los bytes del item disabled
     self.disabledBytes = []
+
 
   def decodeRom(self, data):
     """ decodifica el item a partir del array de 16 bytes """
@@ -8432,11 +8725,12 @@ class Item:
     lang = Address.instance().language
     icon = data[1]
     firstLetter = data[2]
+    secondLetter = data[3]
 
 #    print('hexName: ' + Util.instance().strHexa(data[0:9]))
 
-    # si es del tipo magia ó es rom 'jp' ó el nombre comienza con un ícono y continúa una letra mayúscula
-    if(self.tipo == 'magic' or lang == JAPAN or (icon in range(0xa0,0xb0) and firstLetter in range(0xb0,0xd4))):
+    # si es del tipo magia ó es rom 'jp' ó el nombre comienza con un ícono y continúa una letra mayúscula ó es el Mirror (firstLetter == 'M' and secondLetter == 'i')
+    if(self.tipo == 'magic' or lang == JAPAN or (icon in range(0xa0,0xb0) and firstLetter in range(0xb0,0xd4)) or (firstLetter == 198 and secondLetter == 220)):
 #    if(True):
       name = ''
       for hexa in data[1:1+8]:
@@ -8446,12 +8740,79 @@ class Item:
         else:
           break
 #      print('nombre: ' + name)
+#      print('firstLetter: ' + str(firstLetter))
+#      print('secondLetter: ' + str(secondLetter))
       # el nombre del item
       self.name = name
 
-#      print('name: ' + name)
+#      print('------ name: ' + name)
 
-      self.nose = data[9:9+7]
+#      self.nose = data[9:9+7]
+
+      byte0 = data[9]
+#      print('byte0: {:02x}'.format(byte0))
+
+      # el primer bit establece si se consume en un solo uso (por contra de varias veces)
+      self.multiuse = 1 if (byte0 & 2**7 != 0) else 0
+#      print('multiuse: ' + str(self.multiuse))
+ 
+      # el segundo bit establece si es vendible
+      self.unsellable = 1 if (byte0 & 2**6 != 0) else 0
+#      print('unsellable: ' + str(self.unsellable))
+
+      # bits desconocidos (todos cero?)
+      self.bit_unknown_1 = 1 if (byte0 & 2**5 != 0) else 0
+#      print('bit_unknown_1: ' + str(self.bit_unknown_1))
+      self.bit_unknown_2 = 1 if (byte0 & 2**4 != 0) else 0
+#      print('bit_unknown_2: ' + str(self.bit_unknown_2))
+      self.bit_unknown_3 = 1 if (byte0 & 2**3 != 0) else 0
+#      print('bit_unknown_3: ' + str(self.bit_unknown_3))
+      self.bit_unknown_4 = 1 if (byte0 & 2**2 != 0) else 0
+#      print('bit_unknown_4: ' + str(self.bit_unknown_4))
+
+      mpCost1 = 1 if (byte0 & 2**1 != 0) else 0
+      mpCost0 = 1 if (byte0 & 2**0 != 0) else 0
+      self.magic_cost = mpCost1*2+mpCost0
+#      print('magic_cost: ' + str(self.magic_cost))
+
+      byte1 = data[10]
+#      print('byte1: {:02x}'.format(byte1))
+
+      self.bit_unknown_5 = 1 if (byte1 & 2**7 != 0) else 0
+#      print('bit_unknown_5: ' + str(self.bit_unknown_5))
+
+      cant2 = 1 if (byte1 & 2**6 != 0) else 0
+      cant1 = 1 if (byte1 & 2**5 != 0) else 0
+      cant0 = 1 if (byte1 & 2**4 != 0) else 0
+      self.quantity = cant2*2**2 + cant1*2 + cant0
+#      print('quantity: ' + str(self.quantity))
+
+      self.shield = 1 if (byte1 & 2**3 != 0) else 0
+#      print('shield: ' + str(self.shield))
+      self.helmet = 1 if (byte1 & 2**2 != 0) else 0
+#      print('helmet: ' + str(self.helmet))
+      self.armor = 1 if (byte1 & 2**1 != 0) else 0
+#      print('armor: ' + str(self.armor))
+      self.weapon = 1 if (byte1 & 2**0 != 0) else 0
+#      print('weapon: ' + str(self.weapon))
+
+      byte2 = data[11]
+      self.hp = byte2
+#      print('hp: {:02x}'.format(self.hp))
+
+      byte3 = data[12]
+      self.mp = byte3
+#      print('mp: {:02x}'.format(self.mp))
+
+      byte4 = data[13]
+      self.attack_defense_points = byte4
+#      print('attack_defense_points: {:02x}'.format(self.attack_defense_points))
+
+      byte5 = data[14]
+      byte6 = data[15]
+      self.gold_value = byte6*0x100 + byte5
+#      print('gold_value: {:04x}'.format(self.gold_value))
+
       self.enabled = True
     # sino, el nombre no comienza con un ícono
     else:
@@ -8461,12 +8822,34 @@ class Item:
 
   def encodeTxt(self):
     lines = []
-    lines.append('\n--- nro: {:02x}'.format(self.nro))
+    lines.append('\n---------- nro: {:02x}'.format(self.nro))
     lines.append('tipo: ' + self.tipo)
     if(self.enabled):
       lines.append('name: ' + self.name)
-      strHex = Util.instance().strHexa(self.nose)
-      lines.append('nose: ' + strHex)
+#      strHex = Util.instance().strHexa(self.nose)
+#      lines.append('nose: ' + strHex)
+
+      # byte0
+      lines.append('multiuse: ' + str(self.multiuse))
+      lines.append('unsellable: ' + str(self.unsellable))
+      lines.append('unknown_bits: {:1},{:1},{:1},{:1}'.format(self.bit_unknown_1, self.bit_unknown_2, self.bit_unknown_3, self.bit_unknown_4))
+      lines.append('magic_cost: ' + str(self.magic_cost))
+
+      # byte1
+      lines.append('unknown_bit: {:1}'.format(self.bit_unknown_5))
+      lines.append('quantity: {:1}'.format(self.quantity))
+      lines.append('shield,helmet,armor,weapon: {:1},{:1},{:1},{:1}'.format(self.shield, self.helmet, self.armor, self.weapon))
+
+      # byte2
+      lines.append('hp: 0x{:02x}'.format(self.hp))
+      # byte3
+      lines.append('mp: 0x{:02x}'.format(self.mp))
+      # byte4
+      lines.append('attack_defense_points: 0x{:02x}'.format(self.attack_defense_points))
+
+      # byte5 and byte6
+      lines.append('gold_value: 0x{:04x}'.format(self.gold_value))
+
     else:
       strHex = Util.instance().strHexa(self.disabledBytes)
       lines.append('disabledBytes: ' + strHex)
@@ -8478,18 +8861,75 @@ class Item:
       if('nro:' in line):
         idx0 = line.index('nro:')
         self.nro = int(line[idx0+4:].strip(),16)
+
       elif('name:' in line):
         idx0 = line.index('name:')
 #        self.name = line[idx0+5:].strip()
         # es importante el espacio en blanco al final
         self.name = line[idx0+6:].rstrip('\n')
         self.enabled = True
-      elif('nose:' in line):
-        idx0 = line.index('nose:')
-        nose = line[idx0+5:].strip()
-        nose = nose.split()
-        nose = [int(nosy,16) for nosy in nose]
-        self.nose = nose
+
+#      elif('nose:' in line):
+#        idx0 = line.index('nose:')
+#        nose = line[idx0+5:].strip()
+#        nose = nose.split()
+#        nose = [int(nosy,16) for nosy in nose]
+#        self.nose = nose
+
+      elif('multiuse:' in line):
+        idx0 = line.index('multiuse:')
+        self.multiuse = int(line[idx0+9:].strip(),2)
+      elif('unsellable:' in line):
+        idx0 = line.index('unsellable:')
+        self.unsellable = int(line[idx0+11:].strip(),2)
+
+      elif('unknown_bits:' in line):
+        idx0 = line.index('unknown_bits:')
+        strBits = line[idx0+13:].strip()
+        strBitsList = strBits.split(',')
+        self.bit_unknown_1 = int(strBitsList[0].strip(),2)
+        self.bit_unknown_2 = int(strBitsList[1].strip(),2)
+        self.bit_unknown_3 = int(strBitsList[2].strip(),2)
+        self.bit_unknown_4 = int(strBitsList[3].strip(),2)
+
+      elif('magic_cost:' in line):
+        idx0 = line.index('magic_cost:')
+        self.magic_cost = int(line[idx0+11:].strip())
+
+      elif('unknown_bit:' in line):
+        idx0 = line.index('unknown_bit:')
+        self.bit_unknown_5 = int(line[idx0+12:].strip(),2)
+ 
+      elif('quantity:' in line):
+        idx0 = line.index('quantity:')
+        self.quantity = int(line[idx0+9:].strip())
+
+      elif('shield,helmet,armor,weapon:' in line):
+        idx0 = line.index('shield,helmet,armor,weapon:')
+        strBits = line[idx0+27:].strip()
+        strBitsList = strBits.split(',')
+        self.shield = int(strBitsList[0].strip(),2)
+        self.helmet = int(strBitsList[1].strip(),2)
+        self.armor = int(strBitsList[2].strip(),2)
+        self.weapon = int(strBitsList[3].strip(),2)
+
+      elif('hp:' in line):
+        idx0 = line.index('hp:')
+        self.hp = int(line[idx0+3:].strip(),16)
+
+      elif('mp:' in line):
+        idx0 = line.index('mp:')
+        self.mp = int(line[idx0+3:].strip(),16)
+
+      elif('attack_defense_points:' in line):
+        idx0 = line.index('attack_defense_points:')
+        self.attack_defense_points = int(line[idx0+22:].strip(),16)
+
+      elif('gold_value:' in line):
+        idx0 = line.index('gold_value:')
+        self.gold_value = int(line[idx0+11:].strip(),16)
+#        print('gold value {:04x}'.format(self.gold_value))
+
       elif('disabledBytes:' in line):
         idx0 = line.index('disabledBytes:')
         diss = line[idx0+14:].strip()
@@ -8516,7 +8956,33 @@ class Item:
       extras = [0x00]*faltan
       array.extend(extras)
 
-      array.extend(self.nose)
+      mpCost1 = self.magic_cost // 2
+      mpCost0 = self.magic_cost % 2
+
+      byte0 = self.multiuse*2**7 + self.unsellable*2**6 + self.bit_unknown_1*2**5 + self.bit_unknown_2*2**4 + self.bit_unknown_3*2**3 + self.bit_unknown_4*2**2 + mpCost1*2**1 + mpCost0*2**0
+#      print('byte0: {:02x}'.format(byte0))
+
+      cant2 = (self.quantity & 0b100) // 4
+      cant1 = (self.quantity & 0b010) // 2
+      cant0 = (self.quantity & 0b001) // 1
+
+      byte1 = self.bit_unknown_5*2**7 + cant2*2**6 + cant1*2**5 + cant0*2**4 + self.shield*2**3 + self.helmet*2**2 + self.armor*2**1 + self.weapon*2**0
+#      print('byte1: {:02x}'.format(byte1))
+
+      byte2 = self.hp
+      byte3 = self.mp
+      byte4 = self.attack_defense_points
+
+      byte5 = self.gold_value % 0x100
+      byte6 = self.gold_value // 0x100
+
+      nose = [byte0, byte1, byte2, byte3, byte4, byte5, byte6]
+#      strNoseOld = Util.instance().strHexa(self.nose)
+#      print('strNoseOld: ' + strNoseOld)
+#      strNoseNew = Util.instance().strHexa(nose)
+#      print('strNoseNew: ' + strNoseNew)
+
+      array.extend(nose)
 
     # sino, no está enabled
     else:
@@ -10286,7 +10752,7 @@ def main(argv):
 #  romPath = './stockRoms/fr.gb'
 #  romPath = './stockRoms/de.gb'
 #  romPath = './stockRoms/jp.gb'
-#  romPath = './game.gb'
+#  romPath = './ember.gb'
   Address.instance().detectRomLanguage(romPath)
   RomSplitter.instance().configure()
   # decodifico el diccionario (compress)
@@ -10388,6 +10854,10 @@ def main(argv):
 
       RomSplitter.instance().burnFont()
       RomSplitter.instance().burnTilesets()
+      print('quemando spriteSheets...')
+      RomSplitter.instance().burnSpriteSheets()
+ 
+
       RomSplitter.instance().burnSpriteSheetPersonajes()
 
       print('quemando personajes...')
@@ -10485,11 +10955,13 @@ def main(argv):
 #  RomSplitter.instance().pattern2()
 
   # exporto la magia, items y weapons
+#  print('exportando items...')
 #  RomSplitter.instance().exportItems()
 
-#  RomSplitter.instance().burnItems('magic','./game/magic.txt')
-#  RomSplitter.instance().burnItems('item','./game/items.txt')
-#  RomSplitter.instance().burnItems('weapon','./game/weapons.txt')
+#  print('importando items...')
+#  RomSplitter.instance().burnItems('magic','./en/magic.txt')
+#  RomSplitter.instance().burnItems('item','./en/items.txt')
+#  RomSplitter.instance().burnItems('weapon','./en/weapons.txt')
 
 #  item = Cosas.instance().getItem(0x0e)
 #  print('item: ' + str(item))
@@ -10677,8 +11149,10 @@ def main(argv):
 
 
   # exporto los personajes
+#  print('exportando personajes...')
 #  RomSplitter.instance().exportPersonajes()
-#  RomSplitter.instance().burnPersonajes('./game/personajes/personajes.txt')
+#  print('importando personajes...')
+#  RomSplitter.instance().burnPersonajes('./en/personajes/personajes.txt')
 
   # exporto grupos de 3 personajes
 #  RomSplitter.instance().exportGrupos3Personajes()
@@ -10750,6 +11224,19 @@ def main(argv):
 #  RomSplitter.instance().exportSongs(exportLilypond=True)
 
 
+  # cargo el banco 16 con las canciones
+#  bank = RomSplitter.instance().banks[0x0F]
+
+#  melody2 = Melody(29)
+#  melody2 = Melody(nroChannel=2, addr=0x4d05, repeatTermina=False)
+#  melody2.decodeRom(bank)
+
+#  print('melody2: ' + str(melody2))
+#  string = melody2.encodeTxt()
+#  print('string: ' + '\n'.join(string))
+
+
+
   # trata de mantener compatibilidad binaria con la rom original
 #  RomSplitter.instance().burnSongs(filepath='./game/audio/songs.txt')
   # concatena todas las canciones, default para roms nuevas (no compatible con la original)
@@ -10797,7 +11284,8 @@ def main(argv):
   # exporto a solarus
 #  RomSplitter.instance().exportSolarus()
 
-
+#  RomSplitter.instance().burnSpriteSheets()
+ 
 
 
   # exporto nueva rom
