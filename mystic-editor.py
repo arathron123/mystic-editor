@@ -10,25 +10,28 @@ import sys
 # pip3 install pypng
 import png
 
+VERSION = '0.95.2'
+
 # los idiomas
 ENGLISH = 0
-FRENCH = 1
-GERMAN = 2
-JAPAN = 3
+ENGLISH_UK = 1
+FRENCH = 2
+GERMAN = 3
+JAPAN = 4
 
 # los md5sum de las rom stock originales
 stockRomsMd5 = ['24cd3bdf490ef2e1aa6a8af380eccd78',
+                '5f41a4de9f480c72cbc6eaad6bcc3753',
                 '2efe1569e3be81e7e19b13eafc60cd24',
                 'b6a08c7e3af4ec8c9559cd268115d97c',
                 '3b359e9fec183bff5f964e25b599b246']
 
 # los idiomas de las rom stock originales
-stockRomsLang = ['en', 'fr', 'de', 'jp']
-stockRomsLanguage = ['english', 'french', 'deutsch', 'japan']
-
+stockRomsLang = ['en', 'en_uk', 'fr', 'de', 'jp']
+stockRomsLanguage = ['english', 'english_uk', 'french', 'deutsch', 'japan']
 
 def printHelp():
-  print('mystic-editor v0.95')
+  print('mystic-editor v' + VERSION)
   print('Usage:')
   print('  mystic-editor.py <command>')
   print('    where <command> should be one of "-d", "--decode", "-e", "--encode" ')
@@ -37,6 +40,45 @@ def printHelp():
   print('  mystic-editor.py -e         (encodes a rom)')
   print('The rom should be placed in this folder')
   print('------------------------------------------------------------')
+
+def exportREADME():
+  print('exporting README.md')
+
+  lines = []
+  lines.append('# mystic-editor')
+  lines.append('')
+  lines.append('Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version ' + VERSION)
+  lines.append('')
+  lines.append('Tutorial video here: ')
+  lines.append('https://www.youtube.com/watch?v=XKPYtgKAiQw')
+  lines.append('')
+  lines.append('Place the mystic quest gameboy rom in the same folder of this script.  The md5sum of the english version should be **24cd3bdf490ef2e1aa6a8af380eccd78**')
+  lines.append('')
+  lines.append('To run this script you need the following python libraries: pypng, Pillow.')
+  lines.append('You can install them with the following commands')
+  lines.append('')
+  lines.append('pip install pypng')
+  lines.append('pip install Pillow')
+  lines.append('')
+  lines.append('To decode the rom run')
+  lines.append('**python3 mystic-editor.py -d**')
+  lines.append('')
+  lines.append('A folder named **en** (for english) will be created with all the maps, scripts, sprites, and audio files decoded from the rom.  This files can be edited and re-encoded again into the rom.')
+  lines.append('')
+  lines.append('To encode the rom run')
+  lines.append('**python3 mystic-editor.py -e**')
+  lines.append('')
+  lines.append('Feel free to join our discord server')
+  lines.append('https://discord.gg/mdTDMKh5FR')
+  lines.append('')
+  lines.append('Github repository:')
+  lines.append('https://github.com/arathron123/mystic-editor')
+
+  strReadme = '\n'.join(lines)
+
+  f = open('README.md', 'w', encoding="utf-8")
+  f.write(strReadme)
+  f.close()
 
 
 ############################################
@@ -216,25 +258,36 @@ class Address:
 
     # cosas de scripts
     self.addrScriptAddrDic_en = 0x0f05
+    self.addrScriptAddrDic_en_uk = 0x0f11
     self.addrScriptAddrDic_de = 0x0f11
     self.addrScriptAddrDic_fr = 0x0f11
     self.addrScriptAddrDic_jp = 0x0ef9
     self.addrScriptAddrDic = self.addrScriptAddrDic_en
 
     self.cantScripts_en = 0x054a
+    self.cantScripts_en_uk = 0x054a
     self.cantScripts_de = 0x054d
     self.cantScripts_fr = 0x054d
     self.cantScripts_jp = 0x0549
     self.cantScripts = self.cantScripts_en
 
+    self.expTable_en = 0x0dd6
+    self.expTable_en_uk = 0x0de2
+    self.expTable_de = 0x0de2
+    self.expTable_fr = 0x0de2
+    self.expTable_jp = 0x0dca
+    self.expTable = self.expTable_en
+
     # cosas del diccionario
     self.addrDictionary_en = 0x3f1d
+    self.addrDictionary_en_uk = 0x3f1d
     self.addrDictionary_de = 0x3f3f
     self.addrDictionary_fr = 0x3f30
     self.addrDictionary_jp = 0x3f72
     self.addrDictionary = self.addrDictionary_en
 
     self.cantDictionary_en = 112
+    self.cantDictionary_en_uk = 112
     self.cantDictionary_de = 96
     self.cantDictionary_fr = 96
     self.cantDictionary_jp = 0 # no se usa
@@ -242,6 +295,7 @@ class Address:
 
     # la intro en el bank02
     self.addrIntro_en = 0x3e8a
+    self.addrIntro_en_uk = 0x3e8a
     self.addrIntro_de = 0x3ed8
     self.addrIntro_fr = 0x3eb3
     self.addrIntro_jp = 0x3e48
@@ -249,6 +303,7 @@ class Address:
 
     # listado de magia en el bank02
     self.addrMagic_en = 0x1dda
+    self.addrMagic_en_uk = 0x1dda
     self.addrMagic_de = 0x1de4
     self.addrMagic_fr = 0x1de4
     self.addrMagic_jp = 0x1f65
@@ -258,7 +313,7 @@ class Address:
     # los offsets de 'world map', 'village', 'interior casa', 'interior cueva' y 'intro' respectivamente en el bank08
     self.spriteSheetsAddr = [0x00b0, 0x03b0, 0x06b0, 0x0938, 0x0c1a]
     # cantidad de sprites de cada spriteSheet
-    self.cantSpritesInSheet = [0x80, 0x80, 0x6c, 0x7b, 0x4d]
+    self.cantSpritesInSheet = [0x80, 0x80, 0x6c, 0x7b, 0x4c]
 
 
   def detectRomLanguage(self, romPath):
@@ -276,23 +331,25 @@ class Address:
       # abro la rom
       array = Util.instance().fileToArray(romPath)
       # agarro los dos últimos bytes del bank0
-      subArray = array[0x4000-2 : 0x4000]
-      val = subArray[1]*0x100 + subArray[0]
+      subArray = array[0x4000-4 : 0x4000]
+      val = subArray[0]*0x100**3 + subArray[1]*0x100**2 + subArray[2]*0x100 + subArray[3]
 #      print('val {:04x}'.format(val))
 
-      if(val == 0x0000):
+      if(val == 0xE7000000):
         lang = ENGLISH
-        print(romPath + ': english rom detected')
-      elif(val == 0xA34A):
+        print(romPath + ': ' + stockRomsLanguage[lang] + ' rom detected')
+      elif(val == 0xE7774AA3):
+        lang = ENGLISH_UK
+        print(romPath + ': english_uk rom detected')
+      elif(val == 0x7F574AA3):
         lang = FRENCH
         print(romPath + ': french rom detected')
-      elif(val == 0xA3DA):
+      elif(val == 0xD4D8DAA3):
         lang = GERMAN
         print(romPath + ': german rom detected')
-      elif(val == 0xcf00):
+      elif(val == 0x8B4400CF):
         lang = JAPAN
         print(romPath + ': japan rom detected')
-
       else:
         lang = -1
         print(romPath + ': unable to detect language')
@@ -324,15 +381,27 @@ class Address:
       self.cantDictionary = self.cantDictionary_en
       self.addrScriptAddrDic = self.addrScriptAddrDic_en
       self.cantScripts = self.cantScripts_en
+      self.expTable = self.expTable_en
 
       self.addrIntro = self.addrIntro_en
       self.addrMagic = self.addrMagic_en
+
+    elif(self.language == ENGLISH_UK):
+      self.addrDictionary = self.addrDictionary_en_uk
+      self.cantDictionary = self.cantDictionary_en_uk
+      self.addrScriptAddrDic = self.addrScriptAddrDic_en_uk
+      self.cantScripts = self.cantScripts_en_uk
+      self.expTable = self.expTable_en_uk
+
+      self.addrIntro = self.addrIntro_en_uk
+      self.addrMagic = self.addrMagic_en_uk
 
     elif(self.language == FRENCH):
       self.addrDictionary = self.addrDictionary_fr
       self.cantDictionary = self.cantDictionary_fr
       self.addrScriptAddrDic = self.addrScriptAddrDic_fr
       self.cantScripts = self.cantScripts_fr
+      self.expTable = self.expTable_fr
 
       self.addrIntro = self.addrIntro_fr
       self.addrMagic = self.addrMagic_fr
@@ -342,6 +411,7 @@ class Address:
       self.cantDictionary = self.cantDictionary_de
       self.addrScriptAddrDic = self.addrScriptAddrDic_de
       self.cantScripts = self.cantScripts_de
+      self.expTable = self.expTable_de
  
       self.addrIntro = self.addrIntro_de
       self.addrMagic = self.addrMagic_de
@@ -351,6 +421,7 @@ class Address:
       self.cantDictionary = self.cantDictionary_jp
       self.addrScriptAddrDic = self.addrScriptAddrDic_jp
       self.cantScripts = self.cantScripts_jp
+      self.expTable = self.expTable_jp
 
       self.addrIntro = self.addrIntro_jp
       self.addrMagic = self.addrMagic_jp
@@ -875,7 +946,7 @@ class RomSplitter:
  
 
   def exportSpriteSheets(self):
-    """ exporta los spritesheets del bank 12 """
+    """ exporta los spritesheets """
 
     basePath = Address.instance().basePath
     path = basePath + '/spriteSheets'
@@ -899,6 +970,12 @@ class RomSplitter:
       # lo agrego a la lista
       self.spriteSheets.append(sheet)
 
+      import random
+      rr = random.randint(0,0xff)
+      gg = random.randint(0,0xff)
+      bb = random.randint(0,0xff)
+      RomStats.instance().appendDato(0x08, addr, addr+6*cant, (rr, gg, bb), 'sprite sheet')
+
       lines = sheet.encodeTxt()
       string = '\n'.join(lines)
       f = open(basePath + '/spriteSheets/sheet_{:02}.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
@@ -908,6 +985,87 @@ class RomSplitter:
       sheet.exportPngFile(basePath + '/spriteSheets/sheet_{:02}.png'.format(nroSpriteSheet))
 
       sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+
+
+  def exportPersonajeStats(self):
+    """ exporta los stat de los personajes """
+
+#    print('--- 3:19fe')
+
+    basePath = Address.instance().basePath
+    path = basePath + '/personajes'
+
+    # si el directorio no existía
+    if not os.path.exists(path):
+      # lo creo
+      os.makedirs(path)
+
+    f = open(path + '/personajeStats.txt', 'w', encoding="utf-8")
+
+    bank = RomSplitter.instance().banks[0x03]
+
+    personajeStatuses = []
+    for i in range(0,0x62):
+      subArray = bank[0x19fe + i*14: 0x19fe + (i+1)*14]
+#      strArray = Util.instance().strHexa(subArray)
+#      print('strArray: ' + strArray)
+
+      stats = PersonajeStats(i)
+      stats.decodeRom(subArray)
+      personajeStatuses.append(stats)
+
+#      print('stats: nro={:02x} '.format(stats.nroStats) + str(stats))
+
+      lines = stats.encodeTxt()
+      strStats = '\n'.join(lines)
+
+      f.write(strStats)
+ 
+    f.close()
+
+    length = 14*len(personajeStatuses)
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    RomStats.instance().appendDato(0x03, 0x19fe, 0x19fe+length, (rr, gg, bb), 'personajes stats')
+
+
+  def burnPersonajeStats(self, filepath):
+    """ quema las stats de los personajes en la rom """
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+    i = 0
+    personajeStatuses = []
+    primero = True
+    subLines = []
+    for line in lines:
+#      print('line: ' + line)
+      if('------------ stats' in line):
+        if(not primero):
+          stats = PersonajeStats(i)
+          stats.decodeTxt(subLines)
+          personajeStatuses.append(stats)
+          i += 1
+          subLines = []
+        else:
+          primero = False
+
+      subLines.append(line)
+    stats = PersonajeStats(i)
+    stats.decodeTxt(subLines)
+
+    array = []
+    for stats in personajeStatuses:
+#      print('stats: ' + str(stats)) 
+      subArray = stats.encodeRom()
+      array.extend(subArray)
+
+    RomSplitter.instance().burnBank(0x3, 0x19fe, array)
+
 
 
   def exportPersonajes(self):
@@ -926,25 +1084,26 @@ class RomSplitter:
     f = open(path + '/personajes.txt', 'w', encoding="utf-8")
 
     bank = RomSplitter.instance().banks[0x03]
-    array = bank[0x1f5a:]
 
+    array = []
     personajes = []
 #    for i in range(0,10):
     for i in range(0,191):
-      subArray = array[:24]
+      subArray = bank[0x1f5a + i*24 : 0x1f5a + (i+1)*24]
+      array.extend(subArray)
       strSubarray = Util.instance().strHexa(subArray)
 #      print('strSub: {:02x} {:03} {:04x} = '.format(i,i, 0x1f5a+i*24) + strSubarray)
-      array = array[24:]
 
       pers = Personaje(i)
       pers.decodeRom(subArray)
       personajes.append(pers)
+#      print('personaje: ' + str(pers))
 
       lines = pers.encodeTxt()
       strPersona = '\n'.join(lines)
 
       f.write(strPersona)
-      
+
 #      print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
 #      personajes.append( (i,pers) )
 
@@ -956,6 +1115,7 @@ class RomSplitter:
 #      if(pers.amistad == 0x81):
 #        print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
 #    print('----')
+
 
     f.close()
 
@@ -981,6 +1141,100 @@ class RomSplitter:
     gg = random.randint(0,0xff)
     bb = random.randint(0,0xff)
     RomStats.instance().appendDato(0x03, 0x1f5a, 0x1f5a+length, (rr, gg, bb), 'personajes')
+
+
+
+
+    # exporto una imagen con los sprites de cada personaje!
+
+    bank = RomSplitter.instance().banks[8]
+    # leo el tileset del font
+    tileset = Tileset(16,9)
+    array = bank[0x1000*2+7*0x100:0x1000*(2+1)]
+    tileset.decodeRom(array)
+
+    # obtengo los tiles de los números 0,1,...,F
+    numberTile = []
+    for i in range(0,16):
+      tile = tileset.tiles[16*4 + i]
+      numberTile.append(tile)
+
+    # un tile en blanco
+#    blankTile = tileset.tiles[16*2]
+    blankTile = Tile()
+    blankTile.decodeRom([0x00]*16)
+
+    extraTiles = []
+#    cantPers = 0x02
+    cantPers = 0xbe+1
+    # para cada personaje
+    for q in range(0,cantPers):
+      # lo obtengo
+      pers = personajes[q]
+#      print('--- pers: ' + str(pers))
+
+      addr = 0x20000 + pers.offsetBank8
+
+      nroBank = addr // 0x4000
+      offset = addr % 0x4000
+
+      bank = RomSplitter.instance().banks[nroBank]
+
+      primer = q // 0x10
+      segund = q % 0x10
+
+      tiles = []
+      # agrego el número de personaje
+      tiles.extend([numberTile[primer], numberTile[segund], blankTile, blankTile])
+#      tiles.extend([numberTile[5], numberTile[1], numberTile[2], numberTile[3]])
+
+      # agrego los sprites del personaje
+      for j in range(0, 2*pers.cantDosTiles):
+        data = bank[offset + j*0x10: offset + (j+1)*0x10]
+        tile = Tile()
+        tile.decodeRom(data)
+        tiles.append(tile)
+
+      # completo en negro hasta formar 6 imagenes en cada fila
+      for k in range(2*(pers.cantDosTiles+1)+2,2*2*7):
+        tile = Tile()
+        tiles.append(tile)
+
+      w = 2*7 #pers.cantDosTiles
+      h = 2
+
+      # creo un array de tiles vacío 
+      sortTiles = [None for k in range(0, w*h)]
+
+      k = 0
+      for k in range(0, len(tiles)):
+
+        modk = k%4
+
+        if(modk == 0):
+          dx,dy = 0,0
+        elif(modk == 1):
+          dx,dy = 1,0
+        elif(modk == 2):
+          dx,dy = 0,1
+        elif(modk == 3):
+          dx,dy = 1,1
+
+        idx = 2*(k//4) + w*dy + dx
+        sortTiles[idx] = tiles[k]
+
+      extraTiles.extend(sortTiles)
+
+#      tileset = Tileset(w,h)
+#      tileset.tiles = sortTiles
+#      tileset.exportPngFile(path + 'personaje_{:03}.png'.format(q))
+
+
+    tileset = Tileset(2*7,2*cantPers)
+    tileset.tiles = extraTiles
+    tileset.exportPngFile(path + '/personajes_NOEDIT.png')
+
+
 
   def burnPersonajes(self, filepath):
     """ quema los personajes en la rom """
@@ -1022,10 +1276,10 @@ class RomSplitter:
     RomSplitter.instance().burnBank(0x3, 0x1f5a, array)
 
 
+  def exportBosses(self):
+    """ exporta los monstruos grandes """
 
-
-  def exportGrupos3Personajes(self):
-    """ exporta grupos de 3 personajes a cargar """
+#    print('--- 4:0739')
 
     basePath = Address.instance().basePath
     path = basePath + '/personajes'
@@ -1035,8 +1289,116 @@ class RomSplitter:
       # lo creo
       os.makedirs(path)
 
+    f = open(path + '/bosses.txt', 'w', encoding="utf-8")
+
+    bank = RomSplitter.instance().banks[0x04]
+
+    bosses = []
+    for i in range(0,21):
+      subArray = bank[0x0739 + 24*i : 0x0739 + 24*(i+1)]
+      strHexa = Util.instance().strHexa(subArray)
+#      print('boss: {:02x} - '.format(i) + strHexa)
+
+      boss = Boss(i)
+      boss.decodeRom(subArray)
+      bosses.append(boss)
+#      print('boss: {:02x} - '.format(i) + str(boss))
+
+      lines = boss.encodeTxt()
+      strBoss = '\n'.join(lines)
+
+      f.write(strBoss)
+
+    f.close()
+
+    length = 24*len(bosses)
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    RomStats.instance().appendDato(0x04, 0x0739, 0x0739+length, (rr, gg, bb), 'bosses')
+
+  def burnBosses(self, filepath):
+    """ quema los monstruos grandes en la rom """
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+    i = 0
+    bosses = []
+    primero = True
+    subLines = []
+    for line in lines:
+#      print('line: ' + line)
+      if('------------ boss' in line):
+        if(not primero):
+          b = Boss(i)
+          b.decodeTxt(subLines)
+          bosses.append(b)
+          i += 1
+          subLines = []
+        else:
+          primero = False
+
+      subLines.append(line)
+    b = Boss(i)
+    b.decodeTxt(subLines)
+
+    array = []
+    for b in bosses:
+#      print('b: ' + str(b))
+      subArray = b.encodeRom()
+      array.extend(subArray)
+
+    RomSplitter.instance().burnBank(0x4, 0x0739, array)
+
+
+
+
+
+  def exportExplosions(self):
+    """ exporta las explosiones """
+
+#    print('--- 9:0479')
+    # creo que tiene que ver con las cosas que disparan los enemigos
+
+    basePath = Address.instance().basePath
+    path = basePath + '/personajes'
+
+    # si el directorio no existía
+    if not os.path.exists(path):
+      # lo creo
+      os.makedirs(path)
+
+#    f = open(path + '/explosions.txt', 'w', encoding="utf-8")
+    bank = RomSplitter.instance().banks[0x09]
+
+    explosions = []
+    for i in range(0,40):
+      subArray = bank[0x0479 + 16*i : 0x0479 + 16*(i+1)]
+      strHexa = Util.instance().strHexa(subArray)
+      print('exp: {:02x} - '.format(i) + strHexa)
+      print('addr: {:04x}'.format(0x0479+16*i))
+
+#      f.write(strBoss)
+
+#    f.close()
+
+
+  def exportGrupos3Personajes(self):
+    """ exporta grupos de 3 personajes a cargar """
+
     # 3:4456  ld de,$7142
 #    print('--- 3:3142')
+
+    basePath = Address.instance().basePath
+    path = basePath + '/personajes'
+
+    # si el directorio no existía
+    if not os.path.exists(path):
+      # lo creo
+      os.makedirs(path)
 
     vaPorAddr = 0x3142
     bank = RomSplitter.instance().banks[0x03]
@@ -1097,27 +1459,98 @@ class RomSplitter:
 
 
 
-  def exportPersonajesDobleTile(self):
-    """ exporta los doble tiles de los personajes """
+  def exportPersonajesAnimations(self):
+    """ exporta las animaciones doble tiles de los personajes """
 
-    print('--- 3:3b72')
+#    print('--- 3:3b72')
+
     bank = RomSplitter.instance().banks[0x03]
-    array = bank[0x3b72:]
 
+    # obtengo la lista de personajes
+    personajes = []
+    for i in range(0,191):
+      subArray = bank[0x1f5a + i*24 : 0x1f5a + (i+1)*24]
+      strSubarray = Util.instance().strHexa(subArray)
+      pers = Personaje(i)
+      pers.decodeRom(subArray)
+      personajes.append(pers)
+
+    # creo la lista de animaciones
+    animations = []
+    # recorro los personajes
+    for pers in personajes:
+      anim = pers.addrDosTiles
+      # y agrego su animación a la lista
+      animations.append(anim)
+
+    # remuevo duplicados y ordeno
+    animAddrs = sorted(set(animations))
+
+    basePath = Address.instance().basePath
+    path = basePath + '/personajes'
+
+    f = open(path + '/personajesAnimations.txt', 'w', encoding="utf-8")
+
+    animCounter = 1
+    tiles = []
     for i in range(0,371):
 
-#      line = array[:3]
+      addr = 0x3b72+i*3
 
-      modo  = array[3*i+0]   # 10 = normal, 30 = espejo, ??? (attribute)
-      left  = array[3*i+1]   # 0:8000 + left                 (tile number)
-      right = array[3*i+2]  # 0:8000 + right                (tile number)
+      if(addr + 0x4000 in animAddrs):
+#        print('---animation' + str(animCounter))
+        f.write('---animation' + str(animCounter) + '\n')
+        animCounter += 1
 
-      print('addr {:04x} (modo, left, right) = ({:02x}, {:02x}, {:02x})'.format(0x3b72+3*i,modo,left,right))
-      strLine = Util.instance().strHexa(array[3*i:3*(i+1)])
-#      print('strLinePers: ' + strLine)
+      subArray = bank[0x3b72 + i*3 : 0x3b72 + (i+1)*3]
+      dosTiles = DosTiles(addr)
+      tiles.append(dosTiles)
+      dosTiles.decodeRom(subArray)
+#      print('dosTiles: ' + str(dosTiles))
+      lines = dosTiles.encodeTxt()
+      strDosTiles = '\n'.join(lines)
+      f.write(strDosTiles + '\n')
 
-#      array = array[3:]
+    f.close()
 
+    length = 3*len(tiles)
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    RomStats.instance().appendDato(0x03, 0x3b72, 0x3b72+length, (rr, gg, bb), 'personajes animations dosTiles')
+
+
+
+
+  def burnPersonajesAnimations(self, filepath):
+    """ quema las animaciones doble tiles de los personajes en la rom """
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+    addr = 0x3b72
+    tiles = []
+    for line in lines:
+#      print('line: ' + line)
+      if('(attr,tile1,tile2)' in line):
+         dosTiles = DosTiles(addr)
+         addr += 3
+         dosTiles.decodeTxt([line])
+         tiles.append(dosTiles)
+
+    array = []
+    for dosTiles in tiles:
+#      print('dosTiles: ' + str(dosTiles)) 
+      subArray = dosTiles.encodeRom()
+      array.extend(subArray)
+
+    RomSplitter.instance().burnBank(0x3, 0x3b72, array)
+
+
+
+      
   def exportGolpes(self):
     """ exporta base de cuanto lastima golpes dados/recibidos ? """
 
@@ -1135,10 +1568,11 @@ class RomSplitter:
       array = array[8:]
 
 
-  def exportMonstruoGrandeDobleTile(self):
+  def exportMonstruoGrandeDosTiles(self):
     """ exporta los doble tiles de los boss """
 
-    print('--- 4:3ba7')
+#    print('--- 4:3ba7')
+
     bank = RomSplitter.instance().banks[0x04]
     array = bank[0x3ba7:]
 
@@ -1155,6 +1589,98 @@ class RomSplitter:
 #      print('strLinePers: ' + strLine)
 
       array = array[3:]
+
+
+  def exportBossesAnimations(self):
+    """ exporta las animaciones doble tiles de los bosses """
+
+#    print('--- 4:3ba7')
+
+    bank = RomSplitter.instance().banks[0x04]
+
+    # obtengo la lista de bosses
+    bosses = []
+    for i in range(0,21):
+      subArray = bank[0x0739 + 24*i : 0x0739 + 24*(i+1)]
+      boss = Boss(i)
+      boss.decodeRom(subArray)
+      bosses.append(boss)
+
+    # creo la lista de animaciones
+    animations = []
+    # recorro los bosses
+    for boss in bosses:
+      anim = boss.addrDosTiles
+      # y agrego su animación a la lista
+      animations.append(anim)
+
+    # remuevo duplicados y ordeno
+    animAddrs = sorted(set(animations))
+
+    basePath = Address.instance().basePath
+    path = basePath + '/personajes'
+
+    f = open(path + '/bossesAnimations.txt', 'w', encoding="utf-8")
+
+    animCounter = 1
+    tiles = []
+    for i in range(0,326):
+
+      addr = 0x3ba7+i*3
+
+      if(addr + 0x4000 in animAddrs):
+#        print('---animation' + str(animCounter))
+        f.write('---animation' + str(animCounter) + '\n')
+        animCounter += 1
+
+      subArray = bank[0x3ba7 + i*3 : 0x3ba7 + (i+1)*3]
+      dosTiles = DosTiles(addr)
+      tiles.append(dosTiles)
+      dosTiles.decodeRom(subArray)
+#      print('dosTiles: ' + str(dosTiles))
+      lines = dosTiles.encodeTxt()
+      strDosTiles = '\n'.join(lines)
+      f.write(strDosTiles + '\n')
+
+    f.close()
+
+    length = 3*len(tiles)
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    RomStats.instance().appendDato(0x04, 0x3ba7, 0x3ba7+length, (rr, gg, bb), 'bosses animations dosTiles')
+
+
+  def burnBossesAnimations(self, filepath):
+    """ quema las animaciones doble tiles de los bosses en la rom """
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+    addr = 0x3ba7
+    tiles = []
+    for line in lines:
+#      print('line: ' + line)
+      if('(attr,tile1,tile2)' in line):
+         dosTiles = DosTiles(addr)
+         addr += 3
+         dosTiles.decodeTxt([line])
+         tiles.append(dosTiles)
+
+    array = []
+    for dosTiles in tiles:
+#      print('dosTiles: ' + str(dosTiles)) 
+      subArray = dosTiles.encodeRom()
+      array.extend(subArray)
+
+    RomSplitter.instance().burnBank(0x4, 0x3ba7, array)
+
+
+
+
+
 
 
   def exportSongs(self, exportLilypond=False):
@@ -1444,8 +1970,14 @@ class RomSplitter:
       # lo creo
       os.makedirs(path)
 
-
     bank08 = RomSplitter.instance().banks[0x08]
+
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    # agrego info al stats
+    RomStats.instance().appendDato(0x08, 0x1a00, 0x4000, (rr, gg, bb), 'tiles del hero')
 
     tiles = []
     for i in range(0,96 + 16*7):
@@ -1534,9 +2066,7 @@ class RomSplitter:
       # lo creo
       os.makedirs(path)
 
-
     bank0b = RomSplitter.instance().banks[0x0b]
-
 
     tiles = []
     for i in range(0,16*2):
@@ -1579,7 +2109,7 @@ class RomSplitter:
     tileset.exportPngFile(path + '/monster_10.png')
 
     bank04 = RomSplitter.instance().banks[0x04]
-    # tabla de los 21 monstruos
+    # tabla de los 21 monstruos grandes
     for i in range(0,21):
       # 24 bytes por monstruo
       array = bank04[0x0739 + 24*i:0x0739 + 24*(i+1)]
@@ -2115,7 +2645,7 @@ class RomSplitter:
 
       # lo decodifico
       if(code in [0x00, 0x1a]):
-        # 'en' rom uses 0x00, 'fr' and 'de' roms use 0x1a for <enter>
+        # 'en' and 'en_uk' rom uses 0x00, but 'fr' and 'de' roms use 0x1a for <enter>
         char = '\n'
       elif(code == 0xff):
         char = ' '
@@ -2152,7 +2682,7 @@ class RomSplitter:
       if(char == '\n'):
 
         lang = Address.instance().language
-        if(lang == ENGLISH or lang == JAPAN):
+        if(lang in [ENGLISH, ENGLISH_UK, JAPAN]):
           code = 0x00
         else: 
           code = 0x1a
@@ -2210,6 +2740,10 @@ class RomSplitter:
     strTxt = '\n'.join(lines)
     f.write(strTxt)
     f.close()
+
+
+
+
 
   def exportRom(self, filepath):
     """ vuelve a juntar los bancos en una rom """
@@ -2331,6 +2865,7 @@ class RomSplitter:
 #    iguales = Util.instance().compareFiles('./de/banks/bank_08/bank_08.bin', './de/scripts/dic.bin', addr, len(array))
 #    print('iguales dic: ' + str(iguales))
 
+
   def burnBank(self, bank, idx0, hexs):
 
     i = idx0
@@ -2342,10 +2877,78 @@ class RomSplitter:
       banco = RomSplitter.instance().banks[bank]
 #      print('banco: ' + str(banco))
 
+#      print('grabando hexa {:02x} en i {:04x}'.format(hexa, i))
+
       banco[i] = hexa
       i += 1
 
     return True
+
+
+  def exportExpTable(self):
+    """ exporta la tabla de experiencia para subir de nivel """
+
+    bank = RomSplitter.instance().banks[0x08]
+    addr = Address.instance().expTable
+    array = bank[addr:]
+
+    lines = []
+    for i in range(0,101):
+      hexExp = array[3*i:3*(i+1)]
+
+      exp = hexExp[0]*0x100**2 + hexExp[1]*0x100 + hexExp[2] 
+      lines.append('level {:03}: {:06x} '.format(i+1, exp))
+
+    string = '\n'.join(lines)
+
+    romName = Address.instance().romName
+    path = './' + romName + '/exp.txt'
+    # lo exporto al exp.txt
+    f = open(path, 'w', encoding="utf-8")
+    f.write(string)
+    f.close()
+
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    length = 3*101
+    # agrego info al stats
+    RomStats.instance().appendDato(0x08, addr, addr+length, (rr, gg, bb), 'exp table')
+
+
+  def burnExpTable(self, filepath):
+    """ quema el exp.txt en la rom """
+
+    print('quemando la tabla de experiencia')
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+    array = []
+    for line in lines:
+      idx0 = line.index(':')
+      strHexa = line[idx0+1:].strip()
+      exp = int(strHexa, 16)
+
+      byte1 = exp//0x10000
+      byte2 = (exp % 0x010000)//0x100
+      byte3 = (exp % 0x000100)
+
+      array.extend([byte1, byte2, byte3])
+
+#      print('exp: {:06x}: {:02x} {:02x} {:02x}'.format(exp, byte1, byte2, byte3))
+
+    addr = Address.instance().expTable
+#    print('current addr: {:04x}'.format(addr))
+
+    strArray = Util.instance().strHexa(array)
+#    print('strArray: ' + strArray)
+
+    # lo quemo en el banco
+    RomSplitter.instance().burnBank(0x08, addr, array)
+
 
 
   def exportItems(self):
@@ -2704,18 +3307,18 @@ class Comando:
     self.size = 0 
 
 
-    if(self.nro in [0x05, 0x06, 0x1a, 0x1b, 0x2a, 0x88, 0x89, 0x90, 0x94, 0x95, 0x96, 0x97, 0x98, 0x9a, 0x9b, 0xa0, 0xa1, 0xa2, 0xa3, 0xa9, 0xab, 0xb6, 0xbe, 0xcc, 0xdc, 0xdd, 0xee, 0xfb]):
+    if(self.nro in [0x05, 0x06, 0xa0, 0xa1, 0xa2, 0xa3, 0xa9, 0xab, 0xb6, 0xbe, 0xcc, 0xee, 0xfb]):
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_0: ' + self.strHex + '\n'
 
-    elif(self.nro in [0x8b, 0x91, 0x9c, 0xc2, 0xc5]):
+    elif(self.nro in [0x8b, 0x91, 0xc2, 0xc5]):
       arg1 = self.array[1]
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_1: ' + self.strHex + '\n'
 
-    elif(self.nro in [0x99, 0xc9, 0xca, 0xef]):
+    elif(self.nro in [0xef]):
 
 #      print(Util.instance().strHexa(self.array[:min(20,len(self.array))]))
 
@@ -2852,8 +3455,8 @@ class Comando:
 
       self.script = bloque
 
-    # extras
-    elif(self.nro >= 0x10 and self.nro < 0x80):
+    # es uno de los 7 posibles personajes extras
+    elif(self.nro >= 0x10 and self.nro <= 0x7f):
 
 #      print('nro: {:02x}'.format(self.nro))
       primer = self.nro // 0x10
@@ -2861,93 +3464,108 @@ class Comando:
 #      print('primer: {:01x}'.format(primer))
 #      print('segund: {:01x}'.format(segund))
 
-      # si es movimiento de personajes extras
-      if(segund in [0,1,4,5,6,7,8,9]):
+      extras = ['EXTRA1', 'EXTRA2', 'EXTRA3', 'EXTRA4', 'EXTRA5', 'EXTRA6', 'EXTRA7']
 
-        strExtra = 'EXTRA' + str(primer) + '_'
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
 
-        strInstr = 'NI_IDEA'
-        if(segund == 0):
-          strInstr = 'PASO_ADELANTE'
-        elif(segund == 1):
-          strInstr = 'PASO_ATRAS'
-        elif(segund == 4):
-          strInstr = 'MIRAR_ARRIBA'
-        elif(segund == 5):
-          strInstr = 'MIRAR_ABAJO'
-        elif(segund == 6):
-          strInstr = 'MIRAR_DERECHA'
-        elif(segund == 7):
-          strInstr = 'MIRAR_IZQUIERDA'
-        elif(segund == 8):
-          strInstr = 'HIDE'
+      strExtra = extras[primer-1]
+      strAction = actions[segund]
+      strCmd = strExtra + '_' + strAction
 
-        self.strCode = strExtra + strInstr + '\n'
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        self.strCode = strCmd + '\n'
         self.size = 1
         self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
-        if(segund == 9):
+      elif(strAction in ['TELEPORT']):
 
-          xx = self.array[1]
-          yy = self.array[2]
-          strXx = '{:02x}'.format(xx)
-          strYy = '{:02x}'.format(yy)
+        xx = self.array[1]
+        yy = self.array[2]
 
-          # cambia las coordenadas del extra dentro del bloque actual
-          strInstr = 'BLOQUE_TELEPORT (XX,YY) = (' + strXx + ',' + strYy + ')'
+        # cambia las coordenadas del extra dentro del bloque actual
+        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
+        self.size = 3
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
-          self.strCode = strExtra + strInstr + '\n'
-          self.size = 3
-          self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    # es el extra especial
+    elif(self.nro >= 0x90 and self.nro <= 0x9f):
 
-    elif(self.nro == 0x80):
-      self.strCode = 'HEROE_PASO_ADELANTE\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
-    elif(self.nro == 0x81):
-      self.strCode = 'HEROE_PASO_ATRAS\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
-    elif(self.nro == 0x84):
-      self.strCode = 'HEROE_MIRAR_ARRIBA\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
-    elif(self.nro == 0x85):
-      self.strCode = 'HEROE_MIRAR_ABAJO\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
-    elif(self.nro == 0x86):
-      self.strCode = 'HEROE_MIRAR_DERECHA\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
-    elif(self.nro == 0x87):
-      self.strCode = 'HEROE_MIRAR_IZQUIERDA\n'
-      self.size = 1
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+      primer = self.nro // 0x10
+      segund = self.nro % 0x10
 
-    elif(self.nro == 0x8a):
-      xx = self.array[1]
-      yy = self.array[2]
-      strXx = '{:02x}'.format(xx)
-      strYy = '{:02x}'.format(yy)
-      # cambia las coordenadas del hero dentro del bloque actual
-      self.strCode = 'BLOQUE_TELEPORT (XX,YY) = (' + strXx + ',' + strYy + ')\n'
-      self.size = 3
-      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
+
+      strExtra = 'EXTRASPECIAL'
+      strAction = actions[segund]
+      strCmd = strExtra + '_' + strAction
+
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        self.strCode = strCmd + '\n'
+        self.size = 1
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+      elif(strAction in ['TELEPORT']):
+
+        xx = self.array[1]
+        yy = self.array[2]
+
+        # cambia las coordenadas del extra dentro del bloque actual
+        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
+        self.size = 3
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+      elif(strAction in ['SET_EXTRASPECIAL_PERSONAJE']):
+
+        arg = self.array[1]
+        # turn extra1 into extra9 (extraspecial)
+        self.strCode = strAction + ' {:02x}\n'.format(arg)
+        self.size = 2
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+    # es el hero
+    elif(self.nro >= 0x80 and self.nro <= 0x8f):
+
+      primer = self.nro // 0x10
+      segund = self.nro % 0x10
+
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
+
+      strExtra = 'HERO'
+      strAction = actions[segund]
+      strCmd = strExtra + '_' + strAction
+
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        self.strCode = strCmd + '\n'
+        self.size = 1
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+      elif(strAction in ['TELEPORT']):
+
+        xx = self.array[1]
+        yy = self.array[2]
+
+        # cambia las coordenadas del extra dentro del bloque actual
+        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
+        self.size = 3
+        self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
 
     elif(self.nro == 0xa4):
       # estado normal
-      self.strCode = 'HEROE_DE_PIE\n'
+      self.strCode = 'ON_FEET\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
     elif(self.nro == 0xa5):
       # cuando cae por la catarata
-      self.strCode = 'HEROE_DESPATARRADO\n'
+      self.strCode = 'ON_AIR\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
     elif(self.nro == 0xa6):
       # cuando depierta despues de haber caido
-      self.strCode = 'HEROE_ACOSTADO\n'
+      self.strCode = 'ON_FLOOR\n'
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
@@ -3052,6 +3670,21 @@ class Comando:
       self.size = 1
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
+    elif(self.nro == 0xc9):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      arg = arg1*0x100 + arg2
+      self.strCode = 'SET_CHEST1_SCRIPT {:04x}\n'.format(arg)
+      self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+    elif(self.nro == 0xca):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      arg = arg1*0x100 + arg2
+      self.strCode = 'SET_CHEST2_SCRIPT {:04x}\n'.format(arg)
+      self.size = 3
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
 
     elif(self.nro == 0xd0):
       arg1 = self.array[1]
@@ -3122,6 +3755,17 @@ class Comando:
       self.strCode = 'FLAG_OFF ' + label + '\n'
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xdc):
+      self.strCode = 'TEXT_SPEED_LOCK\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xdd):
+      self.strCode = 'TEXT_SPEED_UNLOCK\n'
+      self.size = 1
+      self.strHex = Util.instance().strHexa(self.array[0:self.size])
+
 
     elif(self.nro == 0xde):
       self.strCode = 'CONSUME_ITEM_AT_HAND\n'
@@ -3228,38 +3872,7 @@ class Comando:
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xf8):
-      # indico como mapea con el número de canción del banco 0x0f
-      # 0x00 -> silencio
-      # 0x01 -> 1
-      # 0x02 -> 6
-      # 0x03 -> 7
-      # 0x04 -> 8
-      # 0x05 -> 9
-      # 0x06 -> 10
-      # 0x07 -> 11
-      # 0x08 -> 12
-      # 0x09 -> 13
-      # 0x0a -> 5
-      # 0x0b -> 14
-      # 0x0c -> 15
-      # 0x0d -> 16
-      # 0x0e -> 4
-      # 0x0f -> 17
-      # 0x10 -> 18
-      # 0x11 -> 19
-      # 0x12 -> 20
-      # 0x13 -> 21
-      # 0x14 -> 22
-      # 0x15 -> 23
-      # 0x16 -> 24
-      # 0x17 -> 3
-      # 0x18 -> 25
-      # 0x19 -> 26
-      # 0x1a -> 2
-      # 0x1b -> 27
-      # 0x1c -> 28
-      # 0x1d -> 29
-      # 0x1e -> 30
+      # indico como mapea con el número de canción del banco 0x0f (0x00 = mute, 0x01 = intro song, ... 0x1e = ill (last song))
       arg = self.array[1]
       self.strCode = 'MUSIC {:02x}\n'.format(arg)
       self.size = 2
@@ -3273,7 +3886,7 @@ class Comando:
 
     elif(self.nro == 0xfc):
       arg = self.array[1]
-      self.strCode = 'LOAD_PERSONAJE {:02x}\n'.format(arg)
+      self.strCode = 'LOAD_GRUPO_PERSONAJE {:02x}\n'.format(arg)
       self.size = 2
       self.strHex = Util.instance().strHexa(self.array[0:self.size])
 
@@ -3285,7 +3898,7 @@ class Comando:
 
     elif(self.nro == 0xfe):
       arg = self.array[1]
-      label = Variables.instance().getLabelMonstruo(arg)
+      label = Variables.instance().getLabelBoss(arg)
 #      self.strCode = 'ADD_MONSTRUO_GRANDE {:02x}\n'.format(arg)
       self.strCode = 'ADD_MONSTRUO_GRANDE ' + label + '\n'
       self.size = 2
@@ -3367,438 +3980,6 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 
-    elif(line.startswith('INPUT_NAMES_SUMO_FUJI')):
-      self.hexs.append(0xc6)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('RANDOMIZE_7E7F')):
-      self.hexs.append(0xc7)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('HEROE_PASO_ADELANTE')):
-      self.hexs.append(0x80)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_PASO_ATRAS')):
-      self.hexs.append(0x81)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_MIRAR_ARRIBA')):
-      self.hexs.append(0x84)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_MIRAR_ABAJO')):
-      self.hexs.append(0x85)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_MIRAR_DERECHA')):
-      self.hexs.append(0x86)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_MIRAR_IZQUIERDA')):
-      self.hexs.append(0x87)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('EXTRA')):
-
-      strNro = line[5]
-      nroExtra = int(strNro)
-      cmd = line[7:]
-      cmdDict = { 'PASO_ADELANTE' : 0, 'PASO_ATRAS' : 1, 'MIRAR_ARRIBA' : 4, 'MIRAR_ABAJO' : 5, 'MIRAR_DERECHA' : 6, 'MIRAR_IZQUIERDA' : 7, 'HIDE' : 8 }
-
-      if(not cmd.startswith('BLOQUE_TELEPORT')):
-        nroCmd = cmdDict[cmd]
-        hexa = nroExtra * 0x10 + nroCmd
-        self.hexs.append(hexa)
-      # sino, es un bloque teleport del extra
-      else:
-
-        idx0 = line.rfind('(')
-        idx1 = line.rfind(')')
-        strArgs = line[idx0+1:idx1]
-        strArgs = strArgs.split(',')
-        arg1 = int(strArgs[0], 16)
-        arg2 = int(strArgs[1], 16)
-
-        hexa = nroExtra * 0x10 + 9
-        self.hexs.append(hexa)
-        self.hexs.append(arg1)
-        self.hexs.append(arg2)
-
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-
-    # extras
-#    elif(self.nro >= 0x10 and self.nro < 0x80):
-
-#      primer = self.nro // 0x10
-#      segund = self.nro % 0x10
-
-      # si es movimiento de personajes extras
-#      if(segund in [0,1,4,5,6,7,8,9]):
-
-#        strExtra = 'EXTRA' + str(primer) + '_'
-
-#        strInstr = 'NI_IDEA'
-#        if(segund == 0):
-#          strInstr = 'PASO_ADELANTE'
-#        elif(segund == 1):
-#          strInstr = 'PASO_ATRAS'
-#        elif(segund == 4):
-#          strInstr = 'MIRAR_ARRIBA'
-#        elif(segund == 5):
-#          strInstr = 'MIRAR_ABAJO'
-#        elif(segund == 6):
-#          strInstr = 'MIRAR_DERECHA'
-#        elif(segund == 7):
-#          strInstr = 'MIRAR_IZQUIERDA'
-#        elif(segund == 8):
-#          strInstr = 'HIDE'
-
-#        self.strCode = strExtra + strInstr + '\n'
-#        self.size = 1
-#        self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
-#        if(segund == 9):
-
-#          xx = self.array[1]
-#          yy = self.array[2]
-#          strXx = '{:02x}'.format(xx)
-#          strYy = '{:02x}'.format(yy)
-
-          # cambia las coordenadas del extra dentro del bloque actual
-#          strInstr = 'BLOQUE_TELEPORT (XX,YY) = (' + strXx + ',' + strYy + ')'
-
-#          self.strCode = strExtra + strInstr + '\n'
-#          self.size = 3
-#          self.strHex = Util.instance().strHexa(self.array[0:self.size])
-
-
-
-    elif(line.startswith('RESET_GAME')):
-      self.hexs.append(0xc8)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('SMALLMAP_OPEN')):
-      self.hexs.append(0xac)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SMALLMAP_IDLE')):
-      self.hexs.append(0xad)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SMALLMAP_CLOSE')):
-      self.hexs.append(0xae)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('OPEN_CHEST')):
-      self.hexs.append(0xaf)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-
-
-
-    elif(line.startswith('HEROE_DE_PIE')):
-      self.hexs.append(0xa4)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_DESPATARRADO')):
-      self.hexs.append(0xa5)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('HEROE_ACOSTADO')):
-      self.hexs.append(0xa6)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('FADE_IN')):
-      self.hexs.append(0xbc)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('FADE_OUT')):
-      self.hexs.append(0xbd)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('PARPADEO')):
-      self.hexs.append(0xbf)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('RECOVER_HP')):
-      self.hexs.append(0xc0)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('RECOVER_MP')):
-      self.hexs.append(0xc1)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('DISEASE')):
-      argTxt = line[len('DISEASE')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xc4)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('OPEN_DOOR_NORTH')):
-      self.hexs.append(0xe0)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('CLOSE_DOOR_NORTH')):
-      self.hexs.append(0xe1)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('OPEN_DOOR_SOUTH')):
-      self.hexs.append(0xe2)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('CLOSE_DOOR_SOUTH')):
-      self.hexs.append(0xe3)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('OPEN_DOOR_EAST')):
-      self.hexs.append(0xe4)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('CLOSE_DOOR_EAST')):
-      self.hexs.append(0xe5)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('OPEN_DOOR_WEST')):
-      self.hexs.append(0xe6)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('CLOSE_DOOR_WEST')):
-      self.hexs.append(0xe7)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
- 
-
-    elif(line.startswith('SCROLL_ABAJO')):
-      self.hexs.append(0xe8)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SCROLL_ARRIBA')):
-      self.hexs.append(0xe9)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SCROLL_IZQUIERDA')):
-      self.hexs.append(0xea)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SCROLL_DERECHA')):
-      self.hexs.append(0xeb)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('SCRIPT_ENTRAR_BLOQUE')):
-      self.hexs.append(0xec)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-    elif(line.startswith('LOAD_PERSONAJE')):
-      argTxt = line[len('LOAD_PERSONAJE')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xfc)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('ADD_PERSONAJE')):
-      argTxt = line[len('ADD_PERSONAJE')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xfd)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('VENDEDOR')):
-      argTxt = line[len('VENDEDOR')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xf6)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-    elif(line.startswith('SLEEP')):
-      argTxt = line[len('SLEEP')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xf0)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-    elif(line.startswith('SOUND_EFFECT')):
-      argTxt = line[len('SOUND_EFFECT')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xf9)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('INCREASE_GOLD')):
-      argTxt = line[len('INCREASE_GOLD')+1:]
-#      arg = int(argTxt, 16)
-
-      argsTxt = argTxt.split(' ')
-      args = []
-      for strArg in argsTxt:
-        arg = int(strArg, 16)
-        args.append(arg)
-
-      self.hexs.append(0xd0)
-      self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('DECREASE_GOLD')):
-      argTxt = line[len('DECREASE_GOLD')+1:]
-#      arg = int(argTxt, 16)
-
-      argsTxt = argTxt.split(' ')
-      args = []
-      for strArg in argsTxt:
-        arg = int(strArg, 16)
-        args.append(arg)
-
-      self.hexs.append(0xd1)
-      self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-    elif(line.startswith('INCREASE_EXP')):
-      argTxt = line[len('INCREASE_EXP')+1:]
-#      arg = int(argTxt, 16)
-
-      argsTxt = argTxt.split(' ')
-      args = []
-      for strArg in argsTxt:
-        arg = int(strArg, 16)
-        args.append(arg)
-
-      self.hexs.append(0xd2)
-      self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('DECREASE_EXP')):
-      argTxt = line[len('DECREASE_EXP')+1:]
-#      arg = int(argTxt, 16)
-
-      argsTxt = argTxt.split(' ')
-      args = []
-      for strArg in argsTxt:
-        arg = int(strArg, 16)
-        args.append(arg)
-
-      self.hexs.append(0xd3)
-      self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
-
-
-    elif(line.startswith('PICK_ITEM')):
-      argTxt = line[len('PICK_ITEM')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd4)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('DROP_ITEM')):
-      argTxt = line[len('DROP_ITEM')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd5)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('PICK_MAGIC')):
-      argTxt = line[len('PICK_MAGIC')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd6)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('DROP_MAGIC')):
-      argTxt = line[len('DROP_MAGIC')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd7)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('PICK_WEAPON')):
-      argTxt = line[len('PICK_WEAPON')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd8)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-    elif(line.startswith('DROP_WEAPON')):
-      argTxt = line[len('DROP_WEAPON')+1:]
-      arg = int(argTxt, 16)
-      self.hexs.append(0xd9)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('FLAG_ON')):
-      argTxt = line[len('FLAG_ON')+1:]
-#      arg = int(argTxt, 16)
-      arg = Variables.instance().getVal(argTxt)
-      self.hexs.append(0xda)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('FLAG_OFF')):
-      argTxt = line[len('FLAG_OFF')+1:]
-#      arg = int(argTxt, 16)
-      arg = Variables.instance().getVal(argTxt)
-      self.hexs.append(0xdb)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('CONSUME_ITEM_AT_HAND')):
-      self.hexs.append(0xde)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('MUSIC')):
-
-      argTxt = line[len('MUSIC')+1:]
-      arg = int(argTxt, 16)
-
-      self.hexs.append(0xf8)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('ADD_MONSTRUO_GRANDE')):
-      argTxt = line[len('ADD_MONSTRUO_GRANDE')+1:].strip()
-#      arg = int(argTxt, 16)
-      arg = Variables.instance().getValMonstruo(argTxt)
-      self.hexs.append(0xfe)
-      self.hexs.append(arg)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-
     elif(line.startswith('CALL')):
 
       argTxt = line[len('CALL')+1:]
@@ -3811,208 +3992,6 @@ class Comando:
       self.jumpLabel = '${:04x}'.format(arg1*0x100 + arg2)
       self.hexs.append(0x02)
       self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('BLOQUE_TELEPORT')):
-
-      argTxt = line[len('BLOQUE_TELEPORT')+1:]
-      idx0 = line.rfind('(')
-      idx1 = line.rfind(')')
-      argTxt = line[idx0+1:idx1]
-      strArgs = argTxt.split(',')
-      arg1 = int(strArgs[0], 16)
-      arg2 = int(strArgs[1], 16)
-
-      self.hexs.append(0x8a)
-      self.hexs.append(arg1)
-      self.hexs.append(arg2)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('SPRITE')):
-
-#      argTxt = line[len('SPRITE')+1:]
-      idx0 = line.rfind('(')
-      idx1 = line.rfind(')')
-      argTxt = line[idx0+1:idx1]
-      strArgs = argTxt.split(',')
-      nn = int(strArgs[0], 16)
-      xx = int(strArgs[1], 16)
-      yy = int(strArgs[2], 16)
-
-      self.hexs.append(0xb0)
-      self.hexs.append(nn)
-      self.hexs.append(xx)
-      self.hexs.append(yy)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('ATTACK_EFFECT')):
-
-      idx0 = line.rfind('(')
-      idx1 = line.rfind(')')
-      argTxt = line[idx0+1:idx1]
-      strArgs = argTxt.split(',')
-      tt = int(strArgs[0], 16)
-      xx = int(strArgs[1], 16)
-      yy = int(strArgs[2], 16)
-
-      self.hexs.append(0xba)
-      self.hexs.append(tt)
-      self.hexs.append(xx)
-      self.hexs.append(yy)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    elif(line.startswith('TELEPORT')):
-
-      idx0 = line.find('=')
-      strArgs = line[idx0+3: len(line)-1]
-      strArgsSplit = strArgs.split(',')
-      args = [ int(u, 16) for u in strArgsSplit ]
-
-      # si es el teleport 1
-      if(not line[8] == '2'): 
-        self.hexs.append(0xf4)
-      # sino, es el teleport 2
-      else:
-        self.hexs.append(0xf3)
-
-      self.hexs.extend(args)
-      self.sizeLines = 1
-      self.sizeBytes = len(self.hexs)
-
-    # si es texto
-    elif(line.startswith('<')):
-      # indico que es en modo texto
-      self.textMode = True
-
-#      print('LINE: ' + line)
-
-      compactLine = line.replace('<TEXT_MODE_ON>',         u'\U0001F60A')
-      compactLine = compactLine.replace('<TEXT_MODE_OFF>', u'\U0001F61E')
-      compactLine = compactLine.replace('<TEXTBOX_SHOW>',  u'\U0001F639')
-      compactLine = compactLine.replace('<TEXTBOX_HIDE>',  u'\U0001F63F')
-      compactLine = compactLine.replace('<PAUSE>',         u'\U0001F610')
-      compactLine = compactLine.replace('<ENTER>',         u'\U0001F618')
-      compactLine = compactLine.replace('<SUMO>',          u'\U0001F466')
-      compactLine = compactLine.replace('<FUJI>',          u'\U0001F467')
-      compactLine = compactLine.replace('<CLS>',           u'\U0001F61D')
-      compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F47C')
-      compactLine = compactLine.replace('<CARRY>',         u'\U0001F634')
-      compactLine = compactLine.replace('<NI_IDEA>',       u'\U0001F624')
-      compactLine = compactLine.replace('<ICON a0>', u'\U00002200')
-      compactLine = compactLine.replace('<ICON a1>', u'\U00002201')
-      compactLine = compactLine.replace('<ICON a2>', u'\U00002202')
-      compactLine = compactLine.replace('<ICON a3>', u'\U00002203')
-      compactLine = compactLine.replace('<ICON a4>', u'\U00002204')
-      compactLine = compactLine.replace('<ICON a5>', u'\U00002205')
-      compactLine = compactLine.replace('<ICON a6>', u'\U00002206')
-      compactLine = compactLine.replace('<ICON a7>', u'\U00002207')
-      compactLine = compactLine.replace('<ICON a8>', u'\U00002208')
-      compactLine = compactLine.replace('<ICON a9>', u'\U00002209')
-      compactLine = compactLine.replace('<ICON aa>', u'\U0000220a')
-      compactLine = compactLine.replace('<ICON ab>', u'\U0000220b')
-      compactLine = compactLine.replace('<ICON ac>', u'\U0000220c')
-      compactLine = compactLine.replace('<ICON ad>', u'\U0000220d')
-      compactLine = compactLine.replace('<ICON ae>', u'\U0000220e')
-      compactLine = compactLine.replace('<ICON af>', u'\U0000220f')
-
-
-      lang = Address.instance().language
-      # si es la rom 'jp'
-      if(lang == JAPAN):
-        # tiene su propia forma de comprimir palabras
-        self.hexs = Dictionary.instance().tryJpCompress(compactLine)
-        strHex = Util.instance().strHexa(self.hexs)
-#        print('japancomprimi strHex: ' + strHex)
-
-      else:
-
-        sizeLine = len(compactLine)
-        i = 0
-        while(i < sizeLine):
-          char = compactLine[i]
-
-          if(char == u'\U0001F60A'):
-            self.hexs.append(0x04)
-          elif(char == u'\U0001F61E'):
-            self.hexs.append(0x00)
-          elif(char == u'\U0001F639'):
-            self.hexs.append(0x10)
-          elif(char == u'\U0001F63F'):
-            self.hexs.append(0x11)
-          elif(char == u'\U0001F610'):
-            self.hexs.append(0x12)
-          elif(char == u'\U0001F618'):
-            self.hexs.append(0x1a)
-          elif(char == u'\U0001F466'):
-            self.hexs.append(0x14)
-          elif(char == u'\U0001F467'):
-            self.hexs.append(0x15)
-          elif(char == u'\U0001F61D'):
-            self.hexs.append(0x1b)
-          elif(char == u'\U0001F47C'):
-            self.hexs.append(0x1d)
-          elif(char == u'\U0001F634'):
-            self.hexs.append(0x1f)
-          elif(char == u'\U0001F624'):
-            self.hexs.append(0x13)
-          elif(char == u'\U00002200'):
-            self.hexs.append(0xa0)
-          elif(char == u'\U00002201'):
-            self.hexs.append(0xa1)
-          elif(char == u'\U00002202'):
-            self.hexs.append(0xa2)
-          elif(char == u'\U00002203'):
-            self.hexs.append(0xa3)
-          elif(char == u'\U00002204'):
-            self.hexs.append(0xa4)
-          elif(char == u'\U00002205'):
-            self.hexs.append(0xa5)
-          elif(char == u'\U00002206'):
-            self.hexs.append(0xa6)
-          elif(char == u'\U00002207'):
-            self.hexs.append(0xa7)
-          elif(char == u'\U00002208'):
-            self.hexs.append(0xa8)
-          elif(char == u'\U00002209'):
-            self.hexs.append(0xa9)
-          elif(char == u'\U0000220a'):
-            self.hexs.append(0xaa)
-          elif(char == u'\U0000220b'):
-            self.hexs.append(0xab)
-          elif(char == u'\U0000220c'):
-            self.hexs.append(0xac)
-          elif(char == u'\U0000220d'):
-            self.hexs.append(0xad)
-          elif(char == u'\U0000220e'):
-            self.hexs.append(0xae)
-          elif(char == u'\U0000220f'):
-            self.hexs.append(0xaf)
-
-          else:
-            # agarro dos chars seguidos
-            chars = compactLine[i:i+2]
-
-#            if(chars in Dictionary.instance().invDeDict.keys()):
-            if(chars in Dictionary.instance().chars()):
-#              hexy = Dictionary.instance().invDeDict[chars]
-              hexy = Dictionary.instance().encodeChars(chars)
-#              print('chars: ' + chars + ' - hex: {:02x}'.format(hexy))
-
-              i += 1
-            else:
-              char = chars[0]
-#              hexy = Dictionary.instance().invDeDict[char]
-              hexy = Dictionary.instance().encodeChars(char)
-#              print('char: ' + char + ' - hex: {:02x}'.format(hexy))
-          
-            self.hexs.append(hexy)
-
-          i += 1
-
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
@@ -4228,6 +4207,669 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 
+    elif(line.startswith('HERO')):
+      idx0 = line.index('_')+1
+      strAction = line[idx0:]
+
+      nroExtra = 8
+
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        nroAction = actions.index(strAction)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+      elif(strAction.startswith('TELEPORT')):
+
+        nroAction = 0xa
+
+        idx0 = line.rfind('(')
+        idx1 = line.rfind(')')
+        strArgs = line[idx0+1:idx1]
+        strArgs = strArgs.split(',')
+        arg1 = int(strArgs[0], 16)
+        arg2 = int(strArgs[1], 16)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.hexs.append(arg1)
+        self.hexs.append(arg2)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('EXTRASPECIAL')):
+
+      idx0 = line.index('_')+1
+      strAction = line[idx0:]
+
+      nroExtra = 9
+ 
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        nroAction = actions.index(strAction)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+      elif(strAction.startswith('TELEPORT')):
+
+        nroAction = 0x9
+
+        idx0 = line.rfind('(')
+        idx1 = line.rfind(')')
+        strArgs = line[idx0+1:idx1]
+        strArgs = strArgs.split(',')
+        arg1 = int(strArgs[0], 16)
+        arg2 = int(strArgs[1], 16)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.hexs.append(arg1)
+        self.hexs.append(arg2)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('EXTRA')):
+
+      idx0 = line.index('_')+1
+      strAction = line[idx0:]
+
+      nroExtra = int(line[5])
+ 
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        nroAction = actions.index(strAction)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+      elif(strAction.startswith('TELEPORT')):
+
+        nroAction = 0x9
+
+        idx0 = line.rfind('(')
+        idx1 = line.rfind(')')
+        strArgs = line[idx0+1:idx1]
+        strArgs = strArgs.split(',')
+        arg1 = int(strArgs[0], 16)
+        arg2 = int(strArgs[1], 16)
+
+        nroCmd = nroExtra * 0x10 + nroAction
+        self.hexs.append(nroCmd)
+        self.hexs.append(arg1)
+        self.hexs.append(arg2)
+        self.sizeLines = 1
+        self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SET_EXTRASPECIAL_PERSONAJE')):
+
+      argTxt = line[len('SET_EXTRASPECIAL_PERSONAJE')+1:]
+      arg = int(argTxt, 16)
+
+      self.hexs.append(0x9c)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+    elif(line.startswith('SMALLMAP_OPEN')):
+      self.hexs.append(0xac)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SMALLMAP_IDLE')):
+      self.hexs.append(0xad)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SMALLMAP_CLOSE')):
+      self.hexs.append(0xae)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('OPEN_CHEST')):
+      self.hexs.append(0xaf)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+
+
+
+    elif(line.startswith('ON_FEET')):
+      self.hexs.append(0xa4)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('ON_AIR')):
+      self.hexs.append(0xa5)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('ON_FLOOR')):
+      self.hexs.append(0xa6)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+    elif(line.startswith('SPRITE')):
+
+#      argTxt = line[len('SPRITE')+1:]
+      idx0 = line.rfind('(')
+      idx1 = line.rfind(')')
+      argTxt = line[idx0+1:idx1]
+      strArgs = argTxt.split(',')
+      nn = int(strArgs[0], 16)
+      xx = int(strArgs[1], 16)
+      yy = int(strArgs[2], 16)
+
+      self.hexs.append(0xb0)
+      self.hexs.append(nn)
+      self.hexs.append(xx)
+      self.hexs.append(yy)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('ATTACK_EFFECT')):
+
+      idx0 = line.rfind('(')
+      idx1 = line.rfind(')')
+      argTxt = line[idx0+1:idx1]
+      strArgs = argTxt.split(',')
+      tt = int(strArgs[0], 16)
+      xx = int(strArgs[1], 16)
+      yy = int(strArgs[2], 16)
+
+      self.hexs.append(0xba)
+      self.hexs.append(tt)
+      self.hexs.append(xx)
+      self.hexs.append(yy)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('FADE_IN')):
+      self.hexs.append(0xbc)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('FADE_OUT')):
+      self.hexs.append(0xbd)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('PARPADEO')):
+      self.hexs.append(0xbf)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('RECOVER_HP')):
+      self.hexs.append(0xc0)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('RECOVER_MP')):
+      self.hexs.append(0xc1)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DISEASE')):
+      argTxt = line[len('DISEASE')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xc4)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('INPUT_NAMES_SUMO_FUJI')):
+      self.hexs.append(0xc6)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('RANDOMIZE_7E7F')):
+      self.hexs.append(0xc7)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('RESET_GAME')):
+      self.hexs.append(0xc8)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SET_CHEST1_SCRIPT')):
+
+      argTxt = line[len('SET_CHEST1_SCRIPT')+1:]
+      strArg1 = argTxt[0:2]
+      strArg2 = argTxt[2:4]
+      arg1 = int(strArg1, 16)
+      arg2 = int(strArg2, 16)
+      args = [arg1, arg2]
+
+      self.hexs.append(0xc9)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SET_CHEST2_SCRIPT')):
+
+      argTxt = line[len('SET_CHEST2_SCRIPT')+1:]
+      strArg1 = argTxt[0:2]
+      strArg2 = argTxt[2:4]
+      arg1 = int(strArg1, 16)
+      arg2 = int(strArg2, 16)
+      args = [arg1, arg2]
+
+      self.hexs.append(0xca)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('INCREASE_GOLD')):
+      argTxt = line[len('INCREASE_GOLD')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd0)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DECREASE_GOLD')):
+      argTxt = line[len('DECREASE_GOLD')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd1)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+    elif(line.startswith('INCREASE_EXP')):
+      argTxt = line[len('INCREASE_EXP')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd2)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('DECREASE_EXP')):
+      argTxt = line[len('DECREASE_EXP')+1:]
+#      arg = int(argTxt, 16)
+
+      argsTxt = argTxt.split(' ')
+      args = []
+      for strArg in argsTxt:
+        arg = int(strArg, 16)
+        args.append(arg)
+
+      self.hexs.append(0xd3)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PICK_ITEM')):
+      argTxt = line[len('PICK_ITEM')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd4)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_ITEM')):
+      argTxt = line[len('DROP_ITEM')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd5)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PICK_MAGIC')):
+      argTxt = line[len('PICK_MAGIC')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd6)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_MAGIC')):
+      argTxt = line[len('DROP_MAGIC')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd7)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PICK_WEAPON')):
+      argTxt = line[len('PICK_WEAPON')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd8)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('DROP_WEAPON')):
+      argTxt = line[len('DROP_WEAPON')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xd9)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('FLAG_ON')):
+      argTxt = line[len('FLAG_ON')+1:]
+#      arg = int(argTxt, 16)
+      arg = Variables.instance().getVal(argTxt)
+      self.hexs.append(0xda)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('FLAG_OFF')):
+      argTxt = line[len('FLAG_OFF')+1:]
+#      arg = int(argTxt, 16)
+      arg = Variables.instance().getVal(argTxt)
+      self.hexs.append(0xdb)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('TEXT_SPEED_LOCK')):
+      self.hexs.append(0xdc)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('TEXT_SPEED_UNLOCK')):
+      self.hexs.append(0xdd)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('CONSUME_ITEM_AT_HAND')):
+      self.hexs.append(0xde)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('OPEN_DOOR_NORTH')):
+      self.hexs.append(0xe0)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_NORTH')):
+      self.hexs.append(0xe1)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_SOUTH')):
+      self.hexs.append(0xe2)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_SOUTH')):
+      self.hexs.append(0xe3)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_EAST')):
+      self.hexs.append(0xe4)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_EAST')):
+      self.hexs.append(0xe5)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('OPEN_DOOR_WEST')):
+      self.hexs.append(0xe6)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('CLOSE_DOOR_WEST')):
+      self.hexs.append(0xe7)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SCROLL_ABAJO')):
+      self.hexs.append(0xe8)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCROLL_ARRIBA')):
+      self.hexs.append(0xe9)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCROLL_IZQUIERDA')):
+      self.hexs.append(0xea)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCROLL_DERECHA')):
+      self.hexs.append(0xeb)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCRIPT_ENTRAR_BLOQUE')):
+      self.hexs.append(0xec)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+    elif(line.startswith('SLEEP')):
+      argTxt = line[len('SLEEP')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xf0)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('TELEPORT')):
+
+      idx0 = line.find('=')
+      strArgs = line[idx0+3: len(line)-1]
+      strArgsSplit = strArgs.split(',')
+      args = [ int(u, 16) for u in strArgsSplit ]
+
+      # si es el teleport 1
+      if(not line[8] == '2'): 
+        self.hexs.append(0xf4)
+      # sino, es el teleport 2
+      else:
+        self.hexs.append(0xf3)
+
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('VENDEDOR')):
+      argTxt = line[len('VENDEDOR')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xf6)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('MUSIC')):
+
+      argTxt = line[len('MUSIC')+1:]
+      arg = int(argTxt, 16)
+
+      self.hexs.append(0xf8)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SOUND_EFFECT')):
+      argTxt = line[len('SOUND_EFFECT')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xf9)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('LOAD_GRUPO_PERSONAJE')):
+      argTxt = line[len('LOAD_GRUPO_PERSONAJE')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xfc)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('ADD_PERSONAJE')):
+      argTxt = line[len('ADD_PERSONAJE')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xfd)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('ADD_MONSTRUO_GRANDE')):
+      argTxt = line[len('ADD_MONSTRUO_GRANDE')+1:].strip()
+#      arg = int(argTxt, 16)
+      arg = Variables.instance().getValBoss(argTxt)
+      self.hexs.append(0xfe)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    # si es texto
+    elif(line.startswith('<')):
+      # indico que es en modo texto
+      self.textMode = True
+
+#      print('LINE: ' + line)
+
+      compactLine = line.replace('<TEXT_MODE_ON>',         u'\U0001F60A')
+      compactLine = compactLine.replace('<TEXT_MODE_OFF>', u'\U0001F61E')
+      compactLine = compactLine.replace('<TEXTBOX_SHOW>',  u'\U0001F639')
+      compactLine = compactLine.replace('<TEXTBOX_HIDE>',  u'\U0001F63F')
+      compactLine = compactLine.replace('<PAUSE>',         u'\U0001F610')
+      compactLine = compactLine.replace('<ENTER>',         u'\U0001F618')
+      compactLine = compactLine.replace('<SUMO>',          u'\U0001F466')
+      compactLine = compactLine.replace('<FUJI>',          u'\U0001F467')
+      compactLine = compactLine.replace('<CLS>',           u'\U0001F61D')
+      compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F47C')
+      compactLine = compactLine.replace('<CARRY>',         u'\U0001F634')
+      compactLine = compactLine.replace('<NI_IDEA>',       u'\U0001F624')
+      compactLine = compactLine.replace('<ICON a0>', u'\U00002200')
+      compactLine = compactLine.replace('<ICON a1>', u'\U00002201')
+      compactLine = compactLine.replace('<ICON a2>', u'\U00002202')
+      compactLine = compactLine.replace('<ICON a3>', u'\U00002203')
+      compactLine = compactLine.replace('<ICON a4>', u'\U00002204')
+      compactLine = compactLine.replace('<ICON a5>', u'\U00002205')
+      compactLine = compactLine.replace('<ICON a6>', u'\U00002206')
+      compactLine = compactLine.replace('<ICON a7>', u'\U00002207')
+      compactLine = compactLine.replace('<ICON a8>', u'\U00002208')
+      compactLine = compactLine.replace('<ICON a9>', u'\U00002209')
+      compactLine = compactLine.replace('<ICON aa>', u'\U0000220a')
+      compactLine = compactLine.replace('<ICON ab>', u'\U0000220b')
+      compactLine = compactLine.replace('<ICON ac>', u'\U0000220c')
+      compactLine = compactLine.replace('<ICON ad>', u'\U0000220d')
+      compactLine = compactLine.replace('<ICON ae>', u'\U0000220e')
+      compactLine = compactLine.replace('<ICON af>', u'\U0000220f')
+
+
+      lang = Address.instance().language
+      # si es la rom 'jp'
+      if(lang == JAPAN):
+        # tiene su propia forma de comprimir palabras
+        self.hexs = Dictionary.instance().tryJpCompress(compactLine)
+        strHex = Util.instance().strHexa(self.hexs)
+#        print('japancomprimi strHex: ' + strHex)
+
+      else:
+
+        sizeLine = len(compactLine)
+        i = 0
+        while(i < sizeLine):
+          char = compactLine[i]
+
+          if(char == u'\U0001F60A'):
+            self.hexs.append(0x04)
+          elif(char == u'\U0001F61E'):
+            self.hexs.append(0x00)
+          elif(char == u'\U0001F639'):
+            self.hexs.append(0x10)
+          elif(char == u'\U0001F63F'):
+            self.hexs.append(0x11)
+          elif(char == u'\U0001F610'):
+            self.hexs.append(0x12)
+          elif(char == u'\U0001F618'):
+            self.hexs.append(0x1a)
+          elif(char == u'\U0001F466'):
+            self.hexs.append(0x14)
+          elif(char == u'\U0001F467'):
+            self.hexs.append(0x15)
+          elif(char == u'\U0001F61D'):
+            self.hexs.append(0x1b)
+          elif(char == u'\U0001F47C'):
+            self.hexs.append(0x1d)
+          elif(char == u'\U0001F634'):
+            self.hexs.append(0x1f)
+          elif(char == u'\U0001F624'):
+            self.hexs.append(0x13)
+          elif(char == u'\U00002200'):
+            self.hexs.append(0xa0)
+          elif(char == u'\U00002201'):
+            self.hexs.append(0xa1)
+          elif(char == u'\U00002202'):
+            self.hexs.append(0xa2)
+          elif(char == u'\U00002203'):
+            self.hexs.append(0xa3)
+          elif(char == u'\U00002204'):
+            self.hexs.append(0xa4)
+          elif(char == u'\U00002205'):
+            self.hexs.append(0xa5)
+          elif(char == u'\U00002206'):
+            self.hexs.append(0xa6)
+          elif(char == u'\U00002207'):
+            self.hexs.append(0xa7)
+          elif(char == u'\U00002208'):
+            self.hexs.append(0xa8)
+          elif(char == u'\U00002209'):
+            self.hexs.append(0xa9)
+          elif(char == u'\U0000220a'):
+            self.hexs.append(0xaa)
+          elif(char == u'\U0000220b'):
+            self.hexs.append(0xab)
+          elif(char == u'\U0000220c'):
+            self.hexs.append(0xac)
+          elif(char == u'\U0000220d'):
+            self.hexs.append(0xad)
+          elif(char == u'\U0000220e'):
+            self.hexs.append(0xae)
+          elif(char == u'\U0000220f'):
+            self.hexs.append(0xaf)
+
+          else:
+            # agarro dos chars seguidos
+            chars = compactLine[i:i+2]
+
+#            if(chars in Dictionary.instance().invDeDict.keys()):
+            if(chars in Dictionary.instance().chars()):
+#              hexy = Dictionary.instance().invDeDict[chars]
+              hexy = Dictionary.instance().encodeChars(chars)
+#              print('chars: ' + chars + ' - hex: {:02x}'.format(hexy))
+
+              i += 1
+            else:
+              char = chars[0]
+#              hexy = Dictionary.instance().invDeDict[char]
+              hexy = Dictionary.instance().encodeChars(char)
+#              print('char: ' + char + ' - hex: {:02x}'.format(hexy))
+          
+            self.hexs.append(hexy)
+
+          i += 1
+
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
 
   def __str__(self):
 #    return self.strCode + ' | ' + self.strHex
@@ -4247,10 +4889,15 @@ class Variables:
     for i in range(0x78,0x80):
       self.variables[i] = 'var_sinbatt_{:02x}'.format(i)
 
-    # diccionario de monstruos
-    self.monstruos = {}
+    # diccionario de monstruos grandes
+    self.bosses = {}
     for i in range(0,0x15):
-      self.monstruos[i] = 'monst_{:02x}'.format(i)
+      self.bosses[i] = 'boss_{:02x}'.format(i)
+
+    # diccionario de personajes
+    self.personajes = {}
+    for i in range(0,0xbf):
+      self.personajes[i] = 'pers_{:02x}'.format(i)
 
     self.equipamiento = {}
     # 0x09 empieza los items de items
@@ -4485,28 +5132,220 @@ class Variables:
 #      self.variables[0x7f] = 'ELIGIMOS_NO'
 
       # nombres de los monstruos grandes
-      self.monstruos[0x00] = 'LEE_DRACULA'
-      self.monstruos[0x01] = 'DRAGON_AGUA_2_CABEZAS'
-      self.monstruos[0x02] = 'MEDUSA'
-      self.monstruos[0x03] = 'MEGAPEDE_CIENPIES'
-      self.monstruos[0x04] = 'DAVIAS'
-      self.monstruos[0x05] = 'GOLEM_ROBOT_MORNINGSTAR'
-      self.monstruos[0x06] = 'CYCLOPE_DEJA_MORNINGSTAR'
-      self.monstruos[0x07] = 'CHIMERA_LEON_ALAS'
-      self.monstruos[0x08] = 'KARY_HIELO'
-      self.monstruos[0x09] = 'KRAKEN_PUENTE'
-      self.monstruos[0x0a] = 'PIRUS_IFLYTE_BOLA_SOL'
-      self.monstruos[0x0b] = 'LICH_SENSEMANN_ESQUELETO'
-      self.monstruos[0x0c] = 'GARUDA_AGUILA'
-      self.monstruos[0x0d] = 'DRAGON'
-      self.monstruos[0x0e] = 'JULIUS2'
-      self.monstruos[0x0f] = 'DRAGON_ZOMBIE'
-      self.monstruos[0x10] = 'MONSTRUO_INICIO'
-      self.monstruos[0x11] = 'JULIUS3'
-      self.monstruos[0x12] = 'METAL_CRAB_CANGREJO'
-      self.monstruos[0x13] = 'MANTIS_ANT_COATI_GIGANTE'
-      self.monstruos[0x14] = 'DRAGON_ROJO'
+      self.bosses[0x00] = 'VAMPIRE_LEE'
+      self.bosses[0x01] = 'HYDRA'
+      self.bosses[0x02] = 'MEDUSA'
+      self.bosses[0x03] = 'MEGAPEDE'
+      self.bosses[0x04] = 'DAVIAS'
+      self.bosses[0x05] = 'GOLEM_ROBOT'
+      self.bosses[0x06] = 'CYCLOPS'
+      self.bosses[0x07] = 'CHIMERA'
+      self.bosses[0x08] = 'KARY'
+      self.bosses[0x09] = 'KRAKEN'
+      self.bosses[0x0a] = 'PIRUS_IFLYTE'
+      self.bosses[0x0b] = 'LICH_SENSEMANN'
+      self.bosses[0x0c] = 'GARUDA'
+      self.bosses[0x0d] = 'DRAGON'
+      self.bosses[0x0e] = 'JULIUS_2ND_FORM'
+      self.bosses[0x0f] = 'DRAGON_ZOMBIE'
+      self.bosses[0x10] = 'JACKAL_BIGCAT'
+      self.bosses[0x11] = 'JULIUS_3RD_FORM'
+      self.bosses[0x12] = 'METAL_CRAB_CANGREJO'
+      self.bosses[0x13] = 'MANTIS_ANT'
+      self.bosses[0x14] = 'DRAGON_RED'
 
+      # nombres de los personajes
+      self.personajes[0x00] = 'SNOWMAN_STILL'
+      self.personajes[0x01] = 'FUJI_FOLLOWING'
+      self.personajes[0x02] = 'MYSTERYMAN_FOLLOWING'
+      self.personajes[0x03] = 'WATTS_FOLLOWING'
+      self.personajes[0x04] = 'BOGARD_FOLLOWING'
+      self.personajes[0x05] = 'AMANDA_FOLLOWING'
+      self.personajes[0x06] = 'LESTER_FOLLOWING'
+      self.personajes[0x07] = 'MARCIE_FOLLOWING'
+      self.personajes[0x08] = 'CHOCOBO_FOLLOWING'
+      self.personajes[0x09] = 'CHOCOBOT_FOLLOWING'
+      self.personajes[0x0a] = 'WEREWOLF_1'
+      self.personajes[0x0b] = 'INV_CURE'
+      self.personajes[0x0c] = 'CHEST_1'
+      self.personajes[0x0d] = 'CHEST_2'
+      self.personajes[0x0e] = 'CHEST_3'
+      self.personajes[0x0f] = 'CHEST_4'
+      self.personajes[0x10] = 'CHIBIDEVIL'
+      self.personajes[0x11] = 'RABBITE'
+      self.personajes[0x12] = 'GOBLIN'
+      self.personajes[0x13] = 'MUSHROOM'
+      self.personajes[0x14] = 'JELLYFISH'
+      self.personajes[0x15] = 'SWAMPMAN'
+      self.personajes[0x16] = 'LIZARDMAN'
+      self.personajes[0x17] = 'FLOWER'
+      self.personajes[0x18] = 'FACEORB'
+      self.personajes[0x19] = 'SKELETON'
+      self.personajes[0x1a] = 'EVIL_PLANT'
+      self.personajes[0x1b] = 'FLYING_FISH'
+      self.personajes[0x1c] = 'ZOMBIE'
+      self.personajes[0x1d] = 'MOUSE'
+      self.personajes[0x1e] = 'PUMPKIN'
+      self.personajes[0x1f] = 'OWL'
+      self.personajes[0x20] = 'BEE'
+      self.personajes[0x21] = 'CLOUD'
+      self.personajes[0x22] = 'PIG'
+      self.personajes[0x23] = 'CRAB'
+      self.personajes[0x24] = 'SPIDER'
+      self.personajes[0x25] = 'INV_OPEN_NORTH'
+      self.personajes[0x26] = 'INV_OPEN_SOUTH'
+      self.personajes[0x27] = 'INV_OPEN_EAST'
+      self.personajes[0x28] = 'INV_OPEN_WEST'
+      self.personajes[0x29] = 'MIMIC_CHEST'
+      self.personajes[0x2a] = 'HOPPING_BUG'
+      self.personajes[0x2b] = 'PORCUPINE'
+      self.personajes[0x2c] = 'CARROT'
+      self.personajes[0x2d] = 'EYE_SPY'
+      self.personajes[0x2e] = 'WEREWOLF_2'
+      self.personajes[0x2f] = 'GHOST'
+      self.personajes[0x30] = 'BASILISK'
+      self.personajes[0x31] = 'SCORPION'
+      self.personajes[0x32] = 'SAURUS'
+      self.personajes[0x33] = 'MUMMY'
+      self.personajes[0x34] = 'PAKKUN_LIZARD'
+      self.personajes[0x35] = 'SNAKE'
+      self.personajes[0x36] = 'SHADOW'
+      self.personajes[0x37] = 'BLACK_WIZARD'
+      self.personajes[0x38] = 'FLAME'
+      self.personajes[0x39] = 'GARGOYLE'
+      self.personajes[0x3a] = 'MONKEY'
+      self.personajes[0x3b] = 'MOLEBEAR'
+      self.personajes[0x3c] = 'OGRE'
+      self.personajes[0x3d] = 'BARNACLEJACK'
+      self.personajes[0x3e] = 'PHANTASM'
+      self.personajes[0x3f] = 'MINOTAUR'
+      self.personajes[0x40] = 'GLAIVE_MAGE'
+      self.personajes[0x41] = 'GLAIVE_KNIGHT'
+      self.personajes[0x42] = 'DARK_LORD'
+      self.personajes[0x43] = 'MEGA_FLYTRAP'
+      self.personajes[0x44] = 'DRAGONFLY'
+      self.personajes[0x45] = 'ARMADILLO'
+      self.personajes[0x46] = 'SNOWMAN_MOVING'
+      self.personajes[0x47] = 'SABER_CAT'
+      self.personajes[0x48] = 'WALRUS'
+      self.personajes[0x49] = 'DUCK_SOLDIER'
+      self.personajes[0x4a] = 'POTO_RABBIT'
+      self.personajes[0x4b] = 'CYCLONE'
+      self.personajes[0x4c] = 'BEHOLDER_EYE'
+      self.personajes[0x4d] = 'MANTA_RAY'
+      self.personajes[0x4e] = 'JUMPING_HAND'
+      self.personajes[0x4f] = 'TORTOISE'
+      self.personajes[0x50] = 'FIRE_MOTH'
+      self.personajes[0x51] = 'EARTH_DIGGER'
+      self.personajes[0x52] = 'DENDEN_SNAIL'
+      self.personajes[0x53] = 'DOPPEL_MIRROR'
+      self.personajes[0x54] = 'GUARDIAN'
+      self.personajes[0x55] = 'EVIL_SWORD'
+      self.personajes[0x56] = 'GAUNTLET'
+      self.personajes[0x57] = 'GARASHA_DUCK'
+      self.personajes[0x58] = 'FUZZY_WONDER'
+      self.personajes[0x59] = 'ELEPHANT'
+      self.personajes[0x5a] = 'NINJA'
+      self.personajes[0x5b] = 'JULIUS'
+      self.personajes[0x5c] = 'DEMON_HEAD'
+      self.personajes[0x5d] = 'INV_DESSERT_CAVE_STONE'
+      self.personajes[0x5e] = 'WATER_DEMON'
+      self.personajes[0x5f] = 'SEA_DRAGON'
+      self.personajes[0x60] = 'GALL_FISH'
+      self.personajes[0x61] = 'WILLY'
+      self.personajes[0x62] = 'MYSTERYMAN_1'
+      self.personajes[0x63] = 'AMANDA_1'
+      self.personajes[0x64] = 'AMANDA_ILL'
+      self.personajes[0x65] = 'AMANDA_DEAD'
+      self.personajes[0x66] = 'FUJI_1'
+      self.personajes[0x67] = 'FUJI_WINDOW'
+      self.personajes[0x68] = 'MOTHER'
+      self.personajes[0x69] = 'BOGARD_1'
+      self.personajes[0x6a] = 'BOGARD_2'
+      self.personajes[0x6b] = 'KETTS_WEREWOLF'
+      self.personajes[0x6c] = 'INV_FUJI_COFFIN'
+      self.personajes[0x6d] = 'CIBBA'
+      self.personajes[0x6e] = 'GUY_WENDEL'
+      self.personajes[0x6f] = 'WATTS'
+      self.personajes[0x70] = 'MINECART'
+      self.personajes[0x71] = 'CHOCOBO_EGG'
+      self.personajes[0x72] = 'DAVIAS'
+      self.personajes[0x73] = 'LESTER_1'
+      self.personajes[0x74] = 'LESTER_PARROT'
+      self.personajes[0x75] = 'BOWOW'
+      self.personajes[0x76] = 'SARAH'
+      self.personajes[0x77] = 'MARCIE_1'
+      self.personajes[0x78] = 'KING_OF_LORIM'
+      self.personajes[0x79] = 'GLADIATOR_FRIEND'
+      self.personajes[0x7a] = 'INV_INN'
+      self.personajes[0x7b] = 'GIRL_TOPPLE'
+      self.personajes[0x7c] = 'GUY_TOPPLE'
+      self.personajes[0x7d] = 'GUY_TOPPLE_HOUSE'
+      self.personajes[0x7e] = 'GIRL_TOPPLE_HOUSE'
+      self.personajes[0x7f] = 'OLDMAN_TOPPLE'
+      self.personajes[0x80] = 'GUY_KETTS'
+      self.personajes[0x81] = 'GIRL_KETTS'
+      self.personajes[0x82] = 'GIRL_CIBBA'
+      self.personajes[0x83] = 'GUY_WENDEL'
+      self.personajes[0x84] = 'GUY_WENDEL_HOUSE'
+      self.personajes[0x85] = 'WOMAN_CIBBA'
+      self.personajes[0x86] = 'OLDMAN_WENDEL'
+      self.personajes[0x87] = 'DWARF_1'
+      self.personajes[0x88] = 'DWARF_2'
+      self.personajes[0x89] = 'DWARF_3'
+      self.personajes[0x8a] = 'DWARF_4'
+      self.personajes[0x8b] = 'DWARF_5'
+      self.personajes[0x8c] = 'GUY_AIRSHIP_1'
+      self.personajes[0x8d] = 'GUY_AIRSHIP_2'
+      self.personajes[0x8e] = 'GUY_AIRSHIP_3'
+      self.personajes[0x8f] = 'GUY_AIRSHIP_4'
+      self.personajes[0x90] = 'OLDMAN_MENOS_1'
+      self.personajes[0x91] = 'GUY_MENOS'
+      self.personajes[0x92] = 'GIRL_MENOS_1'
+      self.personajes[0x93] = 'OLDMAN_MENOS_2'
+      self.personajes[0x94] = 'GIRL_MENOS'
+      self.personajes[0x95] = 'WOMAN_MENOS_2'
+      self.personajes[0x96] = 'GIRL_JADD_1'
+      self.personajes[0x97] = 'OLDMAN_JADD'
+      self.personajes[0x98] = 'GIRL_JADD_2'
+      self.personajes[0x99] = 'GUY_JADD'
+      self.personajes[0x9a] = 'DWARF_JADD'
+      self.personajes[0x9b] = 'SALESMAN_JADD'
+      self.personajes[0x9c] = 'GIRL_JADD_3'
+      self.personajes[0x9d] = 'BOY_JADD'
+      self.personajes[0x9e] = 'OLDMAN_ISH'
+      self.personajes[0x9f] = 'GUY_ISH_1'
+      self.personajes[0xa0] = 'GUY_ISH_2'
+      self.personajes[0xa1] = 'GIRL_ISH'
+      self.personajes[0xa2] = 'GUY_ISH_3'
+      self.personajes[0xa3] = 'GUY_ISH_4'
+      self.personajes[0xa4] = 'INV_STONE_1'
+      self.personajes[0xa5] = 'INV_STONE_2'
+      self.personajes[0xa6] = 'INV_STONE_3'
+      self.personajes[0xa7] = 'INV_STONE_4'
+      self.personajes[0xa8] = 'INV_STONE_5'
+      self.personajes[0xa9] = 'INV_STONE_6'
+      self.personajes[0xaa] = 'INV_STONE_7'
+      self.personajes[0xab] = 'INV_STONE_8'
+      self.personajes[0xac] = 'GUY_LORIM_FROZEN'
+      self.personajes[0xad] = 'GUY_LORIM_1'
+      self.personajes[0xae] = 'GUY_LORIM_2'
+      self.personajes[0xaf] = 'SALESMAN'
+      self.personajes[0xb0] = 'INV_SALESMAN_1'
+      self.personajes[0xb1] = 'FUJI_2'
+      self.personajes[0xb2] = 'INV_SALESMAN_2'
+      self.personajes[0xb3] = 'MYSTERYMAN_2'
+      self.personajes[0xb4] = 'BOGARD_3'
+      self.personajes[0xb5] = 'AMANDA_2'
+      self.personajes[0xb6] = 'LESTER_2'
+      self.personajes[0xb7] = 'MARCIE_2'
+      self.personajes[0xb8] = 'CHOCOBOT'
+      self.personajes[0xb9] = 'CHOCOBO_1'
+      self.personajes[0xba] = 'CHOCOBO_2'
+      self.personajes[0xbb] = 'PRISION_BARS'
+      self.personajes[0xbc] = 'MUSIC_NOTES'
+      self.personajes[0xbd] = 'MAGIC_SALESMAN'
+      self.personajes[0xbe] = 'LAST_GUY'
 
   def getLabel(self, val):
     # el primer bit indica si hay que negar la variable
@@ -4548,14 +5387,14 @@ class Variables:
     return retVal
 
 
-  def getLabelMonstruo(self, val):
-    label = self.monstruos[val]
+  def getLabelBoss(self, val):
+    label = self.bosses[val]
     return label
-  def getValMonstruo(self, label):
+  def getValBoss(self, label):
     # por cada monstruo 
-    for val in self.monstruos.keys():
+    for val in self.bosses.keys():
       # me fijo el label
-      lbl = self.monstruos[val]
+      lbl = self.bosses[val]
       # si lo encontré
       if(lbl == label):
         retVal = val
@@ -4599,6 +5438,14 @@ class Scripts:
 
     address = Address.instance().addrScriptAddrDic
     cantScripts = Address.instance().cantScripts
+
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    length = 2*cantScripts
+    # agrego info al stats
+    RomStats.instance().appendDato(0x08, address, address+length, (rr, gg, bb), 'diccionario de addr de scripts')
 
     # por cada nroScript
     for nroScript in range(0,cantScripts):
@@ -4840,8 +5687,8 @@ class Scripts:
         # el script anterior fué el último en entrar completo en el banco
         ultimoNroScriptBanco0d = script.nro - 1
 
-        # si la rom es 'en' ó 'fr' 
-        if(lang in [ENGLISH, FRENCH]):
+        # si la rom es 'en', 'en_uk' ó 'fr' 
+        if(lang in [ENGLISH, ENGLISH_UK, FRENCH]):
           # el script anterior se vuelve a copiar al principio del banco siguiente
           self.scripts[i-1].addr = 0x4000
           vaPorAddr += len(self.scripts[i-1].encodeRom())
@@ -6034,6 +6881,13 @@ class Mapas:
   def decodeRom(self):
 
     bank08 = RomSplitter.instance().banks[0x08]
+
+    import random
+    rr = random.randint(0,0xff)
+    gg = random.randint(0,0xff)
+    bb = random.randint(0,0xff)
+    RomStats.instance().appendDato(0x08, 0x0000, 0x0000 + 16*11 , (rr, gg, bb), 'header de los mapas')
+
     # para cada mapa
     for nroMapa in range(0,0x10):
 
@@ -7626,7 +8480,7 @@ class Dictionary:
 
     lang = Address.instance().language
 
-    if(lang == ENGLISH):
+    if(lang in [ENGLISH, ENGLISH_UK]):
 
       listCharsCmds = Dictionary.instance().listCharsCmds
       # seteo los comandos
@@ -8027,6 +8881,399 @@ class Cosas:
       if(magic.nro == nroMagic):
         return magic
 
+##########################################################
+class DosTiles:
+  """ representa una estructura de dosTiles """
+
+  def __init__(self, addr):
+    # el addr del dosTiles
+    self.addr = addr
+
+    # the attribute (10 = normal, 30 = espejo, ???)
+    self.attr = None
+    # the first tile
+    self.tile1 = None
+    # the second tile
+    self.tile2 = None
+
+  def decodeRom(self, subArray):
+    self.attr  = subArray[0]
+    self.tile1 = subArray[1]
+    self.tile2 = subArray[2]
+
+
+  def encodeRom(self):
+    array = []
+
+    array.append(self.attr)
+    array.append(self.tile1)
+    array.append(self.tile2)
+
+    return array
+ 
+
+  def encodeTxt(self):
+    lines = []
+
+    string = '(attr,tile1,tile2) = ({:02x}, {:02x}, {:02x})   # addr = {:04x}'.format(self.attr, self.tile1, self.tile2, self.addr)
+    lines.append(string)
+
+    return lines
+
+
+  def decodeTxt(self, lines):
+    line = lines[0]
+   
+    self.attr  = int(line[22:24],16)
+    self.tile1 = int(line[26:28],16)
+    self.tile2 = int(line[30:32],16)
+
+  def __str__(self):
+    string = '(attr,tile1,tile2) = ({:02x}, {:02x}, {:02x})   # addr = {:04x}'.format(self.attr, self.tile1, self.tile2, self.addr)
+    return string
+
+
+
+##########################################################
+class PersonajeStats:
+  """ representa los stats de un personaje """
+
+  def __init__(self, nroStats):
+    self.nroStats = nroStats
+
+    self.nose1    = 0x00
+    self.nose2    = 0x00
+    self.nose3    = 0x00
+    self.nose4    = 0x00
+    self.nose5    = 0x00
+    self.maybeDP  = 0x00
+    self.maybeAP  = 0x00
+    self.nose6    = 0x00
+    self.nose7    = 0x00
+    self.shootWeapon = 0x00
+    self.nose9    = 0x00
+    self.nose10   = 0x00
+    self.maybeExp = 0x00
+    self.maybeGP  = 0x00
+
+  def decodeRom(self, subArray):
+
+    self.nose1    = subArray[0] 
+    self.nose2    = subArray[1]
+    self.nose3    = subArray[2]
+    self.nose4    = subArray[3]
+    self.nose5    = subArray[4]
+    self.maybeDP  = subArray[5]
+    self.maybeAP  = subArray[6]
+    self.nose6    = subArray[7]
+    self.nose7    = subArray[8]
+    self.shootWeapon = subArray[9]
+    self.nose9    = subArray[10]
+    self.nose10   = subArray[11]
+    self.maybeExp = subArray[12]
+    self.maybeGP  = subArray[13]
+
+  def encodeRom(self):
+    array = []
+
+    array.append(self.nose1)
+    array.append(self.nose2)
+    array.append(self.nose3)
+    array.append(self.nose4)
+    array.append(self.nose5)
+    array.append(self.maybeDP)
+    array.append(self.maybeAP)
+    array.append(self.nose6)
+    array.append(self.nose7)
+    array.append(self.shootWeapon)
+    array.append(self.nose9)
+    array.append(self.nose10)
+    array.append(self.maybeExp)
+    array.append(self.maybeGP)
+
+    return array
+ 
+  def encodeTxt(self):
+    lines = []
+
+    lines.append('\n------------ stats: ' + Variables.instance().personajes[self.nroStats] + '?' )
+    lines.append('nroStats:     {:02x}'.format(self.nroStats))
+    lines.append('nose1:        {:02x}'.format(self.nose1))
+    lines.append('nose2:        {:02x}'.format(self.nose2))
+    lines.append('nose3:        {:02x}'.format(self.nose3))
+    lines.append('nose4:        {:02x}'.format(self.nose4))
+    lines.append('nose5:        {:02x}'.format(self.nose5))
+    lines.append('maybeDP:      {:02x}'.format(self.maybeDP))
+    lines.append('maybeAP:      {:02x}'.format(self.maybeAP))
+    lines.append('nose6:        {:02x}'.format(self.nose6))
+    lines.append('nose7:        {:02x}'.format(self.nose7))
+    lines.append('shootWeapon:  {:02x}'.format(self.shootWeapon))
+    lines.append('nose9:        {:02x}'.format(self.nose9))
+    lines.append('nose10:       {:02x}'.format(self.nose10))
+    lines.append('maybeExp:     {:02x}'.format(self.maybeExp))
+    lines.append('maybeGP:      {:02x}'.format(self.maybeGP))
+
+    return lines
+
+  def decodeTxt(self, lines):
+    for line in lines:
+#      print('lineee: ' + line)
+      if(line.startswith('nroStats:')):
+        strNroStats = line[len('nroStats:'):].strip()
+        self.nroStats = int(strNroStats,16)
+      elif(line.startswith('nose1:')):
+        strNose1 = line[len('nose1:'):].strip()
+        self.nose1 = int(strNose1,16)
+      elif(line.startswith('nose2:')):
+        strNose2 = line[len('nose2:'):].strip()
+        self.nose2 = int(strNose2,16)
+      elif(line.startswith('nose3:')):
+        strNose3 = line[len('nose3:'):].strip()
+        self.nose3 = int(strNose3,16)
+      elif(line.startswith('nose4:')):
+        strNose4 = line[len('nose4:'):].strip()
+        self.nose4 = int(strNose4,16)
+      elif(line.startswith('nose5:')):
+        strNose5 = line[len('nose5:'):].strip()
+        self.nose5 = int(strNose5,16)
+      elif(line.startswith('maybeDP:')):
+        strMaybeDP = line[len('maybeDP:'):].strip()
+        self.maybeDP = int(strMaybeDP,16)
+      elif(line.startswith('maybeAP:')):
+        strMaybeAP = line[len('maybeAP:'):].strip()
+        self.maybeAP = int(strMaybeAP,16)
+      elif(line.startswith('nose6:')):
+        strNose6 = line[len('nose6:'):].strip()
+        self.nose6 = int(strNose6,16)
+      elif(line.startswith('nose7:')):
+        strNose7 = line[len('nose7:'):].strip()
+        self.nose7 = int(strNose7,16)
+      elif(line.startswith('shootWeapon:')):
+        strShootWeapon = line[len('shootWeapon:'):].strip()
+        self.shootWeapon = int(strShootWeapon,16)
+      elif(line.startswith('nose9:')):
+        strNose9 = line[len('nose9:'):].strip()
+        self.nose9 = int(strNose9,16)
+      elif(line.startswith('nose10:')):
+        strNose10 = line[len('nose10:'):].strip()
+        self.nose10 = int(strNose10,16)
+      elif(line.startswith('maybeExp:')):
+        strMaybeExp = line[len('maybeExp:'):].strip()
+        self.maybeExp = int(strMaybeExp,16)
+      elif(line.startswith('maybeGP:')):
+        strMaybeGP = line[len('maybeGP:'):].strip()
+        self.maybeGP = int(strMaybeGP,16)
+
+  def __str__(self):
+    string = '   {:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.nose1, self.nose2, self.nose3, self.nose4, self.nose5, self.maybeDP, self.maybeAP, self.nose6, self.nose7, self.nose8, self.nose9, self.nose10, self.maybeExp, self.maybeGP)
+
+    return string + ' ' + Variables.instance().personajes[self.nroStats] + '?'
+
+
+
+##########################################################
+class Boss:
+  """ representa un monstruo grande """
+
+  def __init__(self, nroBoss):
+
+    self.nroBoss = nroBoss
+
+    self.nose1  = 0x00
+    self.nose2  = 0x00
+    self.nose3  = 0x00
+    self.nose4  = 0x00
+    self.nose5  = 0x00
+
+    self.addr1  = 0x0000
+
+    self.nose6  = 0x00
+    self.vramTileOffset = 0x00
+    self.cantDosTiles   = 0x00
+
+    self.offsetBank8  = 0x0000
+    self.addrRaro     = 0x0000
+    self.addrDosTiles = 0x0000
+
+    self.addr2  = 0x0000
+    self.addr3  = 0x0000
+    self.addr4  = 0x0000
+    self.addr5  = 0x0000
+
+
+  def decodeRom(self, subArray):
+
+    self.nose1   = subArray[0]
+    self.nose2   = subArray[1]
+    self.nose3   = subArray[2]
+    self.nose4   = subArray[3]
+    self.nose5   = subArray[4]
+
+    addr1_1 = subArray[5]
+    addr1_2 = subArray[6]
+    self.addr1 = addr1_2*0x100 + addr1_1
+
+    self.nose6   = subArray[7]
+    self.vramTileOffset = subArray[8]
+    self.cantDosTiles   = subArray[9]
+
+    offsetBank8_1 = subArray[10]
+    offsetBank8_2 = subArray[11]
+    self.offsetBank8 = offsetBank8_2*0x100 + offsetBank8_1
+
+    addrRaro1     = subArray[12]
+    addrRaro2     = subArray[13]
+    self.addrRaro = addrRaro2*0x100 + addrRaro1
+
+    addrDosTiles1 = subArray[14]
+    addrDosTiles2 = subArray[15]
+    self.addrDosTiles = addrDosTiles2*0x100 + addrDosTiles1
+
+    addr2_1  = subArray[16]
+    addr2_2  = subArray[17]
+    self.addr2 = addr2_2*0x100 + addr2_1
+
+    addr3_1  = subArray[18]
+    addr3_2  = subArray[19]
+    self.addr3 = addr3_2*0x100 + addr3_1
+
+    addr4_1  = subArray[20]
+    addr4_2  = subArray[21]
+    self.addr4 = addr4_2*0x100 + addr4_1
+
+    addr5_1  = subArray[22]
+    addr5_2  = subArray[23]
+    self.addr5 = addr5_2*0x100 + addr5_1
+
+  def encodeRom(self):
+    array = []
+
+    array.append(self.nose1)
+    array.append(self.nose2)
+    array.append(self.nose3)
+    array.append(self.nose4)
+    array.append(self.nose5)
+
+    array.append(self.addr1%0x100)
+    array.append(self.addr1//0x100)
+
+    array.append(self.nose6)
+    array.append(self.vramTileOffset)
+    array.append(self.cantDosTiles)
+
+    array.append(self.offsetBank8%0x100)
+    array.append(self.offsetBank8//0x100)
+
+    array.append(self.addrRaro%0x100)
+    array.append(self.addrRaro//0x100)
+
+    array.append(self.addrDosTiles%0x100)
+    array.append(self.addrDosTiles//0x100)
+
+    array.append(self.addr2%0x100)
+    array.append(self.addr2//0x100)
+    array.append(self.addr3%0x100)
+    array.append(self.addr3//0x100)
+    array.append(self.addr4%0x100)
+    array.append(self.addr4//0x100)
+    array.append(self.addr5%0x100)
+    array.append(self.addr5//0x100)
+
+    return array
+
+  def encodeTxt(self):
+    lines = []
+
+    lines.append('\n------------ boss: ' + Variables.instance().bosses[self.nroBoss] )
+    lines.append('nroBoss:        {:02x}'.format(self.nroBoss))
+    lines.append('nose1:          {:02x}'.format(self.nose1))
+    lines.append('nose2:          {:02x}'.format(self.nose2))
+    lines.append('nose3:          {:02x}'.format(self.nose3))
+    lines.append('nose4:          {:02x}'.format(self.nose4))
+    lines.append('nose5:          {:02x}'.format(self.nose5))
+    lines.append('addr1:          {:04x}'.format(self.addr1))
+    lines.append('nose6:          {:02x}'.format(self.nose6))
+    lines.append('vramTileOffset: {:02x}'.format(self.vramTileOffset))
+    lines.append('cantDosTiles:   {:02x}'.format(self.cantDosTiles))
+    lines.append('offsetBank8:    {:04x}'.format(self.offsetBank8))
+    lines.append('addrRaro:       {:04x}'.format(self.addrRaro))
+    lines.append('addrDosTiles:   {:04x}'.format(self.addrDosTiles))
+    lines.append('addr2:          {:04x}'.format(self.addr2))
+    lines.append('addr3:          {:04x}'.format(self.addr3))
+    lines.append('addr4:          {:04x}'.format(self.addr4))
+    lines.append('addr5:          {:04x}'.format(self.addr5))
+
+    return lines
+
+  def decodeTxt(self, lines):
+    for line in lines:
+#      print('lineee: ' + line)
+      if(line.startswith('nroBoss:')):
+        strNroBoss = line[len('nroBoss:'):].strip()
+        self.nroBoss = int(strNroBoss,16)
+
+      elif(line.startswith('nose1:')):
+        strNose1 = line[len('nose1:'):].strip()
+        self.nose1 = int(strNose1,16)
+      elif(line.startswith('nose2:')):
+        strNose2 = line[len('nose2:'):].strip()
+        self.nose2 = int(strNose2,16)
+      elif(line.startswith('nose3:')):
+        strNose3 = line[len('nose3:'):].strip()
+        self.nose3 = int(strNose3,16)
+      elif(line.startswith('nose4:')):
+        strNose4 = line[len('nose4:'):].strip()
+        self.nose4 = int(strNose4,16)
+      elif(line.startswith('nose5:')):
+        strNose5 = line[len('nose5:'):].strip()
+        self.nose5 = int(strNose5,16)
+
+      elif(line.startswith('addr1:')):
+        strAddr1 = line[len('addr1:'):].strip()
+        self.addr1 = int(strAddr1,16)
+
+      elif(line.startswith('nose6:')):
+        strNose6 = line[len('nose6:'):].strip()
+        self.nose6 = int(strNose6,16)
+
+      elif(line.startswith('vramTileOffset:')):
+        strVramTileOffset = line[len('vramTileOffset:'):].strip()
+        self.vramTileOffset = int(strVramTileOffset,16)
+      elif(line.startswith('cantDosTiles:')):
+        strCantDosTiles = line[len('cantDosTiles:'):].strip()
+        self.cantDosTiles = int(strCantDosTiles,16)
+      elif(line.startswith('offsetBank8:')):
+        strOffsetBank8 = line[len('offsetBank8:'):].strip()
+        self.offsetBank8 = int(strOffsetBank8,16)
+      elif(line.startswith('addrRaro:')):
+        strAddrRaro = line[len('addrRaro:'):].strip()
+        self.addrRaro = int(strAddrRaro,16)
+      elif(line.startswith('addrDosTiles:')):
+        strAddrDosTiles = line[len('addrDosTiles:'):].strip()
+        self.addrDosTiles = int(strAddrDosTiles,16)
+
+      elif(line.startswith('addr2:')):
+        strAddr2 = line[len('addr2:'):].strip()
+        self.addr2 = int(strAddr2,16)
+      elif(line.startswith('addr3:')):
+        strAddr3 = line[len('addr3:'):].strip()
+        self.addr3 = int(strAddr3,16)
+      elif(line.startswith('addr4:')):
+        strAddr4 = line[len('addr4:'):].strip()
+        self.addr4 = int(strAddr4,16)
+      elif(line.startswith('addr5:')):
+        strAddr5 = line[len('addr5:'):].strip()
+        self.addr5 = int(strAddr5,16)
+
+  def __str__(self):
+
+    string = ' {:02x} {:02x} {:02x} {:02x} {:02x} {:04x} {:02x} vramTileOffset={:02x} cantDosTiles={:02x} offsetBank8={:04x} addrRaro={:04x} addrDosTiles={:04x} {:04x} {:04x} {:04x} {:04x} '.format(self.nose1, self.nose2, self.nose3, self.nose4, self.nose5, self.addr1, self.nose6, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.addr2, self.addr3, self.addr4, self.addr5)
+
+    return string
+
+
+
+
 
 ##########################################################
 class Personaje:
@@ -8049,15 +9296,14 @@ class Personaje:
     # la velocidad de caminar, tipos de ataque, fuerza
     self.tipo = 0x00
 
-    # la forma de caminar (20,40,50,58,60,6e,74,78,7c) (algunas requieren mas sprites)
-    self.cantSprites = 0x00
+    # el offset a partir del cual se cargan los tiles en la vram
+    self.vramTileOffset = 0x00
 
-    # (01,02,04,06,08,0c,0a)
-    self.nose1 = 0x00
-    # (00,40,80,c0)
-    self.nose2 = 0x00
+    # quantity of two vertical tiles (if it is invisible it shows 01, otherwise how many sprites for the personaje)
+    self.cantDosTiles = 0x00
+    # offset to where the tiles are located (global address 0x20000 + offsetBank8) (mod 0x4000 to find the bank number)
+    self.offsetBank8 = 0x0000
 
-    self.nroSprite = 0x00
 #    self.nose3 = 0x00
 #    self.nose4 = 0x00
     # suele apuntar a 3:3b5a de donde lee 16 bytes
@@ -8077,6 +9323,8 @@ class Personaje:
 #    f6,fa,fe 
 #    self.nose5 = 0x00
 #    self.nose6 = 0x00
+
+    # the animation dictionary
     self.addrDosTiles = 0x0000
 
     self.patasSepa  = 0x00
@@ -8100,11 +9348,13 @@ class Personaje:
 
     self.amistad   = subArray[0] # 0x81
     self.tipo      = subArray[1] # 0x0b
-    self.cantSprites  = subArray[2] # 0x40   
-    self.nose1        = subArray[3] # 0x08   (01,02,04,06,08,0c,0a)
-    self.nose2        = subArray[4] # 0x00   (00,40,80,c0)
+    self.vramTileOffset = subArray[2] # 0x40   
 
-    self.nroSprite = subArray[5] # 5f  (cuando camina para los costados)
+    self.cantDosTiles = subArray[3] # 0x08   (01,02,04,06,08,0c,0a)
+    offsetBank8_1 = subArray[4] 
+    offsetBank8_2 = subArray[5]
+    self.offsetBank8 = offsetBank8_2*0x100 + offsetBank8_1
+
     addrRaro1     = subArray[6]
     addrRaro2     = subArray[7]
     # 0x7b5a (salvo que 0x7b56) (desde 3:7b5a lee 16 bytes)
@@ -8134,11 +9384,12 @@ class Personaje:
 
     array.append(self.amistad)
     array.append(self.tipo)
-    array.append(self.cantSprites)
-    array.append(self.nose1)
-    array.append(self.nose2)
+    array.append(self.vramTileOffset)
 
-    array.append(self.nroSprite)
+    array.append(self.cantDosTiles)
+    array.append(self.offsetBank8%0x100)
+    array.append(self.offsetBank8//0x100)
+
     array.append(self.addrRaro%0x100)
     array.append(self.addrRaro//0x100)
 
@@ -8167,32 +9418,33 @@ class Personaje:
   def encodeTxt(self):
     lines = []
 
-    lines.append('\n------------ personaje ')
-    lines.append('nroPersonaje: {:02x}'.format(self.nroPersonaje))
-    lines.append('amistad:      {:02x}'.format(self.amistad))
+    lines.append('\n------------ personaje: ' + Variables.instance().personajes[self.nroPersonaje] )
+    lines.append('nroPersonaje:   {:02x}'.format(self.nroPersonaje))
+    lines.append('amistad:        {:02x}'.format(self.amistad))
 
-    lines.append('tipo:         {:02x}'.format(self.tipo))
-    lines.append('cantSprites:  {:02x}'.format(self.cantSprites))
-    lines.append('nose1:        {:02x}'.format(self.nose1))
-    lines.append('nose2:        {:02x}'.format(self.nose2))
-    lines.append('nroSprite:    {:02x}'.format(self.nroSprite))
-    lines.append('addrRaro:     {:04x}'.format(self.addrRaro))
-    lines.append('addrDosTiles: {:04x}'.format(self.addrDosTiles))
+    lines.append('tipo:           {:02x}'.format(self.tipo))
+    lines.append('vramTileOffset: {:02x}'.format(self.vramTileOffset))
 
-    lines.append('patasSepa:    {:02x}'.format(self.patasSepa))
-    lines.append('muevePatas:   {:02x}'.format(self.muevePatas))
-    lines.append('nose7:        {:02x}'.format(self.nose7))
-    lines.append('nose8:        {:02x}'.format(self.nose8))
-    lines.append('nose9:        {:02x}'.format(self.nose9))
-    lines.append('nose10:       {:02x}'.format(self.nose10))
+    lines.append('cantDosTiles:   {:02x}'.format(self.cantDosTiles))
+    lines.append('offsetBank8:    {:04x}'.format(self.offsetBank8))
 
-    lines.append('nose11:       {:02x}'.format(self.nose11))
-    lines.append('nose12:       {:02x}'.format(self.nose12))
-    lines.append('nose13:       {:02x}'.format(self.nose13))
-    lines.append('nose14:       {:02x}'.format(self.nose14))
+    lines.append('addrRaro:       {:04x}'.format(self.addrRaro))
+    lines.append('addrDosTiles:   {:04x}'.format(self.addrDosTiles))
 
-    lines.append('nroScript:    {:04x}'.format(self.nroScript))
-    lines.append('itemTesoro:   {:04x}'.format(self.itemTesoro))
+    lines.append('patasSepa:      {:02x}'.format(self.patasSepa))
+    lines.append('muevePatas:     {:02x}'.format(self.muevePatas))
+    lines.append('nose7:          {:02x}'.format(self.nose7))
+    lines.append('nose8:          {:02x}'.format(self.nose8))
+    lines.append('nose9:          {:02x}'.format(self.nose9))
+    lines.append('nose10:         {:02x}'.format(self.nose10))
+
+    lines.append('nose11:         {:02x}'.format(self.nose11))
+    lines.append('nose12:         {:02x}'.format(self.nose12))
+    lines.append('nose13:         {:02x}'.format(self.nose13))
+    lines.append('nose14:         {:02x}'.format(self.nose14))
+
+    lines.append('nroScript:      {:04x}'.format(self.nroScript))
+    lines.append('itemTesoro:     {:04x}'.format(self.itemTesoro))
 
     return lines
 
@@ -8208,18 +9460,15 @@ class Personaje:
       elif(line.startswith('tipo:')):
         strTipo = line[5:].strip()
         self.tipo = int(strTipo,16)
-      elif(line.startswith('cantSprites:')):
-        strCantSprites = line[12:].strip()
-        self.cantSprites = int(strCantSprites,16)
-      elif(line.startswith('nose1:')):
-        strNose1 = line[6:].strip()
-        self.nose1 = int(strNose1,16)
-      elif(line.startswith('nose2:')):
-        strNose2 = line[6:].strip()
-        self.nose2 = int(strNose2,16)
-      elif(line.startswith('nroSprite:')):
-        strNroSprite = line[10:].strip()
-        self.nroSprite = int(strNroSprite,16)
+      elif(line.startswith('vramTileOffset:')):
+        strVramTileOffset = line[15:].strip()
+        self.vramTileOffset = int(strVramTileOffset,16)
+      elif(line.startswith('cantDosTiles:')):
+        strCantDosTiles = line[13:].strip()
+        self.cantDosTiles = int(strCantDosTiles,16)
+      elif(line.startswith('offsetBank8:')):
+        strOffsetBank8 = line[12:].strip()
+        self.offsetBank8 = int(strOffsetBank8,16)
       elif(line.startswith('addrRaro:')):
         strAddrRaro = line[9:].strip()
         self.addrRaro = int(strAddrRaro,16)
@@ -8262,11 +9511,10 @@ class Personaje:
       elif(line.startswith('itemTesoro:')):
         strItemTesoro = line[11:].strip()
         self.itemTesoro = int(strItemTesoro,16)
- 
- 
+
   def __str__(self):
 
-    string = 'amist={:02x} tipo={:02x} cantSp={:02x}  {:02x} {:02x}  spri={:02x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.tipo, self.cantSprites, self.nose1, self.nose2, self.nroSprite, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.nose11, self.nose12, self.nose13, self.nose14, self.nroScript, self.itemTesoro)
+    string = 'amist={:02x} tipo={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.tipo, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.nose11, self.nose12, self.nose13, self.nose14, self.nroScript, self.itemTesoro)
 
     return string
 
@@ -10749,6 +11997,7 @@ def main(argv):
   RomSplitter.instance().protectStockRoms()
 
   romPath = './stockRoms/en.gb'
+#  romPath = './stockRoms/en_uk.gb'
 #  romPath = './stockRoms/fr.gb'
 #  romPath = './stockRoms/de.gb'
 #  romPath = './stockRoms/jp.gb'
@@ -10790,6 +12039,9 @@ def main(argv):
       RomSplitter.instance().exportGfx()
       # exporto los tilesets
       RomSplitter.instance().exportTilesets()
+      # y la tabla de experiencia
+      RomSplitter.instance().exportExpTable()
+
       RomSplitter.instance().exportFont()
       # exporto los cuatro spriteSheets 
       RomSplitter.instance().exportSpriteSheets()
@@ -10797,13 +12049,24 @@ def main(argv):
       RomSplitter.instance().exportSpriteSheetPersonajes()
       print('exportando sprite sheet del heroe')
       RomSplitter.instance().exportSpriteSheetHero()
-      print('exportando spriteSheet de monstruos')
+      print('exportando spriteSheet de bosses')
       RomSplitter.instance().exportSpriteSheetMonster()
 
+      print('exportando personajes')
       # exporto los personajes
       RomSplitter.instance().exportPersonajes()
       # exporto grupos de aparición de personajes
       RomSplitter.instance().exportGrupos3Personajes()
+      # exporto las stats de enemigos
+      RomSplitter.instance().exportPersonajeStats()
+      # exporto las animaciones para los personajes
+      RomSplitter.instance().exportPersonajesAnimations()
+
+      print('exportando bosses')
+      # exporto los monstruos grandes
+      RomSplitter.instance().exportBosses()
+      # exporto las animaciones de los bosses
+      RomSplitter.instance().exportBossesAnimations()
 
 
       # exporto el texto
@@ -10814,15 +12077,12 @@ def main(argv):
       # exporto la magia, items y weapons
       RomSplitter.instance().exportItems()
 
-
       print('exportando scripts...')
       RomSplitter.instance().exportScripts()
 
       # exporto todos los mapas
       RomSplitter.instance().exportMapas(exportPngFile=True)
 #      RomSplitter.instance().exportMapas(exportPngFile=False)
-
-
 
       # exporto la música
 #      RomSplitter.instance().exportSongs(exportLilypond=False)
@@ -10851,25 +12111,36 @@ def main(argv):
       # y weapons
       RomSplitter.instance().burnItems('weapon', basePath+'/weapons.txt')
 
-
       RomSplitter.instance().burnFont()
       RomSplitter.instance().burnTilesets()
+
+      # y tabla de experiencia
+      RomSplitter.instance().burnExpTable(basePath+'/exp.txt')
+
       print('quemando spriteSheets...')
       RomSplitter.instance().burnSpriteSheets()
- 
 
       RomSplitter.instance().burnSpriteSheetPersonajes()
 
       print('quemando personajes...')
+      # quemo las animaciones para los personajes
+      RomSplitter.instance().burnPersonajesAnimations(basePath + '/personajes/personajesAnimations.txt')
       # quemo los personajes en la rom
       RomSplitter.instance().burnPersonajes(basePath + '/personajes/personajes.txt')
       # quemo los grupos de aparición de personajes
       RomSplitter.instance().burnGrupos3Personajes(basePath + '/personajes/grupos3Personajes.txt')
+      # quemo los stats de los personajes
+      RomSplitter.instance().burnPersonajeStats(basePath + '/personajes/personajeStats.txt')
+
+      print('quemando bosses...')
+      # quemo las animaciones de los bosses
+      RomSplitter.instance().burnBossesAnimations(basePath + '/personajes/bossesAnimations.txt')
+      # quemo los monstruos grandes
+      RomSplitter.instance().burnBosses(basePath + '/personajes/bosses.txt')
 
       print('quemando mapas...')
 #      RomSplitter.instance().burnMapas(basePath + '/mapas/mapas.txt')
       RomSplitter.instance().burnMapasTiled()
-
 
       print('quemando scripts...')
       RomSplitter.instance().burnScripts(basePath + '/scripts/scripts.txt')
@@ -10885,11 +12156,14 @@ def main(argv):
       # exporto la gbs rom con música
       RomSplitter.instance().exportGbsRom(basePath+'/audio.gb')
 
+
+
       # exporto nueva rom
       RomSplitter.instance().exportRom(basePath + '/newRom.gb')
 
       lang = Address.instance().language
       strLang = stockRomsLang[lang]
+      print('strLang: ' + strLang)
       stockPath = './stockRoms/' + strLang + '.gb'
       newPath = basePath + '/newRom.gb'
       print('comparando ' + stockPath + ' con ' + newPath)
@@ -11154,6 +12428,9 @@ def main(argv):
 #  print('importando personajes...')
 #  RomSplitter.instance().burnPersonajes('./en/personajes/personajes.txt')
 
+#  RomSplitter.instance().exportPersonajeStats()
+#  RomSplitter.instance().burnPersonajeStats('./en/personajes/personajeStats.txt')
+
   # exporto grupos de 3 personajes
 #  RomSplitter.instance().exportGrupos3Personajes()
 #  RomSplitter.instance().burnGrupos3Personajes('./game/personajes/grupos3Personajes.txt')
@@ -11161,15 +12438,33 @@ def main(argv):
   # exporto cosas raras personajes tiles
 #  RomSplitter.instance().exportCosasRarasPersonajes()
 
-  # exporto las personajes dobleTiles
-#  RomSplitter.instance().exportPersonajesDobleTile()
+
+  # exporto las animaciones dosTiles de personajes
+#  RomSplitter.instance().exportPersonajesAnimations()
+#  RomSplitter.instance().burnPersonajesAnimations('./en/personajes/personajesAnimations.txt')
+
+#  RomSplitter.instance().exportBossesAnimations()
+#  RomSplitter.instance().burnPersonajesAnimations('./en/personajes/bossesAnimations.txt')
+ 
+
+
+#  RomSplitter.instance().exportBosses()
+#  RomSplitter.instance().burnBosses('./en/personajes/bosses.txt')
+
+#  RomSplitter.instance().exportExplosions()
 
   # exporto golpes
 #  RomSplitter.instance().exportGolpes()
 
   # exporto monstruo grande dobleTiles
-#  RomSplitter.instance().exportMonstruoGrandeDobleTile()
+#  RomSplitter.instance().exportMonstruoGrandeDosTiles()
 
+
+
+
+
+#  RomSplitter.instance().exportExpTable()
+#  RomSplitter.instance().burnExpTable('./en_uk/exp.txt')
 
   modificarBateria = False
 #  modificarBateria = True
@@ -11285,7 +12580,11 @@ def main(argv):
 #  RomSplitter.instance().exportSolarus()
 
 #  RomSplitter.instance().burnSpriteSheets()
- 
+
+
+#  for i in range(0,0xbf):
+#    pers = Variables.instance().personajes[i]
+#    print('pers: ' + str(pers))
 
 
   # exporto nueva rom
@@ -11321,6 +12620,9 @@ def main(argv):
 
   # la escucho
 #  RomSplitter.instance().testRom('./de/gbs.gb', 'vba')
+
+  # generates de README.md with the current version
+#  exportREADME()
 
 
 if __name__ == "__main__":
