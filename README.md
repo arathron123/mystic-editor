@@ -21,8 +21,11 @@ A folder named **en** (for english) will be created with all the maps, scripts, 
 To encode the rom run
 **python3 mystic-editor.py -e**
 
-You can specify the rom file like this
-**python3 mystic-editor.py --rom stockRoms/en.gb -e**
+If you want more control, you can specify the rom-file and address-configuration file like this example
+**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en.txt -d**
+
+If you want to expand the rom to 32 banks add the --romexpand argument before encoding like this example
+**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en_romexpand.txt --romexpand -e**
 
 Feel free to join our discord server
 https://discord.gg/mdTDMKh5FR
