@@ -1,6 +1,6 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.2
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.3
 
 Tutorial video here: 
 https://www.youtube.com/watch?v=XKPYtgKAiQw
@@ -20,6 +20,9 @@ A folder named **en** (for english) will be created with all the maps, scripts, 
 
 To encode the rom run
 **python3 mystic-editor.py -e**
+
+You can specify the rom file like this
+**python3 mystic-editor.py --rom stockRoms/en.gb -e**
 
 Feel free to join our discord server
 https://discord.gg/mdTDMKh5FR
