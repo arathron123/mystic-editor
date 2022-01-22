@@ -1,0 +1,27 @@
+
+# cosas del diccionario
+addrDictionary = 00:3f72
+# no se usa
+cantDictionary = 0
+
+# listado de magia en el bank02
+addrMagic = 02:1f65
+
+addrLoadStateStrangeBytes = 02:3c4f
+
+# la intro en el bank02
+addrIntro = 02:3e48
+
+addrMaps = 05:0000
+
+# los offsets de 'world map', 'village', 'interior casa', 'interior cueva' y 'intro' respectivamente en el bank08
+spriteSheetsAddr = [08:00b0, 08:03b0, 08:06b0, 08:0938, 08:0c1a]
+# cantidad de sprites de cada spriteSheet
+cantSpritesInSheet = [0x80, 0x80, 0x6c, 0x7b, 0x4c]
+
+expTable = 08:0dca
+
+# cosas de scripts
+addrScriptAddrDic = 08:0ef9
+cantScripts = 0x0549
+
