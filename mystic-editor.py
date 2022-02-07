@@ -546,7 +546,15 @@ def main(argv):
     # agarro el romPath
     romPath = argv[idx+1]
   else:
-    print('found romPath = ' + romPath)
+    if(romPath == None):
+      print('rom not found')
+
+      printHelp()
+      # termino el script
+      sys.exit(0)
+
+    else:
+      print('found romPath = ' + romPath)
 
 #  romPath = './stockRoms/en.gb'
 #  romPath = './stockRoms/en_uk.gb'
@@ -570,34 +578,34 @@ def main(argv):
     strLang = mystic.language.stockRomsLang[lang]
     configAddrPath = './addr/addr_' + strLang + '.txt'
 
-  idx0 = configAddrPath.index('addr_')
-  configAddrFile = configAddrPath[idx0:]
-#  print('configAddrFile: ' + configAddrFile)
+    idx0 = configAddrPath.index('addr_')
+    configAddrFile = configAddrPath[idx0:]
+#    print('configAddrFile: ' + configAddrFile)
 
-  print('using configAddrPath: ' + configAddrPath)
-  f = open(configAddrPath, 'r', encoding="utf-8")
-  lines = f.readlines()
-  f.close()
-  mystic.address.decodeTxt(lines)
-
-
-  mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
-  # decodifico el diccionario (compress)
-  mystic.dictionary.decodeRom()
-
-#  for i in range(0,0x100):
-#    chary = Dictionary.instance().decodeByte(i)
-#    print('{:02x} '.format(i) + chary)
-#  sys.exit(0)
+    print('using configAddrPath: ' + configAddrPath)
+    f = open(configAddrPath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    mystic.address.decodeTxt(lines)
 
 
-#  string = 'ちからつきたジェマ'
-#  values = Dictionary.instance().tryJpCompress(string)
-#  strHex = mystic.util.strHexa(values)
-#  print('comprimido strHex: ' + strHex)
+    mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
+    # decodifico el diccionario (compress)
+    mystic.dictionary.decodeRom()
 
-  basePath = mystic.address.basePath
-  print('basePath: ' + basePath)
+#    for i in range(0,0x100):
+#      chary = Dictionary.instance().decodeByte(i)
+#      print('{:02x} '.format(i) + chary)
+#    sys.exit(0)
+
+
+#    string = 'ちからつきたジェマ'
+#    values = Dictionary.instance().tryJpCompress(string)
+#    strHex = mystic.util.strHexa(values)
+#    print('comprimido strHex: ' + strHex)
+
+    basePath = mystic.address.basePath
+    print('basePath: ' + basePath)
 
   # si tiene la cantidad correcta de parámetros
   if('-d' in argv or '--decode' in argv):
