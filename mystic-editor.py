@@ -578,34 +578,34 @@ def main(argv):
     strLang = mystic.language.stockRomsLang[lang]
     configAddrPath = './addr/addr_' + strLang + '.txt'
 
-    idx0 = configAddrPath.index('addr_')
-    configAddrFile = configAddrPath[idx0:]
-#    print('configAddrFile: ' + configAddrFile)
+  idx0 = configAddrPath.index('addr_')
+  configAddrFile = configAddrPath[idx0:]
+#  print('configAddrFile: ' + configAddrFile)
 
-    print('using configAddrPath: ' + configAddrPath)
-    f = open(configAddrPath, 'r', encoding="utf-8")
-    lines = f.readlines()
-    f.close()
-    mystic.address.decodeTxt(lines)
-
-
-    mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
-    # decodifico el diccionario (compress)
-    mystic.dictionary.decodeRom()
-
-#    for i in range(0,0x100):
-#      chary = Dictionary.instance().decodeByte(i)
-#      print('{:02x} '.format(i) + chary)
-#    sys.exit(0)
+  print('using configAddrPath: ' + configAddrPath)
+  f = open(configAddrPath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  mystic.address.decodeTxt(lines)
 
 
-#    string = 'ちからつきたジェマ'
-#    values = Dictionary.instance().tryJpCompress(string)
-#    strHex = mystic.util.strHexa(values)
-#    print('comprimido strHex: ' + strHex)
+  mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
+  # decodifico el diccionario (compress)
+  mystic.dictionary.decodeRom()
 
-    basePath = mystic.address.basePath
-    print('basePath: ' + basePath)
+#  for i in range(0,0x100):
+#    chary = Dictionary.instance().decodeByte(i)
+#    print('{:02x} '.format(i) + chary)
+#  sys.exit(0)
+
+
+#  string = 'ちからつきたジェマ'
+#  values = Dictionary.instance().tryJpCompress(string)
+#  strHex = mystic.util.strHexa(values)
+#  print('comprimido strHex: ' + strHex)
+
+  basePath = mystic.address.basePath
+  print('basePath: ' + basePath)
 
   # si tiene la cantidad correcta de parámetros
   if('-d' in argv or '--decode' in argv):
@@ -763,10 +763,11 @@ def main(argv):
     # exporto nueva rom
     mystic.romSplitter.exportRom(basePath + '/newRom.gb')
 
-    lang = mystic.address.language
-    strLang = mystic.language.stockRomsLang[lang]
+#    lang = mystic.address.language
+#    strLang = mystic.language.stockRomsLang[lang]
 #    print('strLang: ' + strLang)
-    pathStock = './stockRoms/' + strLang + '.gb'
+#    pathStock = './stockRoms/' + strLang + '.gb'
+    pathStock = romPath
     pathNew = basePath + '/newRom.gb'
 
     # exporto el .ips
