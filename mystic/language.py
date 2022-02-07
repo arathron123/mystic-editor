@@ -80,6 +80,7 @@ def protectStockRoms():
   # agarro la lista de archivos de la carpeta actual
   files = [f for f in os.listdir(mypath) if os.path.isfile(os.path.join(mypath, f))]
 
+#  print('files: ' + str(files))
 
   romPath = './stockRoms/en.gb'
 
@@ -87,7 +88,9 @@ def protectStockRoms():
   for fil in files:
     # calculo su md5
     md5 = mystic.util.md5sum(fil)
+
 #    print(md5 + ' - ' + fil)
+
     # si es un md5 de stock rom original
     if(md5 in stockRomsMd5):
       idx = stockRomsMd5.index(md5)
@@ -95,12 +98,12 @@ def protectStockRoms():
       lang = stockRomsLang[idx]
       romPath = './stockRoms/' + lang + '.gb'
       # si no está entre las roms stock
-      if not os.path.exists(romPath):
+      if not os.path.exists(mystic.address.romPath):
         # copio la rom
-        shutil.copyfile(fil, romPath)
+        shutil.copyfile(fil, mystic.address.romPath)
 
-      language = idx
-      mystic.romSplitter.configure()
+#      mystic.address.language = idx
+      mystic.romSplitter.loadBanksFromFile(romPath)
       # exporto música gbs
       mystic.romSplitter.exportGbsRom('./stockRoms/gbs_' + lang + '.gb')
 

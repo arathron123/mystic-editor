@@ -2,6 +2,110 @@
 import mystic.address
 import mystic.dictionary
 
+
+##########################################################
+class Window:
+  """ representa una ventana/panel """
+
+  def __init__(self, nroWin):
+
+    self.nroWin = nroWin
+
+    self.x = 0x00
+    self.y = 0x00
+    self.w = 0x00
+    self.h = 0x00
+    # number of label rows
+    self.labelRows = 0x00
+    # the text width of the label of each option/item
+    self.labelWidth = 0x00
+    # how many options can fit in the window, counting scrolling
+    self.cantHandOptions = 0x00
+    # type of window (can select horizontally? has garbage bin? can swap items?)
+    self.type = 0x00
+    # number of columns selectable with hand cursor
+    self.handCols = 0x00
+    # horizontal hand displacement
+    self.horizHandDisplacement = 0x00
+
+  def decodeRom(self, data):
+    """ decodifica la ventana a partir del array de 10 bytes """
+
+    self.x = data[0]
+    self.y = data[1]
+    self.w = data[2]
+    self.h = data[3]
+    self.labelRows = data[4]
+    self.labelWidth = data[5]
+    self.cantHandOptions = data[6]
+    self.type = data[7]
+    self.handCols = data[8]
+    self.horizHandDisplacement = data[9]
+
+  def encodeTxt(self):
+    lines = []
+
+    lines.append('\n------------ window: ' + mystic.variables.windows[self.nroWin])
+    lines.append('x:                     {:02x}'.format(self.x))
+    lines.append('y:                     {:02x}'.format(self.y))
+    lines.append('w:                     {:02x}'.format(self.w))
+    lines.append('h:                     {:02x}'.format(self.h))
+    lines.append('labelRows:             {:02x}'.format(self.labelRows))
+    lines.append('labelWidth:            {:02x}'.format(self.labelWidth))
+    lines.append('cantHandOptions:       {:02x}'.format(self.cantHandOptions))
+    lines.append('type:                  {:02x}'.format(self.type))
+    lines.append('handCols:              {:02x}'.format(self.handCols))
+    lines.append('horizHandDisplacement: {:02x}'.format(self.horizHandDisplacement))
+
+    return lines
+
+
+  def decodeTxt(self, lines):
+
+    for line in lines:
+
+      if(line.startswith('x:')):
+        self.x = int(line[len('x:'):].strip(),16)
+      elif(line.startswith('y:')):
+        self.y = int(line[len('y:'):].strip(),16)
+      elif(line.startswith('w:')):
+        self.w = int(line[len('w:'):].strip(),16)
+      elif(line.startswith('h:')):
+        self.h = int(line[len('h:'):].strip(),16)
+      elif(line.startswith('labelRows:')):
+        self.labelRows = int(line[len('labelRows:'):].strip(),16)
+      elif(line.startswith('labelWidth:')):
+        self.labelWidth = int(line[len('labelWidth:'):].strip(),16)
+      elif(line.startswith('cantHandOptions:')):
+        self.cantHandOptions = int(line[len('cantHandOptions:'):].strip(),16)
+      elif(line.startswith('type:')):
+        self.type = int(line[len('type:'):].strip(),16)
+      elif(line.startswith('handCols:')):
+        self.handCols = int(line[len('handCols:'):].strip(),16)
+      elif(line.startswith('horizHandDisplacement:')):
+        self.horizHandDisplacement = int(line[len('horizHandDisplacement:'):].strip(),16)
+
+
+  def encodeRom(self):
+    array = []
+
+    array.append(self.x)
+    array.append(self.y)
+    array.append(self.w)
+    array.append(self.h)
+    array.append(self.labelRows)
+    array.append(self.labelWidth)
+    array.append(self.cantHandOptions)
+    array.append(self.type)
+    array.append(self.handCols)
+    array.append(self.horizHandDisplacement)
+
+    return array
+
+  def __str__(self):
+    return 'nroWin: {:02x} x: {:02x}, y: {:02x} w: {:02x} h: {:02x} rows: {:02x} labelW: {:02x} cantHand: {:02x} type: {:02x} cols: {:02x} horizHand: {:02x}'.format(self.nroWin, self.x, self.y, self.w, self.h, self.labelRows, self.labelWidth, self.cantHandOptions, self.type, self.handCols, self.horizHandDisplacement)
+
+
 ##########################################################
 class Item:
   """ representa un item """
@@ -479,5 +583,3 @@ class Vendor:
 
     return string
  
-
-

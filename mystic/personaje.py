@@ -19,8 +19,8 @@ class Personaje:
     # 0xd9 = transparente (si lo tocás lo atravezás)
     self.amistad = 0x00
 
-    # la velocidad de caminar, tipos de ataque, fuerza
-    self.tipo = 0x00
+    # indice en la tabla de estadísticas del personaje (velocidad de caminar, tipos de ataque, fuerza, etc)
+    self.stats = 0x00
 
     # el offset a partir del cual se cargan los tiles en la vram
     self.vramTileOffset = 0x00
@@ -73,7 +73,7 @@ class Personaje:
   def decodeRom(self, subArray):
 
     self.amistad   = subArray[0] # 0x81
-    self.tipo      = subArray[1] # 0x0b
+    self.stats     = subArray[1] # 0x0b
     self.vramTileOffset = subArray[2] # 0x40   
 
     self.cantDosTiles = subArray[3] # 0x08   (01,02,04,06,08,0c,0a)
@@ -109,7 +109,7 @@ class Personaje:
     array = []
 
     array.append(self.amistad)
-    array.append(self.tipo)
+    array.append(self.stats)
     array.append(self.vramTileOffset)
 
     array.append(self.cantDosTiles)
@@ -148,7 +148,7 @@ class Personaje:
     lines.append('nroPersonaje:   {:02x}'.format(self.nroPersonaje))
     lines.append('amistad:        {:02x}'.format(self.amistad))
 
-    lines.append('tipo:           {:02x}'.format(self.tipo))
+    lines.append('stats:          {:02x}'.format(self.stats))
     lines.append('vramTileOffset: {:02x}'.format(self.vramTileOffset))
 
     lines.append('cantDosTiles:   {:02x}'.format(self.cantDosTiles))
@@ -183,9 +183,9 @@ class Personaje:
       elif(line.startswith('amistad:')):
         strAmistad = line[8:].strip()
         self.amistad = int(strAmistad,16)
-      elif(line.startswith('tipo:')):
-        strTipo = line[5:].strip()
-        self.tipo = int(strTipo,16)
+      elif(line.startswith('stats:')):
+        strStats = line[6:].strip()
+        self.stats = int(strStats,16)
       elif(line.startswith('vramTileOffset:')):
         strVramTileOffset = line[15:].strip()
         self.vramTileOffset = int(strVramTileOffset,16)
@@ -240,7 +240,7 @@ class Personaje:
 
   def __str__(self):
 
-    string = 'amist={:02x} tipo={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.tipo, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.nose11, self.nose12, self.nose13, self.nose14, self.nroScript, self.itemTesoro)
+    string = 'amist={:02x} stats={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.stats, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.nose11, self.nose12, self.nose13, self.nose14, self.nroScript, self.itemTesoro)
 
     return string
 
@@ -574,75 +574,87 @@ class PersonajeStats:
   def __init__(self, nroStats):
     self.nroStats = nroStats
 
+    # the speed (0x01 is the faster, the higher the slower)
+    self.speedSleep = 0x00
+
     self.nose1    = 0x00
     self.nose2    = 0x00
     self.nose3    = 0x00
     self.nose4    = 0x00
-    self.nose5    = 0x00
     self.maybeDP  = 0x00
     self.maybeAP  = 0x00
+    self.nose5    = 0x00
     self.nose6    = 0x00
-    self.nose7    = 0x00
     self.shootWeapon = 0x00
-    self.nose9    = 0x00
-    self.nose10   = 0x00
+    self.nose7    = 0x00
+    self.nose8    = 0x00
     self.maybeExp = 0x00
     self.maybeGP  = 0x00
 
   def decodeRom(self, subArray):
 
-    self.nose1    = subArray[0] 
-    self.nose2    = subArray[1]
-    self.nose3    = subArray[2]
-    self.nose4    = subArray[3]
-    self.nose5    = subArray[4]
+    self.speedSleep = subArray[0] 
+    self.nose1    = subArray[1]
+    self.nose2    = subArray[2]
+    self.nose3    = subArray[3]
+    self.nose4    = subArray[4]
     self.maybeDP  = subArray[5]
     self.maybeAP  = subArray[6]
-    self.nose6    = subArray[7]
-    self.nose7    = subArray[8]
+    self.nose5    = subArray[7]
+    self.nose6    = subArray[8]
     self.shootWeapon = subArray[9]
-    self.nose9    = subArray[10]
-    self.nose10   = subArray[11]
+    self.nose7    = subArray[10]
+    self.nose8    = subArray[11]
     self.maybeExp = subArray[12]
     self.maybeGP  = subArray[13]
 
   def encodeRom(self):
     array = []
 
+    array.append(self.speedSleep)
     array.append(self.nose1)
     array.append(self.nose2)
     array.append(self.nose3)
     array.append(self.nose4)
-    array.append(self.nose5)
     array.append(self.maybeDP)
     array.append(self.maybeAP)
+    array.append(self.nose5)
     array.append(self.nose6)
-    array.append(self.nose7)
     array.append(self.shootWeapon)
-    array.append(self.nose9)
-    array.append(self.nose10)
+    array.append(self.nose7)
+    array.append(self.nose8)
     array.append(self.maybeExp)
     array.append(self.maybeGP)
 
     return array
  
-  def encodeTxt(self):
+  def encodeTxt(self, personajes):
     lines = []
 
-    lines.append('\n------------ stats: ' + mystic.variables.personajes[self.nroStats] + '?' )
+    # for all the personajes that use this stat
+    pers = [per for per in personajes if per.stats == self.nroStats]
+    # get all their names
+    names = []
+    for per in pers:
+      name = mystic.variables.personajes[per.nroPersonaje]
+      names.append(name)
+
+#    lines.append('\n------------ stats: ' + mystic.variables.personajes[self.nroStats] + '?' )
+    lines.append('\n------------ stats: ' + str(names) )
+
     lines.append('nroStats:     {:02x}'.format(self.nroStats))
+    lines.append('speedSleep:   {:02x}'.format(self.speedSleep))
     lines.append('nose1:        {:02x}'.format(self.nose1))
     lines.append('nose2:        {:02x}'.format(self.nose2))
     lines.append('nose3:        {:02x}'.format(self.nose3))
     lines.append('nose4:        {:02x}'.format(self.nose4))
-    lines.append('nose5:        {:02x}'.format(self.nose5))
     lines.append('maybeDP:      {:02x}'.format(self.maybeDP))
     lines.append('maybeAP:      {:02x}'.format(self.maybeAP))
+    lines.append('nose5:        {:02x}'.format(self.nose5))
     lines.append('nose6:        {:02x}'.format(self.nose6))
-    lines.append('nose7:        {:02x}'.format(self.nose7))
     lines.append('shootWeapon:  {:02x}'.format(self.shootWeapon))
-    lines.append('nose9:        {:02x}'.format(self.nose9))
-    lines.append('nose10:       {:02x}'.format(self.nose10))
+    lines.append('nose7:        {:02x}'.format(self.nose7))
+    lines.append('nose8:        {:02x}'.format(self.nose8))
     lines.append('maybeExp:     {:02x}'.format(self.maybeExp))
     lines.append('maybeGP:      {:02x}'.format(self.maybeGP))
 
@@ -654,6 +666,9 @@ class PersonajeStats:
       if(line.startswith('nroStats:')):
         strNroStats = line[len('nroStats:'):].strip()
         self.nroStats = int(strNroStats,16)
+      elif(line.startswith('speedSleep:')):
+        strSpeed = line[len('speedSleep:'):].strip()
+        self.speedSleep = int(strSpeed,16)
       elif(line.startswith('nose1:')):
         strNose1 = line[len('nose1:'):].strip()
         self.nose1 = int(strNose1,16)
@@ -666,30 +681,27 @@ class PersonajeStats:
       elif(line.startswith('nose4:')):
         strNose4 = line[len('nose4:'):].strip()
         self.nose4 = int(strNose4,16)
-      elif(line.startswith('nose5:')):
-        strNose5 = line[len('nose5:'):].strip()
-        self.nose5 = int(strNose5,16)
       elif(line.startswith('maybeDP:')):
         strMaybeDP = line[len('maybeDP:'):].strip()
         self.maybeDP = int(strMaybeDP,16)
       elif(line.startswith('maybeAP:')):
         strMaybeAP = line[len('maybeAP:'):].strip()
         self.maybeAP = int(strMaybeAP,16)
+      elif(line.startswith('nose5:')):
+        strNose5 = line[len('nose5:'):].strip()
+        self.nose5 = int(strNose5,16)
       elif(line.startswith('nose6:')):
         strNose6 = line[len('nose6:'):].strip()
         self.nose6 = int(strNose6,16)
-      elif(line.startswith('nose7:')):
-        strNose7 = line[len('nose7:'):].strip()
-        self.nose7 = int(strNose7,16)
       elif(line.startswith('shootWeapon:')):
         strShootWeapon = line[len('shootWeapon:'):].strip()
         self.shootWeapon = int(strShootWeapon,16)
-      elif(line.startswith('nose9:')):
-        strNose9 = line[len('nose9:'):].strip()
-        self.nose9 = int(strNose9,16)
-      elif(line.startswith('nose10:')):
-        strNose10 = line[len('nose10:'):].strip()
-        self.nose10 = int(strNose10,16)
+      elif(line.startswith('nose7:')):
+        strNose7 = line[len('nose7:'):].strip()
+        self.nose7 = int(strNose7,16)
+      elif(line.startswith('nose8:')):
+        strNose8 = line[len('nose8:'):].strip()
+        self.nose8 = int(strNose8,16)
       elif(line.startswith('maybeExp:')):
         strMaybeExp = line[len('maybeExp:'):].strip()
         self.maybeExp = int(strMaybeExp,16)
@@ -698,7 +710,7 @@ class PersonajeStats:
         self.maybeGP = int(strMaybeGP,16)
 
   def __str__(self):
-    string = '   {:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.nose1, self.nose2, self.nose3, self.nose4, self.nose5, self.maybeDP, self.maybeAP, self.nose6, self.nose7, self.nose8, self.nose9, self.nose10, self.maybeExp, self.maybeGP)
+    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.nose5, self.nose6, self.shootWeapon, self.nose7, self.nose8, self.maybeExp, self.maybeGP)
 
     return string + ' ' + mystic.variables.personajes[self.nroStats] + '?'
 

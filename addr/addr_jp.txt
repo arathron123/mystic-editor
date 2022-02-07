@@ -4,6 +4,9 @@ addrDictionary = 00:3f72
 # no se usa
 cantDictionary = 0
 
+# listado de ventanas
+addrWindows = 02:1b4a
+
 # listado de magia en el bank02
 addrMagic = 02:1f65
 
@@ -25,3 +28,4 @@ expTable = 08:0dca
 addrScriptAddrDic = 08:0ef9
 cantScripts = 0x0549
 
+addrMusic = 0f:0a12

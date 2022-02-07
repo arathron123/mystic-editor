@@ -17,6 +17,14 @@ personajes = {}
 for i in range(0,0xbf):
   personajes[i] = 'pers_{:02x}'.format(i)
 
+
+# diccionario de ventanas/paneles
+windows = {}
+for i in range(0,34):
+  windows[i] = 'win_{:02x}'.format(i)
+
+
+
 #self.equipamiento = {}
 # 0x09 empieza los items de items
 # 0x42 empieza los items de armas
@@ -464,6 +472,24 @@ if(nombresOriginales):
   personajes[0xbc] = 'MUSIC_NOTES'
   personajes[0xbd] = 'MAGIC_SALESMAN'
   personajes[0xbe] = 'LAST_GUY'
+
+
+  # nombres de las ventanas/paneles
+  windows[0x00] = 'ITEM/MAGIC/EQUIP/ASK'
+  windows[0x01] = 'ITEMS'
+  windows[0x02] = 'MAGIC'
+  windows[0x03] = 'EQUIP_HEADER'
+  windows[0x04] = 'EQUIP'
+  windows[0x06] = 'DIALOG_TOP'
+  windows[0x0a] = 'CURRENT_ITEM'
+  windows[0x11] = 'SELECT'
+  windows[0x13] = 'GOLD'
+  windows[0x1b] = 'SAVE_1'
+  windows[0x1c] = 'SAVE_2'
+  windows[0x1d] = 'NAMING_HEADER'
+  windows[0x1e] = 'NAMING'
+  windows[0x1f] = 'NEW_GAME_CONTINUE'
+ 
 
   def getLabel(val):
     # el primer bit indica si hay que negar la variable

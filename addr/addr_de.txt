@@ -1,15 +1,18 @@
 
 # cosas del diccionario
-addrDictionary = 00:3f1d
-cantDictionary = 112
+addrDictionary = 00:3f3f
+cantDictionary = 96
+
+# listado de ventanas
+addrWindows = 02:1bb4
 
 # listado de magia en el bank02
-addrMagic = 02:1dda
+addrMagic = 02:1de4
 
-addrLoadStateStrangeBytes = 02:3aed
+addrLoadStateStrangeBytes = 02:3aff
 
 # la intro en el bank02
-addrIntro = 02:3e8a
+addrIntro = 02:3ed8
 
 addrMaps = 05:0000
 
@@ -18,10 +21,11 @@ spriteSheetsAddr = [08:00b0, 08:03b0, 08:06b0, 08:0938, 08:0c1a]
 # cantidad de sprites de cada spriteSheet
 cantSpritesInSheet = [0x80, 0x80, 0x6c, 0x7b, 0x4c]
 
-expTable = 08:0dd6
+expTable = 08:0de2
 
 # cosas de scripts
-addrScriptAddrDic = 08:0f05
-cantScripts = 0x054a
+addrScriptAddrDic = 08:0f11
+cantScripts = 0x054d
 
+addrMusic = 0f:0a12
 

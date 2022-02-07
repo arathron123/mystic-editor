@@ -103,7 +103,9 @@ class Cancion:
   def decodeRom(self, bank):
     """ decodifica una cancion """
 
-    base = 0x0a12 + 6*self.nro
+    nroBank,address = mystic.address.addrMusic
+#    base = 0x0a12 + 6*self.nro
+    base = address + 6*self.nro
 
     self.addrCh2 = bank[base + 1]*0x100 + bank[base + 0]
     self.addrCh1 = bank[base + 3]*0x100 + bank[base + 2]

@@ -598,21 +598,23 @@ class Comando:
     self.size = 0 
 
 
-    if(self.nro in [0x05, 0x06, 0xa9, 0xab, 0xb6, 0xbe, 0xee]):
+#    if(self.nro in [0xa9]):
+    if(False):
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_0: ' + self.strHex + '\n'
 
-    elif(self.nro in [0x8b, 0x91, 0xc2, 0xc5]):
+#    elif(self.nro in [0xc2, 0xc5]):
+#    elif(self.nro in [0xc5]):
+    elif(False):
       arg1 = self.array[1]
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_1: ' + self.strHex + '\n'
 
-    elif(self.nro in [0xef]):
-
+#    elif(self.nro in [0xef]):
+    elif(False):
 #      print(mystic.util.strHexa(self.array[:min(20,len(self.array))]))
-
       arg1 = self.array[1]
       arg2 = self.array[2]
       self.size = 3
@@ -757,13 +759,12 @@ class Comando:
 
       extras = ['EXTRA1', 'EXTRA2', 'EXTRA3', 'EXTRA4', 'EXTRA5', 'EXTRA6', 'EXTRA7']
 
-      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
-
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
       strExtra = extras[primer-1]
       strAction = actions[segund]
       strCmd = strExtra + '_' + strAction
 
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
         self.strCode = strCmd + '\n'
         self.size = 1
@@ -785,13 +786,13 @@ class Comando:
       primer = self.nro // 0x10
       segund = self.nro % 0x10
 
-      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
 
       strExtra = 'EXTRASPECIAL'
       strAction = actions[segund]
       strCmd = strExtra + '_' + strAction
 
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
         self.strCode = strCmd + '\n'
         self.size = 1
@@ -815,19 +816,26 @@ class Comando:
         self.size = 2
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
+    elif(self.nro == 0x8b):
+      # it makes the hero make a small jump (the arg is unknown)
+      arg = self.array[1]
+      self.strCode = 'HOP_JUMP {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
     # es el hero
     elif(self.nro >= 0x80 and self.nro <= 0x8f):
 
       primer = self.nro // 0x10
       segund = self.nro % 0x10
 
-      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
 
       strExtra = 'HERO'
       strAction = actions[segund]
       strCmd = strExtra + '_' + strAction
 
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
         self.strCode = strCmd + '\n'
         self.size = 1
@@ -871,6 +879,17 @@ class Comando:
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa6):
       self.strCode = 'WALKING_AS_DEAD\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xa9):
+      # Sets flag 0x7f to false if current map is 0x01, 0x0e, or 0x0f. Sets to true otherwise.
+      self.strCode = 'CHECK_IF_CURRENT_MAP_HAS_SMALLMAP\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xab):
+      self.strCode = 'CLEAR_MATO_TODOS\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -920,13 +939,26 @@ class Comando:
       self.size = 4
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
+    elif(self.nro == 0xb6):
+      self.strCode = 'LETTERBOX_EFFECT\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
     elif(self.nro == 0xbc):
+      # fades in from both fade_out and wash_out
       self.strCode = 'FADE_IN\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xbd):
+      # fades to black screen
       self.strCode = 'FADE_OUT\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xbe):
+      # fades to white screen
+      self.strCode = 'WASH_OUT\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -946,17 +978,35 @@ class Comando:
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
+    elif(self.nro == 0xc2):
+      arg = self.array[1]
+      self.strCode = 'HEAL_DISEASE {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xc3):
+      # it's a NOP, it does nothing.  unused in the original script
+      self.strCode = 'PASS\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc4):
       # bitwise del argumento 
-      # [][][][a][b][f][d][p]
+      # [][][][a][m][s][d][p]
       # p = poison
       # d = darkness
-      # f = fells (no puede caminar)
-      # b = bann
+      # s = stone (no puede caminar)
+      # m = moogle
       # a = avisar que se enfermó (0 = avisa, 1 = no avisa) (para curar: 0x10 = 0b10000)
       arg = self.array[1]
       self.strCode = 'DISEASE {:02x}\n'.format(arg)
+      self.size = 2
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xc5):
+      # stores arg as a 6-bit integer into flags 72..77 in reverse order: 0x01 = flag 77, 0x20 = flag 72
+      arg = self.array[1]
+      self.strCode = 'SET_FLAGS_72_TO_77 {:02x}\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1141,6 +1191,26 @@ class Comando:
       # salta al script que se ejecuta al entrar a dicho bloque?
       self.strCode = 'SCRIPT_ENTRAR_BLOQUE\n'
       self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xed):
+      # salta al script que se ejecuta al salir de dicho bloque
+      self.strCode = 'SCRIPT_SALIR_BLOQUE\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xee):
+      # salta al script que se ejecuta al matar todos los enemigos del bloque
+      self.strCode = 'SCRIPT_MATOTODOS_BLOQUE\n'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro in [0xef]):
+#      print(mystic.util.strHexa(self.array[:min(20,len(self.array))]))
+      xx = self.array[1]
+      yy = self.array[2]
+      self.strCode = 'PROXIMO_BLOQUE (XX,YY) = ({:02x},{:02x})\n'.format(xx,yy)
+      self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xf3):
@@ -1523,15 +1593,23 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 
+    elif(line.startswith('HOP_JUMP')):
+      argTxt = line[len('HOP_JUMP')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0x8b)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
     elif(line.startswith('HERO')):
       idx0 = line.index('_')+1
       strAction = line[idx0:]
 
       nroExtra = 8
 
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
-        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_9', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'TELEPORT', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
         nroAction = actions.index(strAction)
 
         nroCmd = nroExtra * 0x10 + nroAction
@@ -1564,9 +1642,9 @@ class Comando:
 
       nroExtra = 9
  
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
-        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F']
         nroAction = actions.index(strAction)
 
         nroCmd = nroExtra * 0x10 + nroAction
@@ -1599,9 +1677,9 @@ class Comando:
 
       nroExtra = int(line[5])
  
-      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
+      if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
-        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'NOSE_A', 'NOSE_B', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_C', 'NOSE_D', 'NOSE_E', 'NOSE_F']
         nroAction = actions.index(strAction)
 
         nroCmd = nroExtra * 0x10 + nroAction
@@ -1667,6 +1745,15 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
+    elif(line.startswith('CHECK_IF_CURRENT_MAP_HAS_SMALLMAP')):
+      self.hexs.append(0xa9)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('CLEAR_MATO_TODOS')):
+      self.hexs.append(0xab)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
 
     elif(line.startswith('SMALLMAP_OPEN')):
       self.hexs.append(0xac)
@@ -1724,12 +1811,21 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
+    elif(line.startswith('LETTERBOX_EFFECT')):
+      self.hexs.append(0xb6)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
     elif(line.startswith('FADE_IN')):
       self.hexs.append(0xbc)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
     elif(line.startswith('FADE_OUT')):
       self.hexs.append(0xbd)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('WASH_OUT')):
+      self.hexs.append(0xbe)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
     elif(line.startswith('PARPADEO')):
@@ -1746,10 +1842,31 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
+    elif(line.startswith('HEAL_DISEASE')):
+      argTxt = line[len('HEAL_DISEASE')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xc2)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('PASS')):
+      self.hexs.append(0xc3)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
     elif(line.startswith('DISEASE')):
       argTxt = line[len('DISEASE')+1:]
       arg = int(argTxt, 16)
       self.hexs.append(0xc4)
+      self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SET_FLAGS_72_TO_77')):
+      argTxt = line[len('SET_FLAGS_72_TO_77')+1:]
+      arg = int(argTxt, 16)
+      self.hexs.append(0xc5)
       self.hexs.append(arg)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
@@ -1994,6 +2111,14 @@ class Comando:
       self.hexs.append(0xec)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCRIPT_SALIR_BLOQUE')):
+      self.hexs.append(0xed)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+    elif(line.startswith('SCRIPT_MATOTODOS_BLOQUE')):
+      self.hexs.append(0xee)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
 
 
     elif(line.startswith('SLEEP')):
@@ -2001,6 +2126,19 @@ class Comando:
       arg = int(argTxt, 16)
       self.hexs.append(0xf0)
       self.hexs.append(arg)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+
+    elif(line.startswith('PROXIMO_BLOQUE')):
+      idx0 = line.find('=')
+      strArgs = line[idx0+3: len(line)-1]
+      strArgsSplit = strArgs.split(',')
+      args = [ int(u, 16) for u in strArgsSplit ]
+
+      self.hexs.append(0xef)
+
+      self.hexs.extend(args)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
@@ -2095,7 +2233,7 @@ class Comando:
       compactLine = compactLine.replace('<CLS>',           u'\U0001F61D')
       compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F47C')
       compactLine = compactLine.replace('<CARRY>',         u'\U0001F634')
-      compactLine = compactLine.replace('<NI_IDEA>',       u'\U0001F624')
+      compactLine = compactLine.replace('<ASK_YES_NO>',       u'\U0001F624')
       compactLine = compactLine.replace('<ICON a0>', u'\U00002200')
       compactLine = compactLine.replace('<ICON a1>', u'\U00002201')
       compactLine = compactLine.replace('<ICON a2>', u'\U00002202')

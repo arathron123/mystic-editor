@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.3'
+VERSION = '0.95.4'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -349,8 +349,13 @@ def testPlayground():
  
 
 
-#  mystic.romSplitter.exportBosses()
+
+
+#  bosses = mystic.romSplitter.exportBosses()
 #  mystic.romSplitter.burnBosses('./en/personajes/bosses.txt')
+#  mystic.romSplitter.exportBossesBehaviour(bosses)
+
+
 
 #  mystic.romSplitter.exportExplosions()
 
@@ -361,7 +366,9 @@ def testPlayground():
 #  mystic.romSplitter.exportMonstruoGrandeDosTiles()
 
 
-
+  # exports the game windows (Equip, Stats, Magic, etc)
+#  mystic.romSplitter.exportWindows()
+#  mystic.romSplitter.burnWindows('./en/items/windows.txt')
 
 
 #  mystic.romSplitter.exportExpTable()
@@ -555,24 +562,26 @@ def main(argv):
   if('--addr' in argv):
     idx = argv.index('--addr')
     # agarro el romPath
-    configAddrFile = argv[idx+1]
+    configAddrPath = argv[idx+1]
   else: 
     
 #    lang = mystic.language.detectRomLanguage(romPath)
     lang = mystic.address.language
     strLang = mystic.language.stockRomsLang[lang]
-    configAddrFile = './addr_' + strLang + '.txt'
+    configAddrPath = './addr/addr_' + strLang + '.txt'
 
+  idx0 = configAddrPath.index('addr_')
+  configAddrFile = configAddrPath[idx0:]
+#  print('configAddrFile: ' + configAddrFile)
 
-
-  print('using configAddrFile: ' + configAddrFile)
-  f = open(configAddrFile, 'r', encoding="utf-8")
+  print('using configAddrPath: ' + configAddrPath)
+  f = open(configAddrPath, 'r', encoding="utf-8")
   lines = f.readlines()
   f.close()
   mystic.address.decodeTxt(lines)
 
 
-  mystic.romSplitter.configure()
+  mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
   # decodifico el diccionario (compress)
   mystic.dictionary.decodeRom()
 
@@ -619,11 +628,11 @@ def main(argv):
 
     print('exportando personajes')
     # exporto los personajes
-    mystic.romSplitter.exportPersonajes()
+    personajes = mystic.romSplitter.exportPersonajes()
     # exporto grupos de aparición de personajes
     mystic.romSplitter.exportGrupos3Personajes()
     # exporto las stats de enemigos
-    mystic.romSplitter.exportPersonajeStats()
+    mystic.romSplitter.exportPersonajeStats(personajes)
     # exporto las animaciones para los personajes
     mystic.romSplitter.exportPersonajesAnimations()
 
@@ -635,6 +644,9 @@ def main(argv):
 
     # exporto el texto
     mystic.romSplitter.exportTexto()
+
+    # exporto las ventanas/paneles
+    mystic.romSplitter.exportWindows()
 
     # exporto intro.txt
     mystic.romSplitter.exportIntro()
@@ -662,8 +674,8 @@ def main(argv):
   elif('-e' in argv or '--encode' in argv):
     print('encoding ' + romPath + '...')
 
-    # copio el configAddrFile
-    shutil.copyfile(configAddrFile, basePath+'/'+configAddrFile)
+    # copio el configAddrPath
+    shutil.copyfile(configAddrPath, basePath+'/'+configAddrFile)
 
     # quemo el nroScript inicial (default 0x0003)
 #    entraTopple = 0x0271
@@ -672,6 +684,9 @@ def main(argv):
     if('--romexpand' in argv):
       # cambio el MBC y expando la rom a 32 banks
       mystic.romexpand.romExpand()
+
+    # quemo las ventanas/paneles
+    mystic.romSplitter.burnWindows(basePath+'/items/windows.txt')
 
     # quemo la intro
     mystic.romSplitter.burnIntro()
@@ -742,11 +757,15 @@ def main(argv):
 
     lang = mystic.address.language
     strLang = mystic.language.stockRomsLang[lang]
-    print('strLang: ' + strLang)
-    stockPath = './stockRoms/' + strLang + '.gb'
-    newPath = basePath + '/newRom.gb'
-    print('comparando ' + stockPath + ' con ' + newPath)
-    iguales = mystic.util.compareFiles(stockPath, newPath, 0x0000, 0x40000)
+#    print('strLang: ' + strLang)
+    pathStock = './stockRoms/' + strLang + '.gb'
+    pathNew = basePath + '/newRom.gb'
+
+    # exporto el .ips
+    mystic.romSplitter.exportIps(pathStock, pathNew, basePath + '/newRom.ips')
+
+    print('comparando ' + pathStock + ' con ' + pathNew)
+    iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
     print('roms iguales = ' + str(iguales))
 
     # la juego

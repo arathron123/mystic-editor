@@ -12,7 +12,7 @@ import mystic.inventory
 import mystic.scripts
 import mystic.maps
 import mystic.music
-
+import mystic.ippy
 
 # la rom
 #self.rom = []
@@ -34,10 +34,11 @@ def setVal(bank, offset, hexa):
   self.banks[bank][offset] = hexa
 
 
-def configure():
+#def configure():
+def loadBanksFromFile(romPath):
   """ lo preparo para splitear la rom indicada """
 
-  romPath = mystic.address.romPath
+#  romPath = mystic.address.romPath
 
   mystic.romSplitter.banks = []
 
@@ -56,11 +57,34 @@ def configure():
   f.close()
 
 
-def cleanBank(banco):
-  """ pone un banco en 0x00 """
+def loadBanksFromArray(romArray):
+  """ load the banks from the rom array """
 
-  clean = [0x00] * 0x4000
-  mystic.romSplitter.banks[banco] = clean
+  mystic.romSplitter.banks = []
+
+  subArray = romArray
+  while(True):
+
+    banco = subArray[:0x4000]
+#    print('len banco: ' + str(len(banco)))
+
+    if(len(banco) == 0):
+      break
+
+    # lo agrego a la lista de bancos
+    mystic.romSplitter.banks.append(banco)
+
+    subArray = subArray[0x4000:]
+
+def getRomArrayFromBanks():
+  """ returns the rom array by joining the banks """
+
+  hexs = []
+
+  for bank in mystic.romSplitter.banks:
+    hexs.extend(bank)
+
+  return hexs
 
 def clean():
   """ borro la carpeta de split de la rom indicada """
@@ -71,6 +95,99 @@ def clean():
   if os.path.exists(romName):
     # lo borro 
     shutil.rmtree(romName)
+
+def cleanBank(banco):
+  """ pone un banco en 0x00 """
+
+  clean = [0x00] * 0x4000
+  mystic.romSplitter.banks[banco] = clean
+
+
+def exportRom(filepath):
+  """ vuelve a juntar los bancos en una rom """
+
+  hexs = mystic.romSplitter.getRomArrayFromBanks()
+
+  f = open(filepath, 'wb')
+  f.write( bytes(hexs) )
+  f.close()
+
+def exportBank(nroBank, filepath):
+
+  # creo el archivo binario del banco
+  g = open(filepath, 'wb')
+  bank = mystic.romSplitter.banks[nroBank]
+  bytesbank = bytes(bank)
+  g.write(bytesbank)
+  g.close()
+
+def exportIps(pathStock, pathNew, pathIps):
+  """ exports the .ips file """
+
+  patch = mystic.ippy.Patch()
+  patch.buildIpsFromFiles(pathStock, pathNew, pathIps)
+
+def gameGenieHacks():
+  """ cambia un par de bytes para que no reste HP """
+
+  # gamegenie hacks!
+  bank0 = mystic.romSplitter.banks[0]
+  val = bank0[0x3e3a]
+#  print('val1: {:02x}'.format(val))
+  # cambio la resta 'sub l' por un nop (no resta hp los golpes, si el veneno)
+  bank0[0x3e3a] = 0x00
+
+  bank2 = mystic.romSplitter.banks[2]
+  val = bank2[0x396c]
+#  print('val2: {:02x}'.format(val))
+  # cambio la resta 'sub l' por 'sub h' para que reste 0x00 el daño por veneno
+  bank2[0x396c] = 0x94
+
+
+def exportGbsRom(filepath):
+  """ exporta a una rom musical gbs """
+
+  # cargo el gbs rom
+#  gbsRom = mystic.util.fileToArray('./roms/audio.gb')
+  # me quedo con el bank00
+#  gbsRom = gbsRom[0:0x4000]
+  gbsRom = mystic.util.fileToArray('./gbsBank00.bin')
+  # agarro el bank0f
+  bank0f = mystic.romSplitter.banks[0x0f]
+  # los concateno
+  gbsRom.extend(bank0f)
+  # creo la rom gbs de salida
+  mystic.util.arrayToFile(gbsRom, filepath)
+
+
+def testRom(filepath, emulator):
+  """ ejecuta la rom indicada con el emulador vba de linux """
+
+  # si es vba (sudo apt install visualboyadvance)
+  if(emulator == 'vba'):
+    comando = 'vba ' + filepath
+    os.system(comando)
+
+  # si es el mgba (sudo apt install mgba-sdl)
+  elif(emulator == 'mgba'):
+    comando = 'mgba -3 ' + filepath
+    os.system(comando)
+
+  elif(emulator == 'vba-m'):
+    # para instalar vba-m
+    #sudo snap install visualboyadvance-m --beta
+
+    # cambio dir para evitar bug de vba-m
+    os.chdir('/home/arathron/')
+
+    comando = 'visualboyadvance-m ' + filepath
+    os.system(comando)
+
+  # si es el vba-m compilado
+  elif(emulator == 'vba-m2'):
+#    comando = 'vba ' + filepath
+    comando = '../visualboyadvance-m/build/visualboyadvance-m ' + filepath
+    os.system(comando)
 
 
 def split():
@@ -108,14 +225,6 @@ def split():
     i += 1
 
 
-def exportBank(nroBank, filepath):
-
-  # creo el archivo binario del banco
-  g = open(filepath, 'wb')
-  bank = mystic.romSplitter.banks[nroBank]
-  bytesbank = bytes(bank)
-  g.write(bytesbank)
-  g.close()
 
 def pattern():
 
@@ -425,7 +534,78 @@ def exportSpriteSheets():
     sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
 
 
-def exportPersonajeStats():
+def exportWindows():
+  """ exporta las ventanas """
+
+#  print('--- 2:1baa')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/items'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  f = open(path + '/windows.txt', 'w', encoding="utf-8")
+  nroBank,addr = mystic.address.addrWindows
+  bank = mystic.romSplitter.banks[nroBank]
+
+  # recorro las 34 ventanas
+  for i in range(0,34):
+    subArray = bank[addr + i*10: addr + (i+1)*10]
+#    strArray = mystic.util.strHexa(subArray)
+#    print('window: ' + strArray)
+
+    win = mystic.inventory.Window(i)
+    win.decodeRom(subArray)
+#    print('win: --- ' + str(win))
+
+    lines = win.encodeTxt()
+
+    strWin = '\n'.join(lines)
+
+    f.write(strWin)
+
+  f.close()
+
+def burnWindows(filepath):
+  """ quema las ventanas en la rom """
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+
+  i = 0
+  windows = []
+  primero = True
+  subLines = []
+  for line in lines:
+#    print('line: ' + line)
+    if('------------ window' in line):
+      if(not primero):
+        win = mystic.inventory.Window(i)
+        win.decodeTxt(subLines)
+        windows.append(win)
+        i += 1
+        subLines = []
+      else:
+        primero = False
+
+    subLines.append(line)
+  win = mystic.inventory.Window(i)
+  win.decodeTxt(subLines)
+
+  array = []
+  for win in windows:
+#    print('win: ' + str(win))
+    subArray = win.encodeRom()
+    array.extend(subArray)
+
+  nroBank,addr = mystic.address.addrWindows
+  mystic.romSplitter.burnBank(nroBank, addr, array)
+
+
+def exportPersonajeStats(personajes):
   """ exporta los stat de los personajes """
 
 #  print('--- 3:19fe')
@@ -454,7 +634,7 @@ def exportPersonajeStats():
 
 #    print('stats: nro={:02x} '.format(stats.nroStats) + str(stats))
 
-    lines = stats.encodeTxt()
+    lines = stats.encodeTxt(personajes)
     strStats = '\n'.join(lines)
 
     f.write(strStats)
@@ -503,7 +683,6 @@ def burnPersonajeStats(filepath):
     array.extend(subArray)
 
   mystic.romSplitter.burnBank(0x3, 0x19fe, array)
-
 
 
 def exportPersonajes():
@@ -669,7 +848,7 @@ def exportPersonajes():
   tileset.tiles = extraTiles
   tileset.exportPngFile(path + '/personajes_NOEDIT.png')
 
-
+  return personajes
 
 def burnPersonajes(filepath):
   """ quema los personajes en la rom """
@@ -710,7 +889,201 @@ def burnPersonajes(filepath):
 
   mystic.romSplitter.burnBank(0x3, 0x1f5a, array)
 
+def exportBossesBehaviour(bosses):
+  """ exporta los comportamientos de los monstruos grandes """
 
+  boss = bosses[0x10]
+  print('boss: ' + str(boss))
+
+  bank = mystic.romSplitter.banks[0x04]
+
+  addressesDamage = [boss.addrDamage for boss in bosses]
+  addressesSortTiles = [boss.addrSortTiles for boss in bosses]
+  addressesBeh = [boss.addrBehaviour for boss in bosses]
+  addressesStart = [boss.addrBehaviourStart for boss in bosses]
+  addressesDeath = [boss.addrDeathExplosion for boss in bosses]
+
+  addressesInnBeh = []
+  for boss in bosses:
+    addr = boss.addrBehaviour - 0x4000
+    print('addrBehaviour: {:04x}'.format(addr))
+
+    addr1 = bank[addr]
+    addr2 = bank[addr+1]
+    addrInnBeh = addr2*0x100 + addr1 #- 0x4000
+    print('addrInnBeh: {:04x}'.format(addrInnBeh))
+    addressesInnBeh.append(addrInnBeh)
+
+
+
+  addr = 0x931
+  vaPorAddr = addr
+  for i in range(0,152):
+    subArray = bank[vaPorAddr: vaPorAddr+8]
+    strHexa = mystic.util.strHexa(subArray)
+
+    stringDamage = ''
+    if(vaPorAddr+0x4000 in addressesDamage):
+      idx = addressesDamage.index(vaPorAddr+0x4000)
+      stringDamage = mystic.variables.bosses[idx] + ' damage'
+
+    print('damageArray: ' + strHexa + '    # {:04x} '.format(vaPorAddr) + stringDamage)
+    vaPorAddr += 8
+
+#  for i in range(0,25):
+  for i in range(0,0):
+    subArray = bank[addrBeh + i*5 : addrBeh + (i+1)*5]
+    strHexa = mystic.util.strHexa(subArray)
+    print('action: ' + strHexa)
+
+  boss = bosses[0x00]
+  addr = boss.addrBehaviour - 0x4000
+
+  addr = 0x0df1
+  vaPorAddr = addr
+  for i in range(0,44):
+
+    stringStart = ''
+    if(vaPorAddr+0x4000 in addressesStart):
+      idx = addressesStart.index(vaPorAddr+0x4000)
+      stringStart = mystic.variables.bosses[idx] + ' start'
+
+    stringBeh = ''
+    if(vaPorAddr+0x4000 in addressesBeh):
+      idx = addressesBeh.index(vaPorAddr+0x4000)
+      stringBeh = mystic.variables.bosses[idx] + ' beh'
+
+    print('---- addr: {:04x}'.format(vaPorAddr+0x4000) + ' ' + stringStart + ' ' + stringBeh)
+    while(True):
+      subArray = bank[vaPorAddr : vaPorAddr + 10]
+      if(subArray[0] == 0xff):
+        vaPorAddr += 1
+        break
+
+      strHexa = mystic.util.strHexa(subArray)
+#      print('start: ' + strHexa)
+
+      addr1 = subArray[1]*0x100 + subArray[0]
+      addr2 = subArray[3]*0x100 + subArray[2]
+      addr3 = subArray[5]*0x100 + subArray[4]
+      addr4 = subArray[7]*0x100 + subArray[6]
+      print('actionBehaviour: {:04x} {:04x} {:04x} {:04x} (x,y) = ({:02x},{:02x})'.format(addr1, addr2, addr3, addr4, subArray[8], subArray[9]))
+ 
+
+
+      vaPorAddr += 10 
+
+  addr = 0x1435
+#  addr = 0x170c
+  vaPorAddr = addr
+#  for i in range(0,79):
+  for i in range(0,107):
+
+    stringInnBehaviour = ''
+    if(vaPorAddr+0x4000 in addressesInnBeh):
+      idx = addressesInnBeh.index(vaPorAddr+0x4000)
+      stringInnBehaviour = mystic.variables.bosses[idx] + ' inn_behaviour'
+
+    stringStart = ''
+    if(vaPorAddr+0x4000 in addressesStart):
+      idx = addressesStart.index(vaPorAddr+0x4000)
+      stringStart = mystic.variables.bosses[idx] + ' start'
+
+    stringDeath = ''
+    if(vaPorAddr+0x4000 in addressesDeath):
+      idx = addressesDeath.index(vaPorAddr+0x4000)
+      stringDeath = mystic.variables.bosses[idx] + ' death'
+
+    print('---- addr: {:04x}'.format(vaPorAddr+0x4000) + ' ' + stringStart + ' ' + stringDeath + ' ' + stringInnBehaviour)
+
+    while(True):
+      subArray = bank[vaPorAddr : vaPorAddr + 5]
+      if(subArray[0] == 0xff):
+        vaPorAddr += 1
+        break
+
+      addr1 = subArray[2]*0x100 + subArray[1]
+      addrSpritePos = subArray[4]*0x100 + subArray[3]
+      print('action: cant={:02x} addr1={:04x} addrSpritePos={:04x}'.format(subArray[0], addr1, addrSpritePos))
+      vaPorAddr += 5
+
+
+  print('------------- mini actions')
+  addr = 0x28ff
+  vaPorAddr = addr
+  for i in range(0,193):
+    subArray = bank[vaPorAddr : vaPorAddr+3]
+    strHexa = mystic.util.strHexa(subArray)
+    print('miniAction: ' + strHexa + '   # {:04x}'.format(vaPorAddr+0x4000))
+    vaPorAddr += 3
+ 
+  addr = 0x2b42
+  vaPorAddr = addr
+  for i in range(0,159):
+
+    print('---- sprites position: {:04x}'.format(vaPorAddr+0x4000))
+    while(True):
+      subArray = bank[vaPorAddr:vaPorAddr+3]
+      strHexa = mystic.util.strHexa(subArray)
+#      print('subArray: ' + strHexa)
+
+      if(subArray[0] == 0xff):
+        vaPorAddr += 1
+        break
+
+      print('spritePos: {:02x} (x,y) = ({:02x},{:02x})'.format(subArray[0], subArray[1], subArray[2]))
+      vaPorAddr += 3
+
+
+  if(False):  
+#  for i in range(0,163):
+#    print('vaPorAddr: {:04x}'.format(vaPorAddr))
+    subArray = bank[vaPorAddr:]
+    idx = subArray.index(0xff)
+    subArray = subArray[:idx+1]
+    strHexa = mystic.util.strHexa(subArray)
+    print('spritePosition: {:04x} '.format(vaPorAddr+0x4000) + strHexa + ' len: ' + str((len(subArray)-1)%3 ))
+    vaPorAddr += idx+1
+
+
+  # la cantidad de sortTiles es 2*cantDosTiles
+  addr = 0x393d
+  vaPorAddr = addr
+  prevAddrSortTile = addr
+  arrayTiles = []
+  primero = True
+  for i in range(0,618):
+
+    if(vaPorAddr+0x4000 in addressesSortTiles):
+      if(primero):
+        primero = False
+      else:
+
+        stringTile = ''
+        if(vaPorAddr+0x4000 in addressesSortTiles):
+          idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
+          stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
+
+        strHexa = mystic.util.strHexa(arrayTiles)
+        print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa)
+        print('len: ' + str(len(arrayTiles)))
+
+        arrayTiles = []
+      prevAddrSortTile = vaPorAddr
+
+    arrayTiles.append(bank[vaPorAddr - 0x4000])
+    vaPorAddr += 1
+ 
+  stringTile = ''
+  if(vaPorAddr+0x4000 in addressesSortTiles):
+    idx = addressesSortTiles.index(prevAddrSortTiles+0x4000)
+    stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
+
+  strHexa = mystic.util.strHexa(arrayTiles)
+  print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa)
+
+
+ 
 def exportBosses():
   """ exporta los monstruos grandes """
 
@@ -728,9 +1101,10 @@ def exportBosses():
 
   bank = mystic.romSplitter.banks[0x04]
 
+  vaPorAddr = 0x0739
   bosses = []
   for i in range(0,21):
-    subArray = bank[0x0739 + 24*i : 0x0739 + 24*(i+1)]
+    subArray = bank[vaPorAddr : vaPorAddr+24]
     strHexa = mystic.util.strHexa(subArray)
 #    print('boss: {:02x} - '.format(i) + strHexa)
 
@@ -739,10 +1113,11 @@ def exportBosses():
     bosses.append(boss)
 #    print('boss: {:02x} - '.format(i) + str(boss))
 
-    lines = boss.encodeTxt()
+    lines = boss.encodeTxt(vaPorAddr)
     strBoss = '\n'.join(lines)
 
     f.write(strBoss)
+    vaPorAddr += 24
 
   f.close()
 
@@ -752,6 +1127,8 @@ def exportBosses():
   gg = random.randint(0,0xff)
   bb = random.randint(0,0xff)
   mystic.romStats.appendDato(0x04, 0x0739, 0x0739+length, (rr, gg, bb), 'bosses')
+
+  return bosses
 
 def burnBosses(filepath):
   """ quema los monstruos grandes en la rom """
@@ -787,6 +1164,7 @@ def burnBosses(filepath):
     array.extend(subArray)
 
   mystic.romSplitter.burnBank(0x4, 0x0739, array)
+
 
 
 def exportExplosions():
@@ -1115,8 +1493,9 @@ def exportSongs(exportLilypond=False):
     # lo creo
     os.makedirs(path)
 
+  nroBank,address = mystic.address.addrMusic
   # cargo el banco 16 con las canciones
-  bank = mystic.romSplitter.banks[0x0F]
+  bank = mystic.romSplitter.banks[nroBank]
 
   canciones = mystic.music.Canciones()
   canciones.decodeRom(bank)
@@ -2148,80 +2527,6 @@ def exportScripts():
   f.write(strTxt)
   f.close()
 
-
-def exportRom(filepath):
-  """ vuelve a juntar los bancos en una rom """
-
-  hexs = []
-
-  for bank in mystic.romSplitter.banks:
-    hexs.extend(bank)
-
-  f = open(filepath, 'wb')
-  f.write( bytes(hexs) )
-  f.close()
-
-def gameGenieHacks():
-  """ cambia un par de bytes para que no reste HP """
-
-  # gamegenie hacks!
-  bank0 = mystic.romSplitter.banks[0]
-  val = bank0[0x3e3a]
-#  print('val1: {:02x}'.format(val))
-  # cambio la resta 'sub l' por un nop (no resta hp los golpes, si el veneno)
-  bank0[0x3e3a] = 0x00
-
-  bank2 = mystic.romSplitter.banks[2]
-  val = bank2[0x396c]
-#  print('val2: {:02x}'.format(val))
-  # cambio la resta 'sub l' por 'sub h' para que reste 0x00 el daño por veneno
-  bank2[0x396c] = 0x94
-
-
-def exportGbsRom(filepath):
-  """ exporta a una rom musical gbs """
-
-  # cargo el gbs rom
-#  gbsRom = mystic.util.fileToArray('./roms/audio.gb')
-  # me quedo con el bank00
-#  gbsRom = gbsRom[0:0x4000]
-  gbsRom = mystic.util.fileToArray('./gbsBank00.bin')
-  # agarro el bank0f
-  bank0f = mystic.romSplitter.banks[0x0f]
-  # los concateno
-  gbsRom.extend(bank0f)
-  # creo la rom gbs de salida
-  mystic.util.arrayToFile(gbsRom, filepath)
-
-
-def testRom(filepath, emulator):
-  """ ejecuta la rom indicada con el emulador vba de linux """
-
-  # si es vba (sudo apt install visualboyadvance)
-  if(emulator == 'vba'):
-    comando = 'vba ' + filepath
-    os.system(comando)
-
-  # si es el mgba (sudo apt install mgba-sdl)
-  elif(emulator == 'mgba'):
-    comando = 'mgba -3 ' + filepath
-    os.system(comando)
-
-  elif(emulator == 'vba-m'):
-    # para instalar vba-m
-    #sudo snap install visualboyadvance-m --beta
-
-    # cambio dir para evitar bug de vba-m
-    os.chdir('/home/arathron/')
-
-    comando = 'visualboyadvance-m ' + filepath
-    os.system(comando)
-
-  # si es el vba-m compilado
-  elif(emulator == 'vba-m2'):
-#    comando = 'vba ' + filepath
-    comando = '../visualboyadvance-m/build/visualboyadvance-m ' + filepath
-    os.system(comando)
 
 
 
