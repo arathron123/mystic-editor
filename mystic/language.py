@@ -82,7 +82,8 @@ def protectStockRoms():
 
 #  print('files: ' + str(files))
 
-  romPath = './stockRoms/en.gb'
+#  romPath = './stockRoms/en.gb'
+  romPath = None
 
   # para cada archivo
   for fil in files:
