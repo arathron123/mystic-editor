@@ -346,7 +346,7 @@ def testPlayground():
 
 
 #  bosses = mystic.romSplitter.exportBosses()
-  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
+#  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
 #  mystic.romSplitter.exportBossesBehaviour(bosses)
 
 
@@ -733,7 +733,7 @@ def main(argv):
 
     print('quemando bosses...')
     # quemo los monstruos grandes
-    mystic.romSplitter.burnBosses(basePath + '/bosses/01_bosses.txt', basePath + '/bosses/02_bossesDamage.txt', basePath + '/bosses/03_bossesBehaviour.txt', basePath + '/bosses/04_bossesAction.txt', basePath + '/bosses/05_bossesMiniAction.txt', basePath + '/bosses/06_bossesSpritesPos.txt', basePath + '/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
+    mystic.romSplitter.burnBosses(basePath + '/bosses/01_bosses.txt', basePath + '/bosses/02_bossesDamage.txt', basePath + '/bosses/03_bossesBehaviour.txt', basePath + '/bosses/04_bossesAction.txt', basePath + '/bosses/05_bossesMiniAction.txt', basePath + '/bosses/06_bossesSpritesPos.txt', basePath + '/bosses/07_bossesSortTiles.txt', basePath + '/bosses/08_bossesAnimations.txt')
 
 
     print('quemando mapas...')
