@@ -18,6 +18,7 @@ def printHelp():
   print('  python3 ippy.py --patch in.bin out.bin patch.ips')
   print('Usage example for building an ips file: ')
   print('  python3 ippy.py --build in.bin out.bin patch.ips')
+  print('--------------------------------------------------')
 
 
 def fileToArray(filepath):
@@ -90,7 +91,13 @@ class RecordIPS:
     return array
 
   def __str__(self):
-    return 'IPS({:06x}, {:04x}, '.format(self.offset, len(self.data)) + strHexa(self.data[:5]) + '...)'
+#    return 'IPS({:06x}, {:04x}, '.format(self.offset, len(self.data)) + strHexa(self.data[:5]) + '...)'
+#    return 'IPS({:06x}, '.format(self.offset) + strHexa(self.data[:5]) + '...)'
+    return 'IPS({:06x}, '.format(self.offset) + strHexa(self.data) + ')'
+
+  def __repr__(self):
+    return 'IPS({:06x})'.format(self.offset)
+
 
 
 ####################################
@@ -126,6 +133,10 @@ class RecordRLE:
 
   def __str__(self):
     return 'RLE({:06x}, {:04x}, {:02x})'.format(self.offset, self.rleSize, self.rleByte)
+
+  def __repr__(self):
+    return 'RLE({:06x})'.format(self.offset)
+
 
 ####################################
 
@@ -305,14 +316,273 @@ class Patch:
     arraySource = fileToArray(pathSource)
     arrayTarget = fileToArray(pathTarget)
 
-    # we build the ips array
-    arrayIps = self._buildIps(arraySource, arrayTarget)
+    # we build the ips records
+    self._buildIps(arraySource, arrayTarget)
+
+#    print('---- showing ips records')
+#    for record in self.records:
+#      print('record: ' + str(record))
+
+#    print('--------- optimizing encode: ' + str(len(self._encode())))
+
+    # we make a copy of the records
+    newRecords = [record for record in self.records]
+
+    # we start with step 0
+    i = 0
+    # asume it is not already optimal
+    isOpt = False
+#    print('step ' + str(i) + ' - newRecords: ' + str(newRecords))
+#    print('step ' + str(i) )
+    # while it is not optimal
+    while(not isOpt):
+      i += 1
+      # optimize the size by splitting the IPS records into RLE records when convenient
+      newRecords, isOpt = self._optimize(newRecords)
+#      print(str(i) + ' - newRecords: ' + str(newRecords))
+#      print('step ' + str(i) )
+ 
+#    for rec in newRecords:
+#      print('req: ' + str(rec))
+
+    self.records = newRecords
+#    print('--------- optimized encode: ' + str(len(self._encode())))
+
+    # we create the ips array
+    arrayIps = self._encode()
+
+#    for record in self.records:
+#      print('rec: ' + str(record))
 
     # and save it in a file
     arrayToFile(arrayIps, pathIps)
 
+  def _optimize(self, records):
+    """ splits the ips into rle records when needed for space optimization """
+
+    newRecords = []
+
+    # asume it is already optimized
+    alreadyOpt = True
+
+    # for each record
+    for i in range(0,len(records)):
+      record = records[i]
+#      print('record: ' + str(record))
+
+      # we try to compress it
+      equivRecords = self._optimizeRecord(record)
+#      print('equivRecords: ' + str(equivRecords))
+
+      # if it could
+      if(len(equivRecords) > 1):
+        # we indicate that it is still not optimized
+        alreadyOpt = False
+      
+      # and append the returned new records in the new list
+      newRecords.extend(equivRecords)
+
+    return newRecords, alreadyOpt
+
+
+
+
+  def _optimizeRecord(self, record):
+    """ given a record, it analizes if it is worth compressing it, and in that case it returns the compressed equivalent records """
+
+    # if it is an rle record
+    if(type(record) != RecordIPS):
+      # it is already opt
+      return [record]
+
+#    print('tratando de optimizar rec: ' + str(record))
+
+    data = record.data
+#    print('--- data: ' + strHexa(data) + 'len: ' + str(len( record.encode())))
+
+    length = 0
+    prevEqual = False
+    offset = -1
+#    searchedByte = 0xff
+
+    # the set of different bytes
+    possibleBytes = set(record.data)
+#    print('possibleBytes: ' + strHexa(possibleBytes))
+
+    # for each possible to be repeated byte
+    for searchedByte in possibleBytes:
+
+      # for each byte of data
+      for j in range(0,len(data)):
+        bity = data[j]
+
+        # if it equals the searched byte
+        if(bity == searchedByte):
+          length += 1
+
+          # if the previous was not the searched byte
+          if(not prevEqual):
+
+            # starting a possible rle record buffer
+            prevEqual = True
+            offset = j
+        # if not, it is not the searched byte
+        else:
+
+          # but if the last byte was equal
+          if(prevEqual):
+            # ending a possible rle record buffer
+            records, comp = self._tryToCompress(record, offset, length, searchedByte)
+            if(comp):
+              return records
+
+          prevEqual = False
+          length = 0
+          offset = -1
+
+      # if the last byte was equal
+      if(prevEqual):
+        records, comp = self._tryToCompress(record, offset, length, searchedByte)
+        if(comp):
+          return records
+
+    # if it reached here it was not worth compressing
+    return [record]
+
+
+  def _tryToCompress(self, record, offset, length, searchedByte):
+
+#    print('searchedByte: {:02x} length: '.format(searchedByte) + str(length))
+    data = record.data
+#    print('offset: ' + str(offset) + ' length: ' + str(length))
+    # if the buffer is at the beginning or ending of the data
+    if((offset == 0) or (offset+length == len(data))):
+      # we would need 8 bytes of header overhead for the rle-record
+      overhead = 8
+#      print('initial or final')
+      # if it is worthy of making the rle-record
+      if(length > overhead):
+#        print('worth it compressing')
+        # if it is an initial buffer
+        if(offset == 0):
+          rec1 = RecordRLE(record.offset, length, searchedByte)
+          rec2 = RecordIPS(record.offset+length, data[length:])
+#          print('rec1: ' + str(rec1))
+#          print('rec2: ' + str(rec2))
+#          print('total len: ' + str( len(rec1.encode()) + len(rec2.encode())))
+ 
+          # if it is also final
+          if(offset+length == len(data)):
+            return [rec1],True
+          # else, it is only initial
+          else:
+            return [rec1, rec2],True
+
+        # if not, it is a final buffer
+        else:
+          rec1 = RecordIPS(record.offset, data[:offset])
+          rec2 = RecordRLE(record.offset+offset, length, searchedByte)
+
+#          print('rec1: ' + str(rec1))
+#          print('rec2: ' + str(rec2))
+#          print('total len: ' + str( len(rec1.encode()) + len(rec2.encode())))
+          return [rec1, rec2],True
+ 
+    # else, the buffer is at the middle of the data
+    else:
+      # we would need 8 bytes of header overhead for the rle-record and 5 bytes of header for the second ips-record
+      overhead = 8+5
+#      print('middle')
+      # if it is worthy of making the rle-record
+      if(length > overhead):
+#        print('worth it compressing in the middle')
+
+        rec1 = RecordIPS(record.offset, data[:offset])
+        rec2 = RecordRLE(record.offset+offset, length, searchedByte)
+        rec3 = RecordIPS(record.offset+offset+length, data[offset+length:])
+
+#        print('rec1: ' + str(rec1))
+#        print('rec2: ' + str(rec2))
+#        print('rec3: ' + str(rec3))
+#        print('total len: ' + str( len(rec1.encode()) + len(rec2.encode()) + len(rec3.encode()) ))
+        return [rec1, rec2, rec3],True
+
+    # if it gets here, it is not worth compressing 
+    return [record],False
+
 
   def _buildIps(self, arraySource, arrayTarget):
+    """ It builds an ips array from the source and target arrays.  It only creates IPS records (no RLE records) """
+
+    # by default don't truncate the file
+    self.truncate = -1
+    # the list of ips and rle records
+    self.records = []
+
+#    print('source: ' + strHexa(arraySource))
+#    print('target: ' + strHexa(arrayTarget))
+
+    # if the target file is shorter
+    if(len(arrayTarget) < len(arraySource)):
+      # we indicate it has to be truncated
+      self.truncate = len(arrayTarget)
+
+    i = 0
+    # iterate the arrayTarget
+    while(i < len(arrayTarget)):
+
+#      print('--- va por i: {:08x}'.format(i))
+
+      # read a byte from each file
+      b1 = arraySource[i] if i <= len(arraySource)-1 else None
+      b2 = arrayTarget[i]
+
+#      print('b1, b2: {:02x}, {:02x}'.format(b1,b2))
+
+      # if the bytes are different
+      if(b1 != b2):
+
+        differentData = []
+        startOffset = i
+
+        # while the data is different
+#        while(b1 != b2 and len(differentData) < 0xffff and i < len(arrayTarget)):
+        while(b1 != b2):
+
+          # we append it to the array
+          differentData.append(b2)
+          # if the byte is different from the first in the record
+          if(b2 != differentData[0]):
+            # it will not be an rle record
+            rleMode = False
+
+          # if the next step reachs the end of the file, or the differentData is full
+          if(i+1 == len(arrayTarget) or len(differentData) == 0xffff):
+#            print('breaking')
+            # we end the differentData
+            break
+
+          i += 1
+
+          # read a byte from each file
+          b1 = arraySource[i] if i <= len(arraySource)-1 else None
+          b2 = arrayTarget[i]
+
+#        print('differentData: ' + strHexa(differentData))
+
+        # we create it as an ips record
+        rec = RecordIPS(startOffset, differentData)
+
+#        print('rec: ' + str(rec))
+
+        # we add the record to the list
+        self.records.append(rec)
+
+      i += 1
+
+
+
+  def _buildIpsOld(self, arraySource, arrayTarget):
     """ It builds an ips array from the source and target arrays.  It is not yet space-optimized """
 
     # by default don't truncate the file
@@ -335,7 +605,7 @@ class Patch:
 #      print('--- va por i: {:08x}'.format(i))
 
       # read a byte from each file
-      b1 = arraySource[i] if i <= len(arraySource)-1 else 0xdeadbeef
+      b1 = arraySource[i] if i <= len(arraySource)-1 else None
       b2 = arrayTarget[i]
 
 #      print('b1, b2: {:02x}, {:02x}'.format(b1,b2))
@@ -367,7 +637,7 @@ class Patch:
           i += 1
 
           # read a byte from each file
-          b1 = arraySource[i] if i <= len(arraySource)-1 else 0xdeadbeaf
+          b1 = arraySource[i] if i <= len(arraySource)-1 else None
           b2 = arrayTarget[i]
 
 #        print('differentData: ' + strHexa(differentData))
@@ -388,10 +658,6 @@ class Patch:
         self.records.append(rec)
 
       i += 1
-
-    # we create and return the ips array
-    arrayIps = self._encode()
-    return arrayIps
 
   def _encode(self):
     """ return the ips array of the current records """
@@ -454,7 +720,6 @@ def main(argv):
     # if he wants to create an ips file
     elif('--build' in argv):
       patch.buildIpsFromFiles(pathSource, pathTarget, pathIps)
-
 
 #  patch._generateExampleFiles()
 

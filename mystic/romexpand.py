@@ -9,9 +9,9 @@ def romExpand():
   # choose one (or none) of the following available rom expansions,
   # you can also make your own custom romExpand...()
 
-#  romExpandMoveMaps()
+  romExpandMoveMaps()
 #  romExpandMoveMusicBank()
-  romExpandIpsPatch('./roms/colorization/en_uk_256.ips')
+#  romExpandIpsPatch('./roms/colorization/en_uk_256.ips')
 #  romExpandIpsPatch('./roms/colorization/en_uk_kkzero.ips')
 
 #################################################

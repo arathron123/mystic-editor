@@ -7,7 +7,7 @@ import mystic.spriteSheet
 import mystic.romStats
 import mystic.spritePersonaje
 import mystic.personaje
-import mystic.boss
+import mystic.bosses
 import mystic.inventory
 import mystic.scripts
 import mystic.maps
@@ -876,6 +876,7 @@ def burnPersonajes(filepath):
     subLines.append(line)
   p = mystic.personaje.Personaje(i)
   p.decodeTxt(subLines)
+  personajes.append(p)
 
   array = []
   for p in personajes:
@@ -888,284 +889,67 @@ def burnPersonajes(filepath):
 #    print('iguales = ' + str(iguales))
 
   mystic.romSplitter.burnBank(0x3, 0x1f5a, array)
-
-def exportBossesBehaviour(bosses):
-  """ exporta los comportamientos de los monstruos grandes """
-
-  boss = bosses[0x10]
-  print('boss: ' + str(boss))
-
-  bank = mystic.romSplitter.banks[0x04]
-
-  addressesDamage = [boss.addrDamage for boss in bosses]
-  addressesSortTiles = [boss.addrSortTiles for boss in bosses]
-  addressesBeh = [boss.addrBehaviour for boss in bosses]
-  addressesStart = [boss.addrBehaviourStart for boss in bosses]
-  addressesDeath = [boss.addrDeathExplosion for boss in bosses]
-
-  addressesInnBeh = []
-  for boss in bosses:
-    addr = boss.addrBehaviour - 0x4000
-    print('addrBehaviour: {:04x}'.format(addr))
-
-    addr1 = bank[addr]
-    addr2 = bank[addr+1]
-    addrInnBeh = addr2*0x100 + addr1 #- 0x4000
-    print('addrInnBeh: {:04x}'.format(addrInnBeh))
-    addressesInnBeh.append(addrInnBeh)
-
-
-
-  addr = 0x931
-  vaPorAddr = addr
-  for i in range(0,152):
-    subArray = bank[vaPorAddr: vaPorAddr+8]
-    strHexa = mystic.util.strHexa(subArray)
-
-    stringDamage = ''
-    if(vaPorAddr+0x4000 in addressesDamage):
-      idx = addressesDamage.index(vaPorAddr+0x4000)
-      stringDamage = mystic.variables.bosses[idx] + ' damage'
-
-    print('damageArray: ' + strHexa + '    # {:04x} '.format(vaPorAddr) + stringDamage)
-    vaPorAddr += 8
-
-#  for i in range(0,25):
-  for i in range(0,0):
-    subArray = bank[addrBeh + i*5 : addrBeh + (i+1)*5]
-    strHexa = mystic.util.strHexa(subArray)
-    print('action: ' + strHexa)
-
-  boss = bosses[0x00]
-  addr = boss.addrBehaviour - 0x4000
-
-  addr = 0x0df1
-  vaPorAddr = addr
-  for i in range(0,44):
-
-    stringStart = ''
-    if(vaPorAddr+0x4000 in addressesStart):
-      idx = addressesStart.index(vaPorAddr+0x4000)
-      stringStart = mystic.variables.bosses[idx] + ' start'
-
-    stringBeh = ''
-    if(vaPorAddr+0x4000 in addressesBeh):
-      idx = addressesBeh.index(vaPorAddr+0x4000)
-      stringBeh = mystic.variables.bosses[idx] + ' beh'
-
-    print('---- addr: {:04x}'.format(vaPorAddr+0x4000) + ' ' + stringStart + ' ' + stringBeh)
-    while(True):
-      subArray = bank[vaPorAddr : vaPorAddr + 10]
-      if(subArray[0] == 0xff):
-        vaPorAddr += 1
-        break
-
-      strHexa = mystic.util.strHexa(subArray)
-#      print('start: ' + strHexa)
-
-      addr1 = subArray[1]*0x100 + subArray[0]
-      addr2 = subArray[3]*0x100 + subArray[2]
-      addr3 = subArray[5]*0x100 + subArray[4]
-      addr4 = subArray[7]*0x100 + subArray[6]
-      print('actionBehaviour: {:04x} {:04x} {:04x} {:04x} (x,y) = ({:02x},{:02x})'.format(addr1, addr2, addr3, addr4, subArray[8], subArray[9]))
- 
-
-
-      vaPorAddr += 10 
-
-  addr = 0x1435
-#  addr = 0x170c
-  vaPorAddr = addr
-#  for i in range(0,79):
-  for i in range(0,107):
-
-    stringInnBehaviour = ''
-    if(vaPorAddr+0x4000 in addressesInnBeh):
-      idx = addressesInnBeh.index(vaPorAddr+0x4000)
-      stringInnBehaviour = mystic.variables.bosses[idx] + ' inn_behaviour'
-
-    stringStart = ''
-    if(vaPorAddr+0x4000 in addressesStart):
-      idx = addressesStart.index(vaPorAddr+0x4000)
-      stringStart = mystic.variables.bosses[idx] + ' start'
-
-    stringDeath = ''
-    if(vaPorAddr+0x4000 in addressesDeath):
-      idx = addressesDeath.index(vaPorAddr+0x4000)
-      stringDeath = mystic.variables.bosses[idx] + ' death'
-
-    print('---- addr: {:04x}'.format(vaPorAddr+0x4000) + ' ' + stringStart + ' ' + stringDeath + ' ' + stringInnBehaviour)
-
-    while(True):
-      subArray = bank[vaPorAddr : vaPorAddr + 5]
-      if(subArray[0] == 0xff):
-        vaPorAddr += 1
-        break
-
-      addr1 = subArray[2]*0x100 + subArray[1]
-      addrSpritePos = subArray[4]*0x100 + subArray[3]
-      print('action: cant={:02x} addr1={:04x} addrSpritePos={:04x}'.format(subArray[0], addr1, addrSpritePos))
-      vaPorAddr += 5
-
-
-  print('------------- mini actions')
-  addr = 0x28ff
-  vaPorAddr = addr
-  for i in range(0,193):
-    subArray = bank[vaPorAddr : vaPorAddr+3]
-    strHexa = mystic.util.strHexa(subArray)
-    print('miniAction: ' + strHexa + '   # {:04x}'.format(vaPorAddr+0x4000))
-    vaPorAddr += 3
- 
-  addr = 0x2b42
-  vaPorAddr = addr
-  for i in range(0,159):
-
-    print('---- sprites position: {:04x}'.format(vaPorAddr+0x4000))
-    while(True):
-      subArray = bank[vaPorAddr:vaPorAddr+3]
-      strHexa = mystic.util.strHexa(subArray)
-#      print('subArray: ' + strHexa)
-
-      if(subArray[0] == 0xff):
-        vaPorAddr += 1
-        break
-
-      print('spritePos: {:02x} (x,y) = ({:02x},{:02x})'.format(subArray[0], subArray[1], subArray[2]))
-      vaPorAddr += 3
-
-
-  if(False):  
-#  for i in range(0,163):
-#    print('vaPorAddr: {:04x}'.format(vaPorAddr))
-    subArray = bank[vaPorAddr:]
-    idx = subArray.index(0xff)
-    subArray = subArray[:idx+1]
-    strHexa = mystic.util.strHexa(subArray)
-    print('spritePosition: {:04x} '.format(vaPorAddr+0x4000) + strHexa + ' len: ' + str((len(subArray)-1)%3 ))
-    vaPorAddr += idx+1
-
-
-  # la cantidad de sortTiles es 2*cantDosTiles
-  addr = 0x393d
-  vaPorAddr = addr
-  prevAddrSortTile = addr
-  arrayTiles = []
-  primero = True
-  for i in range(0,618):
-
-    if(vaPorAddr+0x4000 in addressesSortTiles):
-      if(primero):
-        primero = False
-      else:
-
-        stringTile = ''
-        if(vaPorAddr+0x4000 in addressesSortTiles):
-          idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
-          stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
-
-        strHexa = mystic.util.strHexa(arrayTiles)
-        print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa)
-        print('len: ' + str(len(arrayTiles)))
-
-        arrayTiles = []
-      prevAddrSortTile = vaPorAddr
-
-    arrayTiles.append(bank[vaPorAddr - 0x4000])
-    vaPorAddr += 1
- 
-  stringTile = ''
-  if(vaPorAddr+0x4000 in addressesSortTiles):
-    idx = addressesSortTiles.index(prevAddrSortTiles+0x4000)
-    stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
-
-  strHexa = mystic.util.strHexa(arrayTiles)
-  print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa)
-
-
  
 def exportBosses():
   """ exporta los monstruos grandes """
 
 #  print('--- 4:0739')
 
-  basePath = mystic.address.basePath
-  path = basePath + '/personajes'
-
-  # si el directorio no existía
-  if not os.path.exists(path):
-    # lo creo
-    os.makedirs(path)
-
-  f = open(path + '/bosses.txt', 'w', encoding="utf-8")
-
   bank = mystic.romSplitter.banks[0x04]
+  bosses = mystic.bosses.Bosses()
+  bosses.decodeRom(bank)
 
-  vaPorAddr = 0x0739
-  bosses = []
-  for i in range(0,21):
-    subArray = bank[vaPorAddr : vaPorAddr+24]
-    strHexa = mystic.util.strHexa(subArray)
-#    print('boss: {:02x} - '.format(i) + strHexa)
+  return bosses.bosses
 
-    boss = mystic.boss.Boss(i)
-    boss.decodeRom(subArray)
-    bosses.append(boss)
-#    print('boss: {:02x} - '.format(i) + str(boss))
 
-    lines = boss.encodeTxt(vaPorAddr)
-    strBoss = '\n'.join(lines)
-
-    f.write(strBoss)
-    vaPorAddr += 24
-
-  f.close()
-
-  length = 24*len(bosses)
-  import random
-  rr = random.randint(0,0xff)
-  gg = random.randint(0,0xff)
-  bb = random.randint(0,0xff)
-  mystic.romStats.appendDato(0x04, 0x0739, 0x0739+length, (rr, gg, bb), 'bosses')
-
-  return bosses
-
-def burnBosses(filepath):
+def burnBosses(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMiniActions, pathPositions, pathSortTiles, pathAnimations):
   """ quema los monstruos grandes en la rom """
 
-  f = open(filepath, 'r', encoding="utf-8")
+  bosses = mystic.bosses.Bosses()
+
+  f = open(pathBosses, 'r', encoding="utf-8")
   lines = f.readlines()
   f.close()
+  bosses.decodeTxt(lines)
 
-  i = 0
-  bosses = []
-  primero = True
-  subLines = []
-  for line in lines:
-#    print('line: ' + line)
-    if('------------ boss' in line):
-      if(not primero):
-        b = mystic.boss.Boss(i)
-        b.decodeTxt(subLines)
-        bosses.append(b)
-        i += 1
-        subLines = []
-      else:
-        primero = False
+  f = open(pathBossesDamage, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeDamageTxt(lines)
 
-    subLines.append(line)
-  b = mystic.boss.Boss(i)
-  b.decodeTxt(subLines)
+  f = open(pathBehaviour, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeBehaviourTxt(lines)
 
-  array = []
-  for b in bosses:
-#    print('b: ' + str(b))
-    subArray = b.encodeRom()
-    array.extend(subArray)
+  f = open(pathActions, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeActionsTxt(lines)
 
+  f = open(pathMiniActions, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeMiniActionsTxt(lines)
+
+  f = open(pathPositions, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodePositionsTxt(lines)
+
+  f = open(pathSortTiles, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeSortTilesTxt(lines)
+
+  f = open(pathAnimations, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  bosses.decodeAnimationsTxt(lines)
+
+
+  array = bosses.encodeRom()
   mystic.romSplitter.burnBank(0x4, 0x0739, array)
-
-
 
 def exportExplosions():
   """ exporta las explosiones """
@@ -1393,94 +1177,6 @@ def exportMonstruoGrandeDosTiles():
 #    print('strLinePers: ' + strLine)
 
     array = array[3:]
-
-
-def exportBossesAnimations():
-  """ exporta las animaciones doble tiles de los bosses """
-
-#  print('--- 4:3ba7')
-
-  bank = mystic.romSplitter.banks[0x04]
-
-  # obtengo la lista de bosses
-  bosses = []
-  for i in range(0,21):
-    subArray = bank[0x0739 + 24*i : 0x0739 + 24*(i+1)]
-    boss = mystic.boss.Boss(i)
-    boss.decodeRom(subArray)
-    bosses.append(boss)
-
-  # creo la lista de animaciones
-  animations = []
-  # recorro los bosses
-  for boss in bosses:
-    anim = boss.addrDosTiles
-    # y agrego su animación a la lista
-    animations.append(anim)
-
-  # remuevo duplicados y ordeno
-  animAddrs = sorted(set(animations))
-
-  basePath = mystic.address.basePath
-  path = basePath + '/personajes'
-
-  f = open(path + '/bossesAnimations.txt', 'w', encoding="utf-8")
-
-  animCounter = 1
-  tiles = []
-  for i in range(0,326):
-
-    addr = 0x3ba7+i*3
-
-    if(addr + 0x4000 in animAddrs):
-#      print('---animation' + str(animCounter))
-      f.write('---animation' + str(animCounter) + '\n')
-      animCounter += 1
-
-    subArray = bank[0x3ba7 + i*3 : 0x3ba7 + (i+1)*3]
-    dosTiles = mystic.tileset.DosTiles(addr)
-    tiles.append(dosTiles)
-    dosTiles.decodeRom(subArray)
-#    print('dosTiles: ' + str(dosTiles))
-    lines = dosTiles.encodeTxt()
-    strDosTiles = '\n'.join(lines)
-    f.write(strDosTiles + '\n')
-
-  f.close()
-
-  length = 3*len(tiles)
-  import random
-  rr = random.randint(0,0xff)
-  gg = random.randint(0,0xff)
-  bb = random.randint(0,0xff)
-  mystic.romStats.appendDato(0x04, 0x3ba7, 0x3ba7+length, (rr, gg, bb), 'bosses animations dosTiles')
-
-
-def burnBossesAnimations(filepath):
-  """ quema las animaciones doble tiles de los bosses en la rom """
-
-  f = open(filepath, 'r', encoding="utf-8")
-  lines = f.readlines()
-  f.close()
-
-  addr = 0x3ba7
-  tiles = []
-  for line in lines:
-#    print('line: ' + line)
-    if('(attr,tile1,tile2)' in line):
-       dosTiles = mystic.tileset.DosTiles(addr)
-       addr += 3
-       dosTiles.decodeTxt([line])
-       tiles.append(dosTiles)
-
-  array = []
-  for dosTiles in tiles:
-#    print('dosTiles: ' + str(dosTiles)) 
-    subArray = dosTiles.encodeRom()
-    array.extend(subArray)
-
-  mystic.romSplitter.burnBank(0x4, 0x3ba7, array)
-
 
 
 def exportSongs(exportLilypond=False):

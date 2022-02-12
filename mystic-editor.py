@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.4'
+VERSION = '0.95.5'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -344,15 +344,9 @@ def testPlayground():
 #  mystic.romSplitter.exportPersonajesAnimations()
 #  mystic.romSplitter.burnPersonajesAnimations('./en/personajes/personajesAnimations.txt')
 
-#  mystic.romSplitter.exportBossesAnimations()
-#  mystic.romSplitter.burnPersonajesAnimations('./en/personajes/bossesAnimations.txt')
- 
-
-
-
 
 #  bosses = mystic.romSplitter.exportBosses()
-#  mystic.romSplitter.burnBosses('./en/personajes/bosses.txt')
+  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
 #  mystic.romSplitter.exportBossesBehaviour(bosses)
 
 
@@ -495,16 +489,19 @@ def testPlayground():
 #    print('pers: ' + str(pers))
 
 
+#  basePath = './en'
   # exporto nueva rom
 #  mystic.romSplitter.exportRom(basePath + '/newRom.gb')
 
-#  lang = mystic.address.language
-#  strLang = stockRomsLang[lang]
-#  stockPath = './stockRoms/' + strLang + '.gb'
-#  newPath = basePath + '/newRom.gb'
-#  print('comparando ' + stockPath + ' con ' + newPath)
-#  iguales = mystic.util.compareFiles(stockPath, newPath, 0x0000, 0x40000)
+#  pathStock = './stockRoms/en.gb'
+#  pathNew = './en/newRom.gb'
+
+#  print('comparando ' + pathStock + ' con ' + pathNew)
+#  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
 #  print('roms iguales = ' + str(iguales))
+
+
+
 
 #  iguales = mystic.util.compareFiles('/home/arathron/newRomOrig.sav', '/home/arathron/newRom.sav', 0x0000, 0x40000)
 #  print('save iguales = ' + str(iguales))
@@ -647,8 +644,6 @@ def main(argv):
     print('exportando bosses')
     # exporto los monstruos grandes
     mystic.romSplitter.exportBosses()
-    # exporto las animaciones de los bosses
-    mystic.romSplitter.exportBossesAnimations()
 
     # exporto el texto
     mystic.romSplitter.exportTexto()
@@ -737,10 +732,9 @@ def main(argv):
     mystic.romSplitter.burnPersonajeStats(basePath + '/personajes/personajeStats.txt')
 
     print('quemando bosses...')
-    # quemo las animaciones de los bosses
-    mystic.romSplitter.burnBossesAnimations(basePath + '/personajes/bossesAnimations.txt')
     # quemo los monstruos grandes
-    mystic.romSplitter.burnBosses(basePath + '/personajes/bosses.txt')
+    mystic.romSplitter.burnBosses(basePath + '/bosses/01_bosses.txt', basePath + '/bosses/02_bossesDamage.txt', basePath + '/bosses/03_bossesBehaviour.txt', basePath + '/bosses/04_bossesAction.txt', basePath + '/bosses/05_bossesMiniAction.txt', basePath + '/bosses/06_bossesSpritesPos.txt', basePath + '/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
+
 
     print('quemando mapas...')
 #    mystic.romSplitter.burnMapas(basePath + '/mapas/mapas.txt')
