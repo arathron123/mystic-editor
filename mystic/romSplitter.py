@@ -8,6 +8,7 @@ import mystic.romStats
 import mystic.spritePersonaje
 import mystic.personaje
 import mystic.bosses
+import mystic.projectiles
 import mystic.inventory
 import mystic.scripts
 import mystic.maps
@@ -951,34 +952,54 @@ def burnBosses(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMin
   array = bosses.encodeRom()
   mystic.romSplitter.burnBank(0x4, 0x0739, array)
 
-def exportExplosions():
-  """ exporta las explosiones """
+def exportProjectiles():
+  """ exporta las explosiones y cosas que arrojan los enemigos """
 
 #  print('--- 9:0479')
-  # creo que tiene que ver con las cosas que disparan los enemigos
 
-  basePath = mystic.address.basePath
-  path = basePath + '/personajes'
-
-  # si el directorio no existía
-  if not os.path.exists(path):
-    # lo creo
-    os.makedirs(path)
-
-#  f = open(path + '/explosions.txt', 'w', encoding="utf-8")
   bank = mystic.romSplitter.banks[0x09]
+  projs = mystic.projectiles.Projectiles()
+  projs.decodeRom(bank)
 
-  explosions = []
-  for i in range(0,40):
-    subArray = bank[0x0479 + 16*i : 0x0479 + 16*(i+1)]
-    strHexa = mystic.util.strHexa(subArray)
-    print('exp: {:02x} - '.format(i) + strHexa)
-    print('addr: {:04x}'.format(0x0479+16*i))
+  return projs.projectiles
 
-#    f.write(strBoss)
 
-#  f.close()
+def burnProjectiles(filepath):
+  """ quema los proyectiles en la rom """
 
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+
+  i = 0
+  projectiles = []
+  primero = True
+  subLines = []
+  for line in lines:
+#    print('line: ' + line)
+    if('------------ projectile' in line):
+      if(not primero):
+        p = mystic.projectiles.Projectile(i)
+        p.decodeTxt(subLines)
+        projectiles.append(p)
+        i += 1
+        subLines = []
+      else:
+        primero = False
+
+    subLines.append(line)
+  p = mystic.projectiles.Projectile(i)
+  p.decodeTxt(subLines)
+  projectiles.append(p)
+
+  array = []
+  for p in projectiles:
+#    print('p: ' + str(p)) 
+    subArray = p.encodeRom()
+    array.extend(subArray)
+
+  mystic.romSplitter.burnBank(0x9, 0x0479, array)
+ 
 
 def exportGrupos3Personajes():
   """ exporta grupos de 3 personajes a cargar """
@@ -1426,7 +1447,7 @@ def burnSongsHeaders(filepath):
       addrArray = mystic.util.hexaStr(strHexAddr)
 #      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
       # y quemo el channel 2
-#      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody2Rom)
+      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody2Rom)
       array.extend(melody2Rom)
       vaPorAddr += len(melody2Rom)
        
@@ -1436,7 +1457,7 @@ def burnSongsHeaders(filepath):
       addrArray = mystic.util.hexaStr(strHexAddr)
 #      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
       # y quemo el channel 1
-#      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody1Rom)
+      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody1Rom)
       array.extend(melody1Rom)
       vaPorAddr += len(melody1Rom)
 
@@ -1446,12 +1467,12 @@ def burnSongsHeaders(filepath):
       addrArray = mystic.util.hexaStr(strHexAddr)
 #      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
       # y quemo el channel 3
-#      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
+      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
       array.extend(melody3Rom)
       vaPorAddr += len(melody3Rom)
 
 #  print(mystic.util.strHexa(array))
-  print('len: ' + str(len(array)))
+#  print('len: ' + str(len(array)))
 
   mystic.romSplitter.burnBank(0xf, 0x4AC7 - 0x4000, array)
 
@@ -1612,19 +1633,162 @@ def exportSpriteSheetMonster():
 #    print('{:02} | '.format(i) + mystic.util.strHexa(array))
 
 
-#00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23
-#                              \/ \/             \___/ \___/ \___/ 
-#                              Z   X               Y    addr comportamiento
-#
-# X renglón de donde saca los sprites!
-# Z paleta de colores?
-# Y que le hace daño (espada?)
+  bank = mystic.romSplitter.banks[0x04]
+  bosses = mystic.bosses.Bosses()
+  bosses.decodeRom(bank)
 
-# ejemplo para el monstruo 0x10
-#
-#                        size? Z  X              sword?
-#                        /---\ /\ /\             /---\ /---------\
-#05 02 00 00 06 16 46 02 40 10 00 fe 87 79 70 7c 19 4d 4d 4f 15 4e 73 54
+  boss = bosses.bosses[0x10]
+  print('boss: ' + str(boss))
+
+  print('offset: {:04x}'.format(boss.offsetBank8))
+  offset = 8*0x4000 + boss.offsetBank8
+  print('offset2: {:04x}'.format(offset))
+
+  nroBank = offset//0x4000
+  off = offset%0x4000
+
+  # cada tile ocupa 0x10 bytes
+  byteSize = 0x10*2*boss.cantDosTiles
+
+  print('bank {:04x} off {:04x} fin {:04x}'.format(nroBank, off, off + byteSize))
+
+  bank = mystic.romSplitter.banks[nroBank]
+
+  # creo el tileset
+  tileset = mystic.tileset.Tileset(0x10,2*boss.cantDosTiles//0x10)
+
+#  array = bank[offset:offset + 0x200]
+  array = bank[off: off + byteSize]
+
+  tileset.decodeRom(array)
+
+  tileset.exportPngFile(path + '/monster_10_tiles.png')
+
+  print('addr sort {:04x}'.format(boss.addrSortTiles)) 
+#  for sortTiles in bosses.bossesSortTiles:
+#    strHexa = mystic.util.strHexa(sortTiles)
+#    print('hexa: ' + strHexa)
+  sortTiles = bosses.bossesSortTiles[2]
+  strHexa = mystic.util.strHexa(sortTiles)
+
+
+  vramTiles = []
+  for i in range(0, 0x10*8):
+    tile = mystic.tileset.Tile()
+    vramTiles.append(tile)
+
+  for i in range(0, 2*boss.cantDosTiles):
+    sort = sortTiles[i]
+
+#    print('off+sort*0x10 {:04x}'.format(off+sort*0x10))
+
+    data = bank[off + sort*0x10:off + (sort+1)*0x10]
+    tile = mystic.tileset.Tile()
+    tile.decodeRom(data)
+    vramTiles[boss.vramTileOffset+i] = tile
+
+
+#  tileset = mystic.tileset.Tileset(0x10,2*boss.cantDosTiles//0x10)
+#  tileset = mystic.tileset.Tileset(2,48)
+#  tileset.tiles = [tile0, tile1, tile2, tile3]
+#  tileset.tiles = tiles
+#  tileset.exportPngFile(path + '/monster_10_sorted.png')
+
+  vramTileset = mystic.tileset.Tileset(0x10, 8)
+  vramTileset.tiles = vramTiles
+  vramTileset.exportPngFile(path + '/monster_10_vram.png')
+
+
+
+  dosTiles = bosses.dosTiles[4]
+#  print('dosTiles: ' + str(dosTiles))
+
+  catSprites = []
+  i = 0
+  for dosTile in dosTiles: 
+    print('dosTile: ' + str(dosTile))
+
+    tiles = []
+    # si hay que reflejar la imagen X-flip
+    if(dosTile.attr == 0x30):
+      vramTileset.tiles[dosTile.tile1].flipX()
+      vramTileset.tiles[dosTile.tile2].flipX()
+      vramTileset.tiles[dosTile.tile1+1].flipX()
+      vramTileset.tiles[dosTile.tile2+1].flipX()
+
+    tiles.append(vramTileset.tiles[dosTile.tile1])
+    tiles.append(vramTileset.tiles[dosTile.tile2])
+    tiles.append(vramTileset.tiles[dosTile.tile1+1])
+    tiles.append(vramTileset.tiles[dosTile.tile2+1])
+
+    tileset = mystic.tileset.Tileset(2,2)
+    tileset.tiles = tiles
+#    tileset.exportPngFile(path + '/monster_sprite_{:02}.png'.format(i))
+    catSprites.append(tileset)
+
+    i += 1
+
+  screenSprites = []
+  for j in range(0,8):
+    row = []
+    for i in range(0,10):
+      tileset = mystic.tileset.Tileset(2,2)
+      tile = mystic.tileset.Tile()
+#      tile.tileData = [0x02]*16
+      tileset.tiles.append(tile)
+      tileset.tiles.append(tile)
+      tileset.tiles.append(tile)
+      tileset.tiles.append(tile)
+#      tileset.tiles.append(mystic.tileset.Tile())
+#      tileset.tiles.append(mystic.tileset.Tile())
+#      tileset.tiles.append(mystic.tileset.Tile())
+
+      row.append(tileset)
+    screenSprites.append(row)
+
+
+  # head
+  sprite = catSprites[0x0a]
+  sprite.exportPngFile(path + '/monster_sprite_0a.png')
+  screenSprites[2][2] = sprite
+  # body
+  sprite = catSprites[0x08]
+  sprite.exportPngFile(path + '/monster_sprite_08.png')
+  screenSprites[1][1] = sprite
+
+  sprite = catSprites[0x0b]
+  sprite.exportPngFile(path + '/monster_sprite_0b.png')
+  screenSprites[1][2] = sprite
+
+  sprite = catSprites[0x09]
+  sprite.exportPngFile(path + '/monster_sprite_09.png')
+  screenSprites[2][1] = sprite
+
+  tileset = mystic.tileset.Tileset(10*2,8*2)
+
+  data = [mystic.tileset.Tile()]*10*8*4
+  for j in range(0,8):
+    for i in range(0,10):
+
+      tile0 = screenSprites[j][i].tiles[0]
+      tile1 = screenSprites[j][i].tiles[1]
+      tile2 = screenSprites[j][i].tiles[2]
+      tile3 = screenSprites[j][i].tiles[3]
+
+      data[2*(2*j*10)+2*(0*10)+2*i+0] = tile0
+      data[2*(2*j*10)+2*(0*10)+2*i+1] = tile1
+      data[2*(2*j*10)+2*(1*10)+2*i+0] = tile2
+      data[2*(2*j*10)+2*(1*10)+2*i+1] = tile3
+
+
+
+
+
+  print('len data: ' + str(len(data)))
+  tileset.tiles = data
+  tileset.exportPngFile(path + '/monster_loco.png')
+  
+    
 
 def exportSpriteSheetPersonajes():
   """ exporta los spriteSheet de personajes """
@@ -2480,10 +2644,75 @@ def exportItems():
   f.write(string)
   f.close()
 
+  # exporto las weapons iniciales
+  mystic.romSplitter.exportInitialWeapons()
+
   # exporto los items especiales
   mystic.romSplitter.exportSpecialItems()
 
+def exportInitialWeapons():
+  """ exporta las weapons con que inicia el juego """
 
+  basePath = mystic.address.basePath
+  path = basePath + '/items'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  nroBank, addr = mystic.address.addrInitialWeapons
+  data = mystic.romSplitter.banks[nroBank]
+#  print('bank, addr: {:02x} {:04x}'.format(nroBank, addr))
+#  strHexa = mystic.util.strHexa(data[addr:addr+6])
+#  print('hexa: ' + strHexa)
+
+  lines = []
+  lines.append('weapon: {:02x}'.format(data[addr+0]))
+  lines.append('helmet: {:02x}'.format(data[addr+1]))
+  lines.append('ap:     {:02x}'.format(data[addr+2]))
+  lines.append('armor:  {:02x}'.format(data[addr+3]))
+  lines.append('dp:     {:02x}'.format(data[addr+4]))
+  lines.append('shield: {:02x}'.format(data[addr+5]))
+
+  string = '\n'.join(lines)
+
+  filePath = path + '/06_initialWeapons.txt'
+  # lo exporto al initialWeapons.txt
+  f = open(filePath, 'w', encoding="utf-8")
+  f.write(string)
+  f.close()
+
+def burnInitialWeapons(filepath, nroBank, offset):
+  """ quema el specialItems.txt en la rom """
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+
+  for line in lines:
+    if(line.startswith('weapon:')):
+      weapon = int(line[len('weapon:'):].strip(),16)
+    elif(line.startswith('helmet:')):
+      helmet = int(line[len('helmet:'):].strip(),16)
+    elif(line.startswith('ap:')):
+      ap = int(line[len('ap:'):].strip(),16)
+    elif(line.startswith('armor:')):
+      armor = int(line[len('armor:'):].strip(),16)
+    elif(line.startswith('dp:')):
+      dp = int(line[len('dp:'):].strip(),16)
+    elif(line.startswith('shield:')):
+      shield = int(line[len('shield:'):].strip(),16)
+
+  array = []
+  array.append(weapon)
+  array.append(helmet)
+  array.append(ap)
+  array.append(armor)
+  array.append(dp)
+  array.append(shield)
+ 
+  # lo quemo en el banco
+  mystic.romSplitter.burnBank(nroBank, offset, array)
 
 def exportSpecialItems():
   """ exporta los listados de items especiales """

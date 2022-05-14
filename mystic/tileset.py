@@ -10,6 +10,23 @@ class Tile:
 #    self.tileData = [ [0x03 for i in range(0,8) ] for j in range(0,8) ]
     self.tileData = [ 0x03 for i in range(0,8*8) ]
 
+
+  def flipX(self):
+    """ espeja el tile horizontalmente """
+
+    newData = []
+    # por cada renglón
+    for j in range(0,8):
+
+      # por cada columna
+      for i in range(0,8):
+
+        color =  self.tileData[(7-i) + 8*j]
+        newData.append(color)
+
+    self.tileData = newData
+
+ 
   def decodeRom(self, array):
 
     # para cada renglón

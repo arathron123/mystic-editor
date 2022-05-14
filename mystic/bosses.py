@@ -287,6 +287,7 @@ class Bosses:
             idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
             stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
           strHexa = mystic.util.strHexa(arrayTiles)
+          self.bossesSortTiles.append(arrayTiles)
           f.write('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa + '\n')
 
           arrayTiles = []
@@ -301,6 +302,7 @@ class Bosses:
       idx = addressesSortTiles.index(prevAddrSortTiles+0x4000)
       stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
     strHexa = mystic.util.strHexa(arrayTiles)
+    self.bossesSortTiles.append(arrayTiles)
     f.write('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa + '\n')
 
     f.close()
@@ -331,23 +333,28 @@ class Bosses:
 
     animCounter = 1
     self.dosTiles = []
+
+    subDosTiles = []
     for i in range(0,326):
 
       if(vaPorAddr + 0x4000 in animAddrs):
 #        print('---animation' + str(animCounter))
         f.write('---animation' + str(animCounter) + '\n')
         animCounter += 1
+        self.dosTiles.append(subDosTiles)
+        subDosTiles = []
 
       subArray = bank[vaPorAddr : vaPorAddr + 3]
       dosTiles = mystic.tileset.DosTiles(vaPorAddr)
       dosTiles.decodeRom(subArray)
 #      print('dosTiles: ' + str(dosTiles))
-      self.dosTiles.append(dosTiles)
+      subDosTiles.append(dosTiles)
       lines = dosTiles.encodeTxt()
       strDosTiles = '\n'.join(lines)
       f.write(strDosTiles + '\n')
       vaPorAddr += 3
 
+    self.dosTiles.pop(0)
     f.close()
 
     length = 3*len(self.dosTiles)
@@ -830,8 +837,8 @@ class Boss:
 
     # how many lines starting from addrDamage
     self.cantDamages = 0x00
-    self.addr1  = 0x0000
-    self.nose2  = 0x00
+    self.projectile = 0x00
+    self.scriptDefeated = 0x0000
 
     self.vramTileOffset = 0x00
     self.cantDosTiles   = 0x00
@@ -855,11 +862,11 @@ class Boss:
 
     self.cantDamages = subArray[4]
 
-    addr1_1 = subArray[5]
-    addr1_2 = subArray[6]
-    self.addr1 = addr1_2*0x100 + addr1_1
+    self.projectile = subArray[5]
 
-    self.nose2   = subArray[7]
+    scri_1 = subArray[6]
+    scri_2 = subArray[7]
+    self.scriptDefeated = scri_2*0x100 + scri_1
 
     self.vramTileOffset = subArray[8]
     self.cantDosTiles   = subArray[9]
@@ -902,10 +909,10 @@ class Boss:
 
     array.append(self.cantDamages)
 
-    array.append(self.addr1%0x100)
-    array.append(self.addr1//0x100)
+    array.append(self.projectile)
 
-    array.append(self.nose2)
+    array.append(self.scriptDefeated%0x100)
+    array.append(self.scriptDefeated//0x100)
 
     array.append(self.vramTileOffset)
     array.append(self.cantDosTiles)
@@ -941,8 +948,8 @@ class Boss:
     lines.append('exp:                {:02x}'.format(self.exp))
     lines.append('gp:                 {:02x}'.format(self.gp))
     lines.append('cantDamages:        {:02x}'.format(self.cantDamages))
-    lines.append('addr1:              {:04x}'.format(self.addr1))
-    lines.append('nose2:              {:02x}'.format(self.nose2))
+    lines.append('projectile:         {:02x}'.format(self.projectile))
+    lines.append('scriptDefeated:     {:04x}'.format(self.scriptDefeated))
     lines.append('vramTileOffset:     {:02x}'.format(self.vramTileOffset))
     lines.append('cantDosTiles:       {:02x}'.format(self.cantDosTiles))
     lines.append('offsetBank8:        {:04x}'.format(self.offsetBank8))
@@ -978,13 +985,13 @@ class Boss:
         strCantDamages = line[len('cantDamages:'):].strip()
         self.cantDamages = int(strCantDamages,16)
 
-      elif(line.startswith('addr1:')):
-        strAddr1 = line[len('addr1:'):].strip()
-        self.addr1 = int(strAddr1,16)
+      elif(line.startswith('projectile:')):
+        strProj = line[len('projectile:'):].strip()
+        self.projectile = int(strProj,16)
 
-      elif(line.startswith('nose2:')):
-        strNose2 = line[len('nose2:'):].strip()
-        self.nose2 = int(strNose2,16)
+      elif(line.startswith('scriptDefeated:')):
+        strScript = line[len('scriptDefeated:'):].strip()
+        self.scriptDefeated = int(strScript,16)
 
       elif(line.startswith('vramTileOffset:')):
         strVramTileOffset = line[len('vramTileOffset:'):].strip()
@@ -1017,7 +1024,7 @@ class Boss:
 
   def __str__(self):
 
-    string = ' speed={:02x} hp={:02x} exp={:02x} GP={:02x} cantDam={:02x} {:04x} {:02x} vramTileOffset={:02x} cantDosTiles={:02x} offsetBank8={:04x} addrSortTiles={:04x} addrDosTiles={:04x} {:04x} {:04x} {:04x} {:04x} '.format(self.speedSleep, self.hp, self.exp, self.gp, self.cantDamages, self.addr1, self.nose2, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrSortTiles, self.addrDosTiles, self.addrDamage, self.addrBehaviour, self.addrBehaviourStart, self.addrDeathExplosion)
+    string = ' speed={:02x} hp={:02x} exp={:02x} GP={:02x} cantDam={:02x} {:04x} {:02x} vramTileOffset={:02x} cantDosTiles={:02x} offsetBank8={:04x} addrSortTiles={:04x} addrDosTiles={:04x} {:04x} {:04x} {:04x} {:04x} '.format(self.speedSleep, self.hp, self.exp, self.gp, self.cantDamages, self.projectile, self.scriptDefeated, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrSortTiles, self.addrDosTiles, self.addrDamage, self.addrBehaviour, self.addrBehaviourStart, self.addrDeathExplosion)
 
     return string
 

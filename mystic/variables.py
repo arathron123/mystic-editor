@@ -23,6 +23,11 @@ windows = {}
 for i in range(0,34):
   windows[i] = 'win_{:02x}'.format(i)
 
+# diccionario de proyectiles
+projectiles = {}
+for i in range(0,40):
+  projectiles[i] = 'proj_{:02x}'.format(i)
+
 
 
 #self.equipamiento = {}

@@ -375,12 +375,29 @@ class Mapa:
     TIPO_EXTERIOR = 0
     TIPO_INTERIOR = 1
 
-    # el tipo es exterior
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+
+
+    # asumo que el tipo es exterior
     tipo = TIPO_EXTERIOR
+    # para cada renglón del archivo
+    for line in lines:
+      # si está seteando el tipo
+      if('name="tipo"' in line):
+#        print('line: ' + line)
+        idx0 = line.find('value="')
+        strTipo = line[idx0+7:idx0+9]
+        # lo seteo
+        tipo = int(strTipo)
+
+    # el tipo es exterior
+#    tipo = TIPO_EXTERIOR
     # salvo que use nroSpriteSheets 2 ó 3
-    if(self.nroSpriteSheet in [2,3]):
+#    if(self.nroSpriteSheet in [2,3]):
       # en cuyo caso es interior
-      tipo = TIPO_INTERIOR
+#      tipo = TIPO_INTERIOR
 
 
     if(tipo == TIPO_EXTERIOR):
@@ -390,10 +407,6 @@ class Mapa:
       mapa = MapaInterior(self.nroMapa)
 #      mapa.importTiled(filepath)
 
-
-    f = open(filepath, 'r', encoding="utf-8")
-    lines = f.readlines()
-    f.close()
 
     renglonesSprites = False
     listSprites = []

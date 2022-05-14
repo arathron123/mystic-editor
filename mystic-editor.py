@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.5'
+VERSION = '0.95.6'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -110,7 +110,7 @@ def testPlayground():
   # exporto los spriteSheet de personajes
 #  mystic.romSplitter.exportSpriteSheetPersonajes()
 #  mystic.romSplitter.exportSpriteSheetHero()
-#  mystic.romSplitter.exportSpriteSheetMonster()
+  mystic.romSplitter.exportSpriteSheetMonster()
 #  mystic.romSplitter.burnSpriteSheetPersonajes()
 
 
@@ -134,6 +134,8 @@ def testPlayground():
 #  mystic.romSplitter.burnItems('weapon','./en/items/weapons.txt')
 #  mystic.romSplitter.burnApdp('./en/items/03_apdp.txt', 0x24ca)
 #  mystic.romSplitter.burnVendor('./en/items/04_vendor.txt', 0x24ea)
+#  bank, vaPorAddr = mystic.address.addrInitialWeapons
+#  mystic.romSplitter.burnInitialWeapons('./en/items/06_initialWeapons.txt', bank, vaPorAddr)
 #  vaPorAddr = mystic.address.addrLoadStateStrangeBytes
 #  mystic.romSplitter.burnSpecialItems('./en/items/10_specialItems.txt', vaPorAddr)
 
@@ -349,9 +351,10 @@ def testPlayground():
 #  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
 #  mystic.romSplitter.exportBossesBehaviour(bosses)
 
+  mystic.romSplitter.exportProjectiles()
+  # exporto los proyectiles
+  mystic.romSplitter.burnProjectiles('./en/projectiles/01_projectiles.txt')
 
-
-#  mystic.romSplitter.exportExplosions()
 
   # exporto golpes
 #  mystic.romSplitter.exportGolpes()
@@ -493,12 +496,12 @@ def testPlayground():
   # exporto nueva rom
 #  mystic.romSplitter.exportRom(basePath + '/newRom.gb')
 
-#  pathStock = './stockRoms/en.gb'
-#  pathNew = './en/newRom.gb'
+  pathStock = './stockRoms/en.gb'
+  pathNew = './en/newRom.gb'
 
-#  print('comparando ' + pathStock + ' con ' + pathNew)
-#  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-#  print('roms iguales = ' + str(iguales))
+  print('comparando ' + pathStock + ' con ' + pathNew)
+  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
+  print('roms iguales = ' + str(iguales))
 
 
 
@@ -628,8 +631,9 @@ def main(argv):
     mystic.romSplitter.exportSpriteSheetPersonajes()
     print('exportando sprite sheet del heroe')
     mystic.romSplitter.exportSpriteSheetHero()
-    print('exportando spriteSheet de bosses')
-    mystic.romSplitter.exportSpriteSheetMonster()
+    # TODO: Esto no está terminado
+#    print('exportando spriteSheet de bosses')
+#    mystic.romSplitter.exportSpriteSheetMonster()
 
     print('exportando personajes')
     # exporto los personajes
@@ -640,6 +644,8 @@ def main(argv):
     mystic.romSplitter.exportPersonajeStats(personajes)
     # exporto las animaciones para los personajes
     mystic.romSplitter.exportPersonajesAnimations()
+    # exporto los proyectiles
+    mystic.romSplitter.exportProjectiles()
 
     print('exportando bosses')
     # exporto los monstruos grandes
@@ -706,6 +712,10 @@ def main(argv):
     # los vendedores
     vaPorAddr = mystic.romSplitter.burnVendor(basePath+'/items/04_vendor.txt', nroBank, vaPorAddr)
 
+    nroBank, vaPorAddr = mystic.address.addrInitialWeapons
+    # las weapons iniciales
+    mystic.romSplitter.burnInitialWeapons(basePath+'/items/06_initialWeapons.txt', nroBank, vaPorAddr)
+
     nroBank, vaPorAddr = mystic.address.addrLoadStateStrangeBytes
     # el listado de items especiales
     vaPorAddr = mystic.romSplitter.burnSpecialItems(basePath+'/items/10_specialItems.txt', nroBank, vaPorAddr)
@@ -730,6 +740,12 @@ def main(argv):
     mystic.romSplitter.burnGrupos3Personajes(basePath + '/personajes/grupos3Personajes.txt')
     # quemo los stats de los personajes
     mystic.romSplitter.burnPersonajeStats(basePath + '/personajes/personajeStats.txt')
+
+    # exporto los proyectiles
+    mystic.romSplitter.burnProjectiles(basePath + '/projectiles/01_projectiles.txt')
+
+
+
 
     print('quemando bosses...')
     # quemo los monstruos grandes

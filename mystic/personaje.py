@@ -585,7 +585,7 @@ class PersonajeStats:
     self.maybeAP  = 0x00
     self.nose5    = 0x00
     self.nose6    = 0x00
-    self.shootWeapon = 0x00
+    self.projectile = 0x00
     self.nose7    = 0x00
     self.nose8    = 0x00
     self.maybeExp = 0x00
@@ -602,7 +602,7 @@ class PersonajeStats:
     self.maybeAP  = subArray[6]
     self.nose5    = subArray[7]
     self.nose6    = subArray[8]
-    self.shootWeapon = subArray[9]
+    self.projectile = subArray[9]
     self.nose7    = subArray[10]
     self.nose8    = subArray[11]
     self.maybeExp = subArray[12]
@@ -620,7 +620,7 @@ class PersonajeStats:
     array.append(self.maybeAP)
     array.append(self.nose5)
     array.append(self.nose6)
-    array.append(self.shootWeapon)
+    array.append(self.projectile)
     array.append(self.nose7)
     array.append(self.nose8)
     array.append(self.maybeExp)
@@ -652,7 +652,7 @@ class PersonajeStats:
     lines.append('maybeAP:      {:02x}'.format(self.maybeAP))
     lines.append('nose5:        {:02x}'.format(self.nose5))
     lines.append('nose6:        {:02x}'.format(self.nose6))
-    lines.append('shootWeapon:  {:02x}'.format(self.shootWeapon))
+    lines.append('projectile:   {:02x}'.format(self.projectile))
     lines.append('nose7:        {:02x}'.format(self.nose7))
     lines.append('nose8:        {:02x}'.format(self.nose8))
     lines.append('maybeExp:     {:02x}'.format(self.maybeExp))
@@ -693,9 +693,9 @@ class PersonajeStats:
       elif(line.startswith('nose6:')):
         strNose6 = line[len('nose6:'):].strip()
         self.nose6 = int(strNose6,16)
-      elif(line.startswith('shootWeapon:')):
-        strShootWeapon = line[len('shootWeapon:'):].strip()
-        self.shootWeapon = int(strShootWeapon,16)
+      elif(line.startswith('projectile:')):
+        strProjectile = line[len('projectile:'):].strip()
+        self.projectile = int(strProjectile,16)
       elif(line.startswith('nose7:')):
         strNose7 = line[len('nose7:'):].strip()
         self.nose7 = int(strNose7,16)
@@ -710,8 +710,9 @@ class PersonajeStats:
         self.maybeGP = int(strMaybeGP,16)
 
   def __str__(self):
-    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.nose5, self.nose6, self.shootWeapon, self.nose7, self.nose8, self.maybeExp, self.maybeGP)
+    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.nose5, self.nose6, self.projectile, self.nose7, self.nose8, self.maybeExp, self.maybeGP)
 
     return string + ' ' + mystic.variables.personajes[self.nroStats] + '?'
+
 
 

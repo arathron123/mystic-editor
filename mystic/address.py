@@ -26,6 +26,8 @@ addrWindows = (0x02, 0x1baa)
 # listado de magia en el bank02
 addrMagic = (0x02, 0x1dda)
 
+addrInitialWeapons = (0x02, 0x2f10)
+
 addrLoadStateStrangeBytes = (0x02, 0x3aed)
 
 # la intro en el bank02
@@ -122,6 +124,15 @@ def decodeTxt(lines):
       offset = int(string[idx+1:idx+5], 16)
 #      print('bank {:02x} offset {:04x}'.format(bank, offset))
       mystic.address.addrMagic = (bank, offset)
+
+    elif(line.startswith('addrInitialWeapons')):
+      idx = line.index('=')
+      string = line[idx+1:].strip().strip('\"').strip('\'')
+      idx = string.index(':')
+      bank = int(string[idx-2:idx],16)
+      offset = int(string[idx+1:idx+5], 16)
+#      print('bank {:02x} offset {:04x}'.format(bank, offset))
+      mystic.address.addrInitialWeapons = (bank, offset)
 
     elif(line.startswith('addrLoadStateStrangeBytes')):
       idx = line.index('=')
