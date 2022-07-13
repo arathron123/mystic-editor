@@ -1,6 +1,191 @@
 
 import mystic.variables
 
+
+##########################################################
+class Personajes:
+  """ representa el listado de personajes """
+
+  def __init__(self):
+    # el listado de personajes
+    self.personajes = []
+
+  def decodeRom(self):
+
+    bank = mystic.romSplitter.banks[0x03]
+
+    array = []
+#    for i in range(0,10):
+    for i in range(0,191):
+      subArray = bank[0x1f5a + i*24 : 0x1f5a + (i+1)*24]
+      array.extend(subArray)
+      strSubarray = mystic.util.strHexa(subArray)
+#      print('strSub: {:02x} {:03} {:04x} = '.format(i,i, 0x1f5a+i*24) + strSubarray)
+
+      pers = mystic.personaje.Personaje(i)
+      pers.decodeRom(subArray)
+      self.personajes.append(pers)
+
+#      print('personaje: ' + str(pers))
+
+  def encodeRom(self):
+    array = []
+ 
+    for p in self.personajes:
+#      print('p: ' + str(p)) 
+      subArray = p.encodeRom()
+      array.extend(subArray)
+
+    return array
+
+
+  def encodeTxt(self):
+
+    lines = []
+
+    for pers in self.personajes:
+#      print('personaje: ' + str(pers))
+
+      subLines = pers.encodeTxt()
+      lines.extend(subLines)
+
+    return lines
+
+  def decodeTxt(self, lines):
+    self.personajes = []
+
+    i = 0
+    primero = True
+    subLines = []
+    for line in lines:
+#      print('line: ' + line)
+      if('------------ personaje' in line):
+        if(not primero):
+          p = mystic.personaje.Personaje(i)
+          p.decodeTxt(subLines)
+          self.personajes.append(p)
+          i += 1
+          subLines = []
+        else:
+          primero = False
+
+      subLines.append(line)
+    p = mystic.personaje.Personaje(i)
+    p.decodeTxt(subLines)
+    self.personajes.append(p)
+
+
+
+  def exportHtml(self):
+    """ exporta al archivo personajes_noedit.html """
+
+    lines = []
+    lines.append("<!DOCTYPE html>")
+    lines.append("<html>")
+    lines.append("")
+    lines.append("<head>")
+    lines.append("<style>")
+    lines.append("table, th, td {")
+    lines.append("  border: 1px solid black;")
+    lines.append("}")
+    lines.append("th, td {")
+    lines.append("  border-color: #12b15e;")
+    lines.append("}")
+    lines.append("img {")
+    lines.append("  image-rendering: pixelated;")
+    lines.append("}")
+    lines.append("</style>")
+    lines.append("</head>")
+    lines.append("")
+    lines.append("<body style='background-color:#000000;color:#FFFFFF'>")
+    lines.append("<h1 style='color:#FF0000'>Personajes</h1>")
+    lines.append("")
+    lines.append("<table>")
+    lines.append("  <tr>")
+    lines.append("    <th>ID</th>")
+    lines.append("    <th>Name</th>")
+    lines.append("    <th>Image</th>")
+    lines.append("    <th>Script</th>")
+    lines.append("    <th>Chest</th>")
+    lines.append("  </tr>")
+
+
+#    cantPers = 0x02
+    cantPers = 0xbe+1
+    # para cada personaje
+    for q in range(0,cantPers):
+      # lo obtengo
+      pers = self.personajes[q]
+#      print('--- pers: ' + str(pers))
+
+      addr = 0x20000 + pers.offsetBank8
+
+      nroBank = addr // 0x4000
+      offset = addr % 0x4000
+
+      bank = mystic.romSplitter.banks[nroBank]
+
+      tiles = []
+
+      # agrego los sprites del personaje
+      for j in range(0, 2*pers.cantDosTiles):
+        data = bank[offset + j*0x10: offset + (j+1)*0x10]
+        tile = mystic.tileset.Tile()
+        tile.decodeRom(data)
+        tiles.append(tile)
+
+      w = pers.cantDosTiles
+      h = 2
+
+      # creo un array de tiles vacío 
+      sortTiles = [None for k in range(0, w*h)]
+
+      k = 0
+      for k in range(0, len(tiles)):
+
+        modk = k%4
+
+        if(modk == 0):
+          dx,dy = 0,0
+        elif(modk == 1):
+          dx,dy = 1,0
+        elif(modk == 2):
+          dx,dy = 0,1
+        elif(modk == 3):
+          dx,dy = 1,1
+
+        idx = 2*(k//4) + w*dy + dx
+        sortTiles[idx] = tiles[k]
+
+
+      basePath = mystic.address.basePath
+      path = basePath + '/personajes'
+
+      tileset = mystic.tileset.Tileset(pers.cantDosTiles,2)
+      tileset.tiles = sortTiles
+      tileset.exportPngFile(path + '/images_noedit/personaje_{:02x}.png'.format(q))
+
+      lines.append("  <tr>")
+      lines.append("    <th>{:02x}</th>".format(q))
+      lines.append("    <th>" + mystic.variables.personajes[pers.nroPersonaje] + "</th>")
+      lines.append("    <th><img src='images_noedit/personaje_{:02x}.png' height='30'></th>".format(q))
+      lines.append("    <th>{:04x}</th>".format(pers.nroScript))
+      lines.append("    <th>{:04x}</th>".format(pers.itemTesoro))
+      lines.append("  </tr>")
+
+    lines.append("</table>")
+    lines.append("</body>")
+    lines.append("</html>")
+
+    strHtml = '\n'.join(lines)
+
+    f = open(path + '/personajes_noedit.html', 'w', encoding="utf-8")
+    f.write(strHtml)
+    f.close()
+
+
+
+
 ##########################################################
 class Personaje:
   """ representa un personaje """
@@ -404,11 +589,74 @@ class GruposPersonajes:
 
     return lines
 
-  def encodeRom(self):
+  def encodeRom(self, personajes):
 
     array = []
 
     for grupo in self.grupos:
+
+#      print('grupo: ' + str(grupo))
+#      print('labelA: ' + grupo.labelA + ' addrA: {:04x}'.format(grupo.addrA))
+#      print('labelB: ' + grupo.labelB)
+#      print('labelC: ' + grupo.labelC)
+#      print('strA: ' + grupo.labelA[3:6])
+      nroA = int(grupo.labelA[3:6],10)
+      nroB = int(grupo.labelB[3:6],10)
+      nroC = int(grupo.labelC[3:6],10)
+#      print('nroA: ' + str(nroA))
+
+      for apa in self.apariciones:
+#        print('apa.nro: ' + str(apa.nro) + ' vs ' + str(nroA))
+#        print('apa.pers: ' + str(apa.personajes))
+        if(apa.nro == nroA):
+          nroPersA = apa.personajes[0]
+        if(apa.nro == nroB):
+          nroPersB = apa.personajes[0]
+        if(apa.nro == nroC):
+          nroPersC = apa.personajes[0]
+
+#      print('nroPersA, nroPersB, nroPersC: {:02x} {:02x} {:02x}'.format(nroPersA,nroPersB,nroPersC))
+      persA = personajes.personajes[nroPersA]
+#      print('persA vramTileOffset, cantDosTiles: {:02x} {:02x}'.format(persA.vramTileOffset, persA.cantDosTiles))
+      persB = personajes.personajes[nroPersB]
+#      print('persB vramTileOffset, cantDosTiles: {:02x} {:02x}'.format(persB.vramTileOffset, persB.cantDosTiles))
+      persC = personajes.personajes[nroPersC]
+#      print('persC vramTileOffset, cantDosTiles: {:02x} {:02x}'.format(persC.vramTileOffset, persC.cantDosTiles))
+
+
+      # different aparitions of personajes within a group (deleting duplicates)
+      diffPers = list(set([nroPersA, nroPersB, nroPersC]))
+#      print('diffPers: ' + str(diffPers))
+
+      # vram simulator for detecting collisions
+      vram = [None for i in range(0,0x80)]
+
+      # we assume they don't collide
+      collision = False
+
+      # for each personaje
+#      for nroPers in diffPers:
+
+#        pers = personajes.personajes[nroPers]
+#        print('pers: {:02x}'.format(pers.nroPersonaje))
+#        vaPorVram = pers.vramTileOffset
+        # I simulate writing it in vram
+#        for j in range(0,2*pers.cantDosTiles):
+          # if it was previously written vram
+#          if(vram[vaPorVram] != None):
+            # it collides!
+#            collision = True
+#            print('it collides in vaPorVram: {:02x}'.format(vaPorVram))
+#            break
+#          else:
+#            vram[vaPorVram] = 0x00
+#            vaPorVram += 1
+
+#      print('collision: ' + str(collision))
+
+
+
+
       subArray = grupo.encodeRom()
       array.extend(subArray)
 
@@ -483,9 +731,9 @@ class AparicionPersonaje:
 
     self.valMin = 0x00
     self.valMax = 0x00
-    self.values = [0x00, 0x00, 0x00, 0x00]
-    # una cantidad par entre 0 y 8 de bytes?
-    self.extras = []
+    self.personajes = [0x00, 0x00, 0x00, 0x00]
+    # an optional list of positions 
+    self.position_xy = []
     self.cierre = [0x80, 0x80]
 
   def decodeRom(self, array):
@@ -493,24 +741,23 @@ class AparicionPersonaje:
     self.valMin = array[0]
     self.valMax = array[1]
 
-    self.values = [array[2], array[3], array[4], array[5]]
+    self.personajes = [array[2], array[3], array[4], array[5]]
 
     subArray = array[6:]
     idx = subArray.index(0x80)
 #    print('idx: ' + str(idx))
 
-    self.extras = array[6:6+idx]
+    self.position_xy = array[6:6+idx]
 
     self.cierre = array[6+idx:6+idx+2]
-
 
   def encodeRom(self):
     array = []
 
     array.append(self.valMin)
     array.append(self.valMax)
-    array.extend(self.values)
-    array.extend(self.extras)
+    array.extend(self.personajes)
+    array.extend(self.position_xy)
     array.extend(self.cierre)
 
     return array
@@ -522,8 +769,8 @@ class AparicionPersonaje:
     lines.append('nro{:03}'.format(self.nro))
     lines.append('valMin: {:02x}'.format(self.valMin))
     lines.append('valMax: {:02x}'.format(self.valMax))
-    lines.append('values: {:02x} {:02x} {:02x} {:02x}'.format(self.values[0], self.values[1], self.values[2], self.values[3]))
-    lines.append('position_xy: ' + mystic.util.strHexa(self.extras))
+    lines.append('personajes: {:02x} {:02x} {:02x} {:02x}'.format(self.personajes[0], self.personajes[1], self.personajes[2], self.personajes[3]))
+    lines.append('position_xy: ' + mystic.util.strHexa(self.position_xy))
     lines.append('cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1]))
 
     return lines
@@ -534,7 +781,7 @@ class AparicionPersonaje:
       if(line.startswith('nro')):
         strNro = line[3:].strip()
 #        print('strNro: ' + strNro)
-        self.nro = int(strNro, 16)
+        self.nro = int(strNro, 10)
       elif(line.startswith('valMin:')):
         strMin = line[7:].strip()
 #        print('strMin: ' + strMin)
@@ -543,18 +790,18 @@ class AparicionPersonaje:
         strMax = line[7:].strip()
 #        print('strMax: ' + strMax)
         self.valMax = int(strMax, 16)
-      elif(line.startswith('values:')):
-        strVals = line[7:].strip()
-#        print('strVals: ' + strVals)
-        strVals = strVals.split()
-        vals = [int(strVal,16) for strVal in strVals]
-        self.values = vals
+      elif(line.startswith('personajes:')):
+        strPers = line[len('personajes:'):].strip()
+#        print('strPers: ' + strPers)
+        strPers = strPers.split()
+        pers = [int(strPer,16) for strPer in strPers]
+        self.personajes = pers
       elif(line.startswith('position_xy:')):
         strExts = line[12:].strip()
 #        print('strExts: ' + strExts)
         strExts = strExts.split()
-        exts = [int(strExt,16) for strExt in strExts]
-        self.extras = exts
+        posxy = [int(strExt,16) for strExt in strExts]
+        self.position_xy = posxy
       elif(line.startswith('cierre:')):
         strCierre = line[7:].strip()
 #        print('strCierre: ' + strCierre)
@@ -563,8 +810,8 @@ class AparicionPersonaje:
         self.cierre = cierre
 
   def __str__(self):
-    strExtras = mystic.util.strHexa(self.extras)
-    string = 'nro{:03} addr {:04x} | minmax: {:02x} {:02x} values: {:02x} {:02x} {:02x} {:02x} position_xy: '.format(self.nro, self.addr, self.valMin, self.valMax, self.values[0], self.values[1], self.values[2], self.values[3]) + strExtras + ' cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1])
+    strPositionXy = mystic.util.strHexa(self.position_xy)
+    string = 'nro{:03} addr {:04x} | minmax: {:02x} {:02x} personajes: {:02x} {:02x} {:02x} {:02x} position_xy: '.format(self.nro, self.addr, self.valMin, self.valMax, self.personajes[0], self.personajes[1], self.personajes[2], self.personajes[3]) + strPositionXy + ' cierre: {:02x} {:02x}'.format(self.cierre[0], self.cierre[1])
     return string
 
 ##########################################################
@@ -583,11 +830,13 @@ class PersonajeStats:
     self.nose4    = 0x00
     self.maybeDP  = 0x00
     self.maybeAP  = 0x00
-    self.nose5    = 0x00
+    # if it is inmune to some attack (32 = inmune to star, 0a = vulnerable to star)?
+    self.vulnerability = 0x00
     self.nose6    = 0x00
     self.projectile = 0x00
     self.nose7    = 0x00
-    self.nose8    = 0x00
+    # status inflictment (00 = nothing, 01 = poison, 02 = dark, etc)
+    self.statusInflicting = 0x00
     self.maybeExp = 0x00
     self.maybeGP  = 0x00
 
@@ -600,11 +849,11 @@ class PersonajeStats:
     self.nose4    = subArray[4]
     self.maybeDP  = subArray[5]
     self.maybeAP  = subArray[6]
-    self.nose5    = subArray[7]
+    self.vulnerability = subArray[7]
     self.nose6    = subArray[8]
     self.projectile = subArray[9]
     self.nose7    = subArray[10]
-    self.nose8    = subArray[11]
+    self.statusInflicting = subArray[11]
     self.maybeExp = subArray[12]
     self.maybeGP  = subArray[13]
 
@@ -618,11 +867,11 @@ class PersonajeStats:
     array.append(self.nose4)
     array.append(self.maybeDP)
     array.append(self.maybeAP)
-    array.append(self.nose5)
+    array.append(self.vulnerability)
     array.append(self.nose6)
     array.append(self.projectile)
     array.append(self.nose7)
-    array.append(self.nose8)
+    array.append(self.statusInflicting)
     array.append(self.maybeExp)
     array.append(self.maybeGP)
 
@@ -632,7 +881,7 @@ class PersonajeStats:
     lines = []
 
     # for all the personajes that use this stat
-    pers = [per for per in personajes if per.stats == self.nroStats]
+    pers = [per for per in personajes.personajes if per.stats == self.nroStats]
     # get all their names
     names = []
     for per in pers:
@@ -642,21 +891,21 @@ class PersonajeStats:
 #    lines.append('\n------------ stats: ' + mystic.variables.personajes[self.nroStats] + '?' )
     lines.append('\n------------ stats: ' + str(names) )
 
-    lines.append('nroStats:     {:02x}'.format(self.nroStats))
-    lines.append('speedSleep:   {:02x}'.format(self.speedSleep))
-    lines.append('nose1:        {:02x}'.format(self.nose1))
-    lines.append('nose2:        {:02x}'.format(self.nose2))
-    lines.append('nose3:        {:02x}'.format(self.nose3))
-    lines.append('nose4:        {:02x}'.format(self.nose4))
-    lines.append('maybeDP:      {:02x}'.format(self.maybeDP))
-    lines.append('maybeAP:      {:02x}'.format(self.maybeAP))
-    lines.append('nose5:        {:02x}'.format(self.nose5))
-    lines.append('nose6:        {:02x}'.format(self.nose6))
-    lines.append('projectile:   {:02x}'.format(self.projectile))
-    lines.append('nose7:        {:02x}'.format(self.nose7))
-    lines.append('nose8:        {:02x}'.format(self.nose8))
-    lines.append('maybeExp:     {:02x}'.format(self.maybeExp))
-    lines.append('maybeGP:      {:02x}'.format(self.maybeGP))
+    lines.append('nroStats:         {:02x}'.format(self.nroStats))
+    lines.append('speedSleep:       {:02x}'.format(self.speedSleep))
+    lines.append('nose1:            {:02x}'.format(self.nose1))
+    lines.append('nose2:            {:02x}'.format(self.nose2))
+    lines.append('nose3:            {:02x}'.format(self.nose3))
+    lines.append('nose4:            {:02x}'.format(self.nose4))
+    lines.append('maybeDP:          {:02x}'.format(self.maybeDP))
+    lines.append('maybeAP:          {:02x}'.format(self.maybeAP))
+    lines.append('vulnerability:    {:02x}'.format(self.vulnerability))
+    lines.append('nose6:            {:02x}'.format(self.nose6))
+    lines.append('projectile:       {:02x}'.format(self.projectile))
+    lines.append('nose7:            {:02x}'.format(self.nose7))
+    lines.append('statusInflicting: {:02x}'.format(self.statusInflicting))
+    lines.append('maybeExp:         {:02x}'.format(self.maybeExp))
+    lines.append('maybeGP:          {:02x}'.format(self.maybeGP))
 
     return lines
 
@@ -687,9 +936,9 @@ class PersonajeStats:
       elif(line.startswith('maybeAP:')):
         strMaybeAP = line[len('maybeAP:'):].strip()
         self.maybeAP = int(strMaybeAP,16)
-      elif(line.startswith('nose5:')):
-        strNose5 = line[len('nose5:'):].strip()
-        self.nose5 = int(strNose5,16)
+      elif(line.startswith('vulnerability:')):
+        strVulne = line[len('vulnerability:'):].strip()
+        self.vulnerability = int(strVulne,16)
       elif(line.startswith('nose6:')):
         strNose6 = line[len('nose6:'):].strip()
         self.nose6 = int(strNose6,16)
@@ -699,9 +948,9 @@ class PersonajeStats:
       elif(line.startswith('nose7:')):
         strNose7 = line[len('nose7:'):].strip()
         self.nose7 = int(strNose7,16)
-      elif(line.startswith('nose8:')):
-        strNose8 = line[len('nose8:'):].strip()
-        self.nose8 = int(strNose8,16)
+      elif(line.startswith('statusInflicting:')):
+        strStatusInflicting = line[len('statusInflicting:'):].strip()
+        self.statusInflicting = int(strStatusInflicting,16)
       elif(line.startswith('maybeExp:')):
         strMaybeExp = line[len('maybeExp:'):].strip()
         self.maybeExp = int(strMaybeExp,16)
@@ -710,7 +959,7 @@ class PersonajeStats:
         self.maybeGP = int(strMaybeGP,16)
 
   def __str__(self):
-    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.nose5, self.nose6, self.projectile, self.nose7, self.nose8, self.maybeExp, self.maybeGP)
+    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.vulnerability, self.nose6, self.projectile, self.nose7, self.statusInflicting, self.maybeExp, self.maybeGP)
 
     return string + ' ' + mystic.variables.personajes[self.nroStats] + '?'
 

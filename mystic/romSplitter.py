@@ -686,211 +686,7 @@ def burnPersonajeStats(filepath):
   mystic.romSplitter.burnBank(0x3, 0x19fe, array)
 
 
-def exportPersonajes():
-  """ exporta los personajes """
 
-#  print('--- 3:1f5a')
-
-  basePath = mystic.address.basePath
-  path = basePath + '/personajes'
-
-  # si el directorio no existía
-  if not os.path.exists(path):
-    # lo creo
-    os.makedirs(path)
-
-  f = open(path + '/personajes.txt', 'w', encoding="utf-8")
-
-  bank = mystic.romSplitter.banks[0x03]
-
-  array = []
-  personajes = []
-#  for i in range(0,10):
-  for i in range(0,191):
-    subArray = bank[0x1f5a + i*24 : 0x1f5a + (i+1)*24]
-    array.extend(subArray)
-    strSubarray = mystic.util.strHexa(subArray)
-#    print('strSub: {:02x} {:03} {:04x} = '.format(i,i, 0x1f5a+i*24) + strSubarray)
-
-    pers = mystic.personaje.Personaje(i)
-    pers.decodeRom(subArray)
-    personajes.append(pers)
-#    print('personaje: ' + str(pers))
-
-    lines = pers.encodeTxt()
-    strPersona = '\n'.join(lines)
-
-    f.write(strPersona)
-
-#      print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
-#      personajes.append( (i,pers) )
-
-#    for i,pers in personajes:
-#      if(pers.amistad != 0x81):
-#        print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
-#    print('----')
-#    for i,pers in personajes:
-#      if(pers.amistad == 0x81):
-#        print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
-#    print('----')
-
-
-  f.close()
-
-#    ies = [0x7b, 0x7c]
-#    ies = [0x12, 0x13]
-#    ies = [0x12, 0x13, 0x7b, 0x7c]
-#    for i in ies:
-#    i = 0x7b  #nena
-#    i = 0x7c  #nene
-#      array = bank[0x1f5a:]
-#      nene = array[24*i:]
-#      subArray = nene[:24]
-#      strSubarray = mystic.util.strHexa(subArray)
-#      print('strSub: {:02x} {:03} {:04x} = '.format(i,i, 0x1f5a+i*24) + strSubarray)
-
-#      pers = Personaje(i)
-#      pers.decodeRom(subArray)
-#      print('pers {:02x} {:03} {:04x} := '.format(i, i, 0x1f5a+i*24) + str(pers))
-
-  length = 24*len(personajes)
-  import random
-  rr = random.randint(0,0xff)
-  gg = random.randint(0,0xff)
-  bb = random.randint(0,0xff)
-  mystic.romStats.appendDato(0x03, 0x1f5a, 0x1f5a+length, (rr, gg, bb), 'personajes')
-
-  # exporto una imagen con los sprites de cada personaje!
-
-  bank = mystic.romSplitter.banks[8]
-  # leo el tileset del font
-  tileset = mystic.tileset.Tileset(16,9)
-  array = bank[0x1000*2+7*0x100:0x1000*(2+1)]
-  tileset.decodeRom(array)
-
-  # obtengo los tiles de los números 0,1,...,F
-  numberTile = []
-  for i in range(0,16):
-    tile = tileset.tiles[16*4 + i]
-    numberTile.append(tile)
-
-  # un tile en blanco
-#  blankTile = tileset.tiles[16*2]
-  blankTile = mystic.tileset.Tile()
-  blankTile.decodeRom([0x00]*16)
-
-  extraTiles = []
-#  cantPers = 0x02
-  cantPers = 0xbe+1
-  # para cada personaje
-  for q in range(0,cantPers):
-    # lo obtengo
-    pers = personajes[q]
-#    print('--- pers: ' + str(pers))
-
-    addr = 0x20000 + pers.offsetBank8
-
-    nroBank = addr // 0x4000
-    offset = addr % 0x4000
-
-    bank = mystic.romSplitter.banks[nroBank]
-
-    primer = q // 0x10
-    segund = q % 0x10
-
-    tiles = []
-    # agrego el número de personaje
-    tiles.extend([numberTile[primer], numberTile[segund], blankTile, blankTile])
-#    tiles.extend([numberTile[5], numberTile[1], numberTile[2], numberTile[3]])
-
-    # agrego los sprites del personaje
-    for j in range(0, 2*pers.cantDosTiles):
-      data = bank[offset + j*0x10: offset + (j+1)*0x10]
-      tile = mystic.tileset.Tile()
-      tile.decodeRom(data)
-      tiles.append(tile)
-
-    # completo en negro hasta formar 6 imagenes en cada fila
-    for k in range(2*(pers.cantDosTiles+1)+2,2*2*7):
-      tile = mystic.tileset.Tile()
-      tiles.append(tile)
-
-    w = 2*7 #pers.cantDosTiles
-    h = 2
-
-    # creo un array de tiles vacío 
-    sortTiles = [None for k in range(0, w*h)]
-
-    k = 0
-    for k in range(0, len(tiles)):
-
-      modk = k%4
-
-      if(modk == 0):
-        dx,dy = 0,0
-      elif(modk == 1):
-        dx,dy = 1,0
-      elif(modk == 2):
-        dx,dy = 0,1
-      elif(modk == 3):
-        dx,dy = 1,1
-
-      idx = 2*(k//4) + w*dy + dx
-      sortTiles[idx] = tiles[k]
-
-    extraTiles.extend(sortTiles)
-
-#      tileset = mystic.tileset.Tileset(w,h)
-#      tileset.tiles = sortTiles
-#      tileset.exportPngFile(path + 'personaje_{:03}.png'.format(q))
-
-
-  tileset = mystic.tileset.Tileset(2*7,2*cantPers)
-  tileset.tiles = extraTiles
-  tileset.exportPngFile(path + '/personajes_NOEDIT.png')
-
-  return personajes
-
-def burnPersonajes(filepath):
-  """ quema los personajes en la rom """
-
-  f = open(filepath, 'r', encoding="utf-8")
-  lines = f.readlines()
-  f.close()
-
-  i = 0
-  personajes = []
-  primero = True
-  subLines = []
-  for line in lines:
-#    print('line: ' + line)
-    if('------------ personaje' in line):
-      if(not primero):
-        p = mystic.personaje.Personaje(i)
-        p.decodeTxt(subLines)
-        personajes.append(p)
-        i += 1
-        subLines = []
-      else:
-        primero = False
-
-    subLines.append(line)
-  p = mystic.personaje.Personaje(i)
-  p.decodeTxt(subLines)
-  personajes.append(p)
-
-  array = []
-  for p in personajes:
-#    print('p: ' + str(p)) 
-    subArray = p.encodeRom()
-    array.extend(subArray)
-
-#    mystic.util.arrayToFile(array, './game/personajes/p.bin')
-#    iguales = mystic.util.compareFiles('./game/banks/bank_03/bank_03.bin', './game/personajes/p.bin', 0x1f5a, len(array))
-#    print('iguales = ' + str(iguales))
-
-  mystic.romSplitter.burnBank(0x3, 0x1f5a, array)
- 
 def exportBosses():
   """ exporta los monstruos grandes """
 
@@ -999,6 +795,66 @@ def burnProjectiles(filepath):
     array.extend(subArray)
 
   mystic.romSplitter.burnBank(0x9, 0x0479, array)
+
+def exportPersonajes():
+  """ exporta los personajes """
+
+#  print('--- 3:1f5a')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/personajes'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  # si el directorio para las imágenes no existía
+  if not os.path.exists(path + '/images_noedit'):
+    # lo creo
+    os.makedirs(path + '/images_noedit')
+
+  personajes = mystic.personaje.Personajes()
+  # decodifico los scripts
+  personajes.decodeRom()
+  # los codifico en txt
+  lines = personajes.encodeTxt()
+  # lo grabo
+  filepath = path + '/personajes.txt'
+  f = open(filepath, 'w', encoding="utf-8")
+  strTxt = '\n'.join(lines)
+  f.write(strTxt)
+  f.close()
+
+  length = 24*len(personajes.personajes)
+  import random
+  rr = random.randint(0,0xff)
+  gg = random.randint(0,0xff)
+  bb = random.randint(0,0xff)
+  mystic.romStats.appendDato(0x03, 0x1f5a, 0x1f5a+length, (rr, gg, bb), 'personajes')
+
+  # exporto al personajes_noedit.html
+  personajes.exportHtml()
+
+  return personajes
+
+def burnPersonajes(filepath):
+  """ quema los personajes en la rom """
+
+  personajes = mystic.personaje.Personajes()
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  personajes.decodeTxt(lines)
+
+  array = personajes.encodeRom()
+#    mystic.util.arrayToFile(array, './game/personajes/p.bin')
+#    iguales = mystic.util.compareFiles('./game/banks/bank_03/bank_03.bin', './game/personajes/p.bin', 0x1f5a, len(array))
+#    print('iguales = ' + str(iguales))
+
+  mystic.romSplitter.burnBank(0x3, 0x1f5a, array)
+
+  return personajes
  
 
 def exportGrupos3Personajes():
@@ -1031,7 +887,7 @@ def exportGrupos3Personajes():
   f.close()
 
 
-def burnGrupos3Personajes(filepath):
+def burnGrupos3Personajes(filepath, personajes):
   """ quema los grupos de 3 personajes """
 
   f = open(filepath, 'r', encoding="utf-8")
@@ -1041,7 +897,7 @@ def burnGrupos3Personajes(filepath):
   grupos = mystic.personaje.GruposPersonajes(0x3142)
   grupos.decodeTxt(lines)
 
-  array = grupos.encodeRom()
+  array = grupos.encodeRom(personajes)
 
   mystic.romSplitter.burnBank(0x3, 0x3142, array)
 
@@ -2401,7 +2257,8 @@ def burnScripts(filepath):
   scripts.decodeTxt(lines)
 
   # codifico los banks 0x0d y 0x0e
-  array0d, array0e = scripts.encodeRom()
+#  array0d, array0e = scripts.encodeRom()
+  encodedBanks = scripts.encodeRom()
 
   basePath = mystic.address.basePath
   # creo los binarios para comparar
@@ -2412,15 +2269,30 @@ def burnScripts(filepath):
 #  iguales = mystic.util.compareFiles(basePath+'/banks/bank_14/bank_14.bin', basePath+'/scripts/scripts0e.bin', 0, len(array0e))
 #  print('iguales 0e: ' + str(iguales))
 
+  vaPorBank = 0x0d
+  for encodedBank in encodedBanks:
+
+#    print('va por bank: {:02x}'.format(vaPorBank))
+#    print('len(bank): {:04x}'.format(len(encodedBank)))
+
+    mystic.util.arrayToFile(encodedBank, basePath+'/scripts/scripts{:02x}.bin'.format(vaPorBank))
+
+    # quemo los banks 0x0d y 0x0e
+    mystic.romSplitter.burnBank(vaPorBank, 0x0000, encodedBank)
+    vaPorBank += 1
+ 
   # quemo los banks 0x0d y 0x0e
-  mystic.romSplitter.burnBank(0x0d, 0x0000, array0d)
-  mystic.romSplitter.burnBank(0x0e, 0x0000, array0e)
+#  mystic.romSplitter.burnBank(0x0d, 0x0000, array0d)
+#  mystic.romSplitter.burnBank(0x0e, 0x0000, array0e)
 
 
   bank,addr = mystic.address.addrScriptAddrDic
   array = []
   # por cada script
   for script in scripts.scripts:
+
+#    print('script addr: {:04x}'.format(script.addr))
+
     # agarro su addr
     byte1 = script.addr // 0x100
     byte2 = script.addr % 0x100

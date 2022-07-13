@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.6'
+VERSION = '0.95.7'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -110,7 +110,7 @@ def testPlayground():
   # exporto los spriteSheet de personajes
 #  mystic.romSplitter.exportSpriteSheetPersonajes()
 #  mystic.romSplitter.exportSpriteSheetHero()
-  mystic.romSplitter.exportSpriteSheetMonster()
+#  mystic.romSplitter.exportSpriteSheetMonster()
 #  mystic.romSplitter.burnSpriteSheetPersonajes()
 
 
@@ -327,16 +327,16 @@ def testPlayground():
 
   # exporto los personajes
 #  print('exportando personajes...')
-#  mystic.romSplitter.exportPersonajes()
+  mystic.romSplitter.exportPersonajes()
 #  print('importando personajes...')
-#  mystic.romSplitter.burnPersonajes('./en/personajes/personajes.txt')
+#  personajes = mystic.romSplitter.burnPersonajes('./en/personajes/personajes.txt')
 
 #  mystic.romSplitter.exportPersonajeStats()
 #  mystic.romSplitter.burnPersonajeStats('./en/personajes/personajeStats.txt')
 
   # exporto grupos de 3 personajes
 #  mystic.romSplitter.exportGrupos3Personajes()
-#  mystic.romSplitter.burnGrupos3Personajes('./game/personajes/grupos3Personajes.txt')
+#  mystic.romSplitter.burnGrupos3Personajes('./en/personajes/grupos3Personajes.txt', personajes)
  
   # exporto cosas raras personajes tiles
 #  mystic.romSplitter.exportCosasRarasPersonajes()
@@ -351,9 +351,9 @@ def testPlayground():
 #  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
 #  mystic.romSplitter.exportBossesBehaviour(bosses)
 
-  mystic.romSplitter.exportProjectiles()
+#  mystic.romSplitter.exportProjectiles()
   # exporto los proyectiles
-  mystic.romSplitter.burnProjectiles('./en/projectiles/01_projectiles.txt')
+#  mystic.romSplitter.burnProjectiles('./en/projectiles/01_projectiles.txt')
 
 
   # exporto golpes
@@ -499,9 +499,9 @@ def testPlayground():
   pathStock = './stockRoms/en.gb'
   pathNew = './en/newRom.gb'
 
-  print('comparando ' + pathStock + ' con ' + pathNew)
-  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-  print('roms iguales = ' + str(iguales))
+#  print('comparando ' + pathStock + ' con ' + pathNew)
+#  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
+#  print('roms iguales = ' + str(iguales))
 
 
 
@@ -735,9 +735,9 @@ def main(argv):
     # quemo las animaciones para los personajes
     mystic.romSplitter.burnPersonajesAnimations(basePath + '/personajes/personajesAnimations.txt')
     # quemo los personajes en la rom
-    mystic.romSplitter.burnPersonajes(basePath + '/personajes/personajes.txt')
+    personajes = mystic.romSplitter.burnPersonajes(basePath + '/personajes/personajes.txt')
     # quemo los grupos de aparición de personajes
-    mystic.romSplitter.burnGrupos3Personajes(basePath + '/personajes/grupos3Personajes.txt')
+    mystic.romSplitter.burnGrupos3Personajes(basePath + '/personajes/grupos3Personajes.txt', personajes)
     # quemo los stats de los personajes
     mystic.romSplitter.burnPersonajeStats(basePath + '/personajes/personajeStats.txt')
 
@@ -803,7 +803,7 @@ def main(argv):
 
 
   # si quiero testear algo
-  testPlayground()
+#  testPlayground()
 
 
 if __name__ == "__main__":

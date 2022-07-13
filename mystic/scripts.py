@@ -217,7 +217,9 @@ class Scripts:
     # reinicio los renglones para el próximo script
     subLines = []
 
-  def _refreshLabels(self, nroBanco, ultimoNroScriptBanco0d):
+
+#  def _refreshLabels(self, nroBanco, ultimoNroScriptBanco0d):
+  def _refreshLabels(self, nroBanco, startingScriptNro, endingScriptNro):
     """ refresca los labels de los CALLs con su addr física, según si es para el banco 0x0d ó 0x0e """
 
     # recorro todos los scripts
@@ -244,26 +246,31 @@ class Scripts:
         cmd.hexs = [0x02, addr1, addr2]
         # actualizo el call con el addr físico
         cmd.strCode = 'CALL {:04x}'.format(addr)
- 
 
         # si es para el banco 0x0d pero el script no entra
-        if(nroBanco == 0x0d and script.nro > ultimoNroScriptBanco0d):
+#        if(nroBanco == 0x0d and script.nro > ultimoNroScriptBanco0d):
           # seteo addr en 0x0000
-          cmd.hexs = [0x02, 0x00, 0x00]
-          cmd.strCode = 'CALL {:04x}'.format(0x0000)
+#          cmd.hexs = [0x02, 0x00, 0x00]
+#          cmd.strCode = 'CALL {:04x}'.format(0x0000)
 
 
 
   def encodeRom(self):
     # los bancos a devolver 
-    array0d = []
-    array0e = []
+#    array0d = []
+#    array0e = []
+    encodedBanks = []
+    # el último número de script de cada banco
+    ultimoNroScriptBanco = []
 
     vaPorAddr = 0x0000
     # el último script que entró en el banco 0d
     ultimoNroScriptBanco0d = -1
 
     lang = mystic.address.language
+
+    # por cual bank vamos (contando desde 0)
+    vaPorBanco = 0
 
     # para cada script
 #    for script in self.scripts:
@@ -276,7 +283,8 @@ class Scripts:
       proxAddr = vaPorAddr + len(subArray)
       # si empieza antes pero termina después de 0x4000 (rom 'de' y custom)
 
-      addrDeCorte = 0x4000
+#      addrDeCorte = 0x4000
+      addrDeCorte = 0x4000*(vaPorBanco+1)
       # la rom 'jp' corta el banco un poco antes
       if(lang == mystic.language.JAPAN):
         addrDeCorte -= 4*16
@@ -284,16 +292,23 @@ class Scripts:
 #      if(vaPorAddr < 0x4000 and proxAddr >= 0x4000):
       if(vaPorAddr < addrDeCorte and proxAddr >= addrDeCorte):
         # cambio al bank siguiente
-        vaPorAddr = 0x4000
+        vaPorBanco += 1
+#        vaPorAddr = 0x4000
+        vaPorAddr = 0x4000*vaPorBanco
         # el script anterior fué el último en entrar completo en el banco
-        ultimoNroScriptBanco0d = script.nro - 1
+#        ultimoNroScriptBanco0d = script.nro - 1
+        ultimoNroScriptBanco.append(script.nro - 1)
 
         # si la rom es 'en', 'en_uk' ó 'fr' 
         if(lang in [mystic.language.ENGLISH, mystic.language.ENGLISH_UK, mystic.language.FRENCH]):
           # el script anterior se vuelve a copiar al principio del banco siguiente
-          self.scripts[i-1].addr = 0x4000
+#          self.scripts[i-1].addr = 0x4000
+          self.scripts[i-1].addr = 0x4000*vaPorBanco
           vaPorAddr += len(self.scripts[i-1].encodeRom())
-          ultimoNroScriptBanco0d = script.nro - 2
+#          ultimoNroScriptBanco0d = script.nro - 2
+          # borro el ultimo coso agregado
+          del ultimoNroScriptBanco[-1]
+          ultimoNroScriptBanco.append(script.nro - 2)
 
 #      print('script {:04x} addrAnt {:04x} addrNew {:04x}'.format(script.nro, script.addr, vaPorAddr))
 
@@ -308,34 +323,80 @@ class Scripts:
         # seteo su addr en 0x0000 
         script.addr = 0x0000
 
+    ultimoNroScriptBanco.append(script.nro)
 
-    self._refreshLabels(0x0d, ultimoNroScriptBanco0d)
+    # el banco donde comenzamos a quemar scripts
+    startingScriptsBank = 0x0d
+    # el primer script del banco
+    startingScriptNro = 0
+
+    # por cada banco que hay que quemar
+    for i in range(0,vaPorBanco+1):
+      # creo el banco en principio vacío
+      array = []
+      # me fijo en cual script termina
+      endingScriptNro = ultimoNroScriptBanco[i]
+
+#      self._refreshLabels(0x0d, ultimoNroScriptBanco0d)
+      # refresco sus labels
+      self._refreshLabels(startingScriptsBank + i, startingScriptNro, endingScriptNro)
+
+      # recorro todos los scripts
+      for script in self.scripts:
+
+#        print('nro: {:04x} starting: {:04x} ending: {:04x}'.format(script.nro, startingScriptNro, endingScriptNro))
+#        if(True):
+#        if(script.nro <= ultimoNroScriptBanco0d):
+        # si está en el rango de scripts de este banco
+        if(script.nro >= startingScriptNro and script.nro <= endingScriptNro):
+          subArray = script.encodeRom()
+
+          # voy extendiendo el array
+#          array0d.extend(subArray)
+          array.extend(subArray)
+
+
+
+#      print('len(array): ' + str(len(array)))
+
+      sizeBank = min(len(array),0x4000)
+      bank = array[:sizeBank]
+      print('adding script bank {:02x} [0x0000,0x{:04x}] (from script {:04x} to {:04x})'.format(0x0d + i, sizeBank, startingScriptNro, endingScriptNro))
+      encodedBanks.append(bank)
+
+      startingScriptNro = endingScriptNro+1
+
+    return encodedBanks
+
+
+
+#    self._refreshLabels(0x0d, ultimoNroScriptBanco0d)
 
     # recorro todos los scripts
-    for script in self.scripts:
+#    for script in self.scripts:
 
 #      if(True):
-      if(script.nro <= ultimoNroScriptBanco0d):
-        subArray = script.encodeRom()
+#      if(script.nro <= ultimoNroScriptBanco0d):
+#        subArray = script.encodeRom()
 
         # voy extendiendo el array
-        array0d.extend(subArray)
+#        array0d.extend(subArray)
 
-    self._refreshLabels(0x0e, ultimoNroScriptBanco0d)
+#    self._refreshLabels(0x0e, ultimoNroScriptBanco0d)
 
     # recorro todos los scripts
-    for script in self.scripts:
+#    for script in self.scripts:
 
-      if(script.nro > ultimoNroScriptBanco0d):
-        subArray = script.encodeRom()
+#      if(script.nro > ultimoNroScriptBanco0d):
+#        subArray = script.encodeRom()
 
         # voy extendiendo el array
-        array0e.extend(subArray)
+#        array0e.extend(subArray)
 
-    size0d = min(len(array0d),0x4000)
-    size0e = min(len(array0e),0x4000)
+#    size0d = min(len(array0d),0x4000)
+#    size0e = min(len(array0e),0x4000)
 
-    return array0d[:size0d], array0e[:size0e]
+#    return array0d[:size0d], array0e[:size0e]
 
 ##########################################################
 class Script:
@@ -786,9 +847,9 @@ class Comando:
       primer = self.nro // 0x10
       segund = self.nro % 0x10
 
-      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
+      actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_PARTNER_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F' ]
 
-      strExtra = 'EXTRASPECIAL'
+      strExtra = 'PARTNER'
       strAction = actions[segund]
       strCmd = strExtra + '_' + strAction
 
@@ -808,7 +869,7 @@ class Comando:
         self.size = 3
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
-      elif(strAction in ['SET_EXTRASPECIAL_PERSONAJE']):
+      elif(strAction in ['SET_PARTNER_PERSONAJE']):
 
         arg = self.array[1]
         # turn extra1 into extra9 (extraspecial)
@@ -1039,6 +1100,16 @@ class Comando:
       self.strCode = 'SET_CHEST2_SCRIPT {:04x}\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
+    elif(self.nro == 0xcb):
+      arg1 = self.array[1]
+      arg2 = self.array[2]
+      arg = arg1*0x100 + arg2
+      self.strCode = 'SET_CHEST3_SCRIPT {:04x}\n'.format(arg)
+      self.size = 3
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+
+
 
     elif(self.nro == 0xcc):
       # stops listening to key inputs
@@ -1635,7 +1706,7 @@ class Comando:
         self.sizeLines = 1
         self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('EXTRASPECIAL')):
+    elif(line.startswith('PARTNER')):
 
       idx0 = line.index('_')+1
       strAction = line[idx0:]
@@ -1644,7 +1715,7 @@ class Comando:
  
       if(strAction in ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'NOSE_D', 'NOSE_E', 'NOSE_F']):
 
-        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_EXTRASPECIAL_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F']
+        actions = ['STEP_FORWARD', 'STEP_BACK', 'STEP_LEFT', 'STEP_RIGHT', 'LOOK_NORTH', 'LOOK_SOUTH', 'LOOK_EAST', 'LOOK_WEST', 'REMOVE', 'TELEPORT', 'WALK_FAST_SPEED', 'WALK_NORMAL_SPEED', 'SET_PARTNER_PERSONAJE', 'NOSE_D', 'NOSE_E', 'NOSE_F']
         nroAction = actions.index(strAction)
 
         nroCmd = nroExtra * 0x10 + nroAction
@@ -1705,9 +1776,9 @@ class Comando:
         self.sizeLines = 1
         self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('SET_EXTRASPECIAL_PERSONAJE')):
+    elif(line.startswith('SET_PARTNER_PERSONAJE')):
 
-      argTxt = line[len('SET_EXTRASPECIAL_PERSONAJE')+1:]
+      argTxt = line[len('SET_PARTNER_PERSONAJE')+1:]
       arg = int(argTxt, 16)
 
       self.hexs.append(0x9c)
@@ -1910,6 +1981,20 @@ class Comando:
       args = [arg1, arg2]
 
       self.hexs.append(0xca)
+      self.hexs.extend(args)
+      self.sizeLines = 1
+      self.sizeBytes = len(self.hexs)
+
+    elif(line.startswith('SET_CHEST3_SCRIPT')):
+
+      argTxt = line[len('SET_CHEST3_SCRIPT')+1:]
+      strArg1 = argTxt[0:2]
+      strArg2 = argTxt[2:4]
+      arg1 = int(strArg1, 16)
+      arg2 = int(strArg2, 16)
+      args = [arg1, arg2]
+
+      self.hexs.append(0xcb)
       self.hexs.extend(args)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)

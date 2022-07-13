@@ -9,8 +9,9 @@ def romExpand():
   # choose one (or none) of the following available rom expansions,
   # you can also make your own custom romExpand...()
 
-  romExpandMoveMaps()
+#  romExpandMoveMaps()
 #  romExpandMoveMusicBank()
+  romExpandMoveMusicBankAndExpandScriptsToFourBanks()
 #  romExpandIpsPatch('./roms/colorization/en_uk_256.ips')
 #  romExpandIpsPatch('./roms/colorization/en_uk_kkzero.ips')
 
@@ -81,7 +82,23 @@ def romExpandMoveMusicBank():
   bank0[0x2053] = 0x17
   bank0[0x217c] = 0x17
 
+#################################################
+def romExpandMoveMusicBankAndExpandScriptsToFourBanks():
 
+  # first we move the music bank
+  romExpandMoveMusicBank()
+
+  bankf = mystic.romSplitter.banks[0x0f]
+  # we clean bankf
+  for i in range(0,0x4000):
+    bankf[i] = 0xff
+
+  # hacked asm for supporting more than 2 script banks (thanks @xenophile!)  
+  improved = [0xfa, 0xb6, 0xd8, 0x6f, 0xfa, 0xb7, 0xd8, 0x67, 0xfe, 0xd6, 0x28, 0x10, 0x06, 0x0c, 0x04, 0xd6, 0x40, 0xfe, 0x40, 0x30, 0xf9, 0xc6, 0x40]
+
+  bank0 = mystic.romSplitter.banks[0x0]
+  bank0[0x3c44:0x3c44 + len(improved)] = improved
+ 
 #################################################
 def romExpandIpsPatch(pathIps):
   """ patches the rom with the ips file """

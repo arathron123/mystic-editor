@@ -417,7 +417,7 @@ if(nombresOriginales):
   personajes[0x80] = 'GUY_KETTS'
   personajes[0x81] = 'GIRL_KETTS'
   personajes[0x82] = 'GIRL_CIBBA'
-  personajes[0x83] = 'GUY_WENDEL'
+  personajes[0x83] = 'GUY_WENDEL_2'
   personajes[0x84] = 'GUY_WENDEL_HOUSE'
   personajes[0x85] = 'WOMAN_CIBBA'
   personajes[0x86] = 'OLDMAN_WENDEL'

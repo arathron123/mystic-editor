@@ -1,6 +1,6 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.6
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.7
 
 Tutorial video here: 
 https://www.youtube.com/watch?v=XKPYtgKAiQw
