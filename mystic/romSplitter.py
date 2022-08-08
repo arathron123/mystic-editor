@@ -10,7 +10,8 @@ import mystic.personaje
 import mystic.bosses
 import mystic.projectiles
 import mystic.inventory
-import mystic.scripts
+import mystic.mscripts
+import mystic.jscripts
 import mystic.maps
 import mystic.music
 import mystic.ippy
@@ -102,6 +103,59 @@ def cleanBank(banco):
 
   clean = [0x00] * 0x4000
   mystic.romSplitter.banks[banco] = clean
+
+
+#def fixHeader(self, *, name=None):
+#        if name is not None:
+#            name = name.encode("utf-8")
+#            name = (name + (b"\x00" * 15))[:15]
+#            self.banks[0][0x134:0x143] = name
+
+#        checksum = 0
+#        for c in self.banks[0][0x134:0x14D]:
+#            checksum -= c + 1
+#        self.banks[0][0x14D] = checksum & 0xFF
+
+        # zero out the checksum before calculating it.
+#        self.banks[0][0x14E] = 0
+#        self.banks[0][0x14F] = 0
+#        checksum = 0
+#        for bank in self.banks:
+#            checksum = (checksum + sum(bank)) & 0xFFFF
+#        self.banks[0][0x14E] = checksum >> 8
+#        self.banks[0][0x14F] = checksum & 0xFF
+
+
+
+def fixChecksums():
+  """ fixes the checksums for allowing playing on original hardware """
+
+  bank0 = mystic.romSplitter.banks[0]
+
+  # first we fix the header checksum
+  prevHeaderChecksum = bank0[0x014d]
+  checksum = 0
+  for i in range(0x0134,0x014d):
+    c = bank0[i]
+    checksum -= c + 1
+  headerChecksum = checksum & 0xFF
+  print('setting headerChecksum (previous: {:02x}   now: {:02x})'.format(prevHeaderChecksum, headerChecksum))
+  bank0[0x014d] = headerChecksum
+
+  globalChecksum = 0
+  # now we fix the global checksum
+  prevGlobalChecksum = bank0[0x014E]*0x100 + bank0[0x014F]
+  # zero out the checksum before calculating it.
+  bank0[0x014E] = 0
+  bank0[0x014F] = 0
+  for bank in mystic.romSplitter.banks:
+    globalChecksum = (globalChecksum + sum(bank)) & 0xFFFF
+
+  print('setting globalChecksum (previous: {:04x} now: {:04x})'.format(prevGlobalChecksum, globalChecksum))
+#  bank0[0x014E] = globalChecksum >> 8
+#  bank0[0x014F] = globalChecksum & 0xFF
+  bank0[0x014E] = globalChecksum // 0x100
+  bank0[0x014F] = globalChecksum % 0x100
 
 
 def exportRom(filepath):
@@ -815,7 +869,7 @@ def exportPersonajes():
     os.makedirs(path + '/images_noedit')
 
   personajes = mystic.personaje.Personajes()
-  # decodifico los scripts
+  # decodifico
   personajes.decodeRom()
   # los codifico en txt
   lines = personajes.encodeTxt()
@@ -1804,7 +1858,7 @@ def exportMapas(exportPngFile):
     os.makedirs(path)
 
   mapas = mystic.maps.Mapas()
-  # decodifico los scripts
+  # decodifico
   mapas.decodeRom()
   # los codifico en txt
   lines = mapas.encodeTxt()
@@ -2222,7 +2276,7 @@ def burnInitialScript(nroScript):
   mystic.romSplitter.burnBank(0x02, address, array)
  
      
-def exportScripts():
+def exportMScripts():
 
   basePath = mystic.address.basePath
   path = basePath + '/scripts'
@@ -2231,25 +2285,48 @@ def exportScripts():
     # lo creo
     os.makedirs(path)
 
-  scripts = mystic.scripts.Scripts()
+  scripts = mystic.mscripts.MScripts()
   # decodifico los scripts
   scripts.decodeRom()
   # los codifico en txt
   lines= scripts.encodeTxt()
   # lo grabo
-  filepath = path + '/scripts.txt'
+  filepath = path + '/mscripts.txt'
+  f = open(filepath, 'w', encoding="utf-8")
+  strTxt = '\n'.join(lines)
+  f.write(strTxt)
+  f.close()
+
+def exportJScripts():
+
+  basePath = mystic.address.basePath
+  path = basePath + '/scripts'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  scripts = mystic.jscripts.JScripts()
+  # decodifico los scripts
+  scripts.decodeRom()
+  # los codifico en txt
+  lines= scripts.encodeTxt()
+  # lo grabo
+  filepath = path + '/jscripts.js'
   f = open(filepath, 'w', encoding="utf-8")
   strTxt = '\n'.join(lines)
   f.write(strTxt)
   f.close()
 
 
+  shutil.copyfile('./mystic/jscripts.html', basePath + '/jscripts.html')
+  shutil.copyfile('./mystic/jscriptsEngine.js', basePath + '/jscriptsEngine.js')
 
 
-def burnScripts(filepath):
+def burnMScripts(filepath):
   """ compila el script.txt indicado y quema los scripts en los bancos 0x0d y 0x0e, y el dicionario de addrs en banco 0x08 """
 
-  scripts = mystic.scripts.Scripts()
+  scripts = mystic.mscripts.MScripts()
 
   f = open(filepath, 'r', encoding="utf-8")
   lines = f.readlines()
@@ -2305,6 +2382,68 @@ def burnScripts(filepath):
 #  mystic.util.arrayToFile(array, './de/scripts/dic.bin')
 #  iguales = mystic.util.compareFiles('./de/banks/bank_08/bank_08.bin', './de/scripts/dic.bin', addr, len(array))
 #  print('iguales dic: ' + str(iguales))
+
+
+def burnJScripts(filepath):
+  """ compila el script.js indicado y quema los scripts en los bancos 0x0d y 0x0e, y el dicionario de addrs en banco 0x08 """
+
+  scripts = mystic.jscripts.JScripts()
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  scripts.decodeTxt(lines)
+
+  # codifico los banks 0x0d y 0x0e
+#  array0d, array0e = scripts.encodeRom()
+  encodedBanks = scripts.encodeRom()
+
+  basePath = mystic.address.basePath
+  # creo los binarios para comparar
+#  mystic.util.arrayToFile(array0d, basePath+'/scripts/scripts0d.bin')
+#  mystic.util.arrayToFile(array0e, basePath+'/scripts/scripts0e.bin')
+#  iguales = mystic.util.compareFiles(basePath+'/banks/bank_13/bank_13.bin', basePath+'/scripts/scripts0d.bin', 0, len(array0d))
+#  print('iguales 0d: ' + str(iguales))
+#  iguales = mystic.util.compareFiles(basePath+'/banks/bank_14/bank_14.bin', basePath+'/scripts/scripts0e.bin', 0, len(array0e))
+#  print('iguales 0e: ' + str(iguales))
+
+  vaPorBank = 0x0d
+  for encodedBank in encodedBanks:
+
+#    print('va por bank: {:02x}'.format(vaPorBank))
+#    print('len(bank): {:04x}'.format(len(encodedBank)))
+
+    mystic.util.arrayToFile(encodedBank, basePath+'/scripts/scripts{:02x}.bin'.format(vaPorBank))
+
+    # quemo los banks 0x0d y 0x0e
+    mystic.romSplitter.burnBank(vaPorBank, 0x0000, encodedBank)
+    vaPorBank += 1
+ 
+  # quemo los banks 0x0d y 0x0e
+#  mystic.romSplitter.burnBank(0x0d, 0x0000, array0d)
+#  mystic.romSplitter.burnBank(0x0e, 0x0000, array0e)
+
+
+  bank,addr = mystic.address.addrScriptAddrDic
+  array = []
+  # por cada script
+  for script in scripts.scripts:
+
+#    print('script addr: {:04x}'.format(script.addr))
+
+    # agarro su addr
+    byte1 = script.addr // 0x100
+    byte2 = script.addr % 0x100
+    # y la agrego al array
+    array.extend([byte2, byte1])
+
+  # quemo el diccionario de addr en el bank08
+  mystic.romSplitter.burnBank(bank, addr, array)
+
+#  mystic.util.arrayToFile(array, './de/scripts/dic.bin')
+#  iguales = mystic.util.compareFiles('./de/banks/bank_08/bank_08.bin', './de/scripts/dic.bin', addr, len(array))
+#  print('iguales dic: ' + str(iguales))
+
 
 
 def burnBank(bank, idx0, hexs):

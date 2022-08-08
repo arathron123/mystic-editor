@@ -3,8 +3,13 @@ import mystic.romSplitter
 import mystic.romStats
 import mystic.variables
 
-##########################################################
-class Scripts:
+# The Mystic Language compiler (Original Version)
+####################################################################################
+#   This file is being deprecated!                                                 #
+# We are replacing it with a new one with javascript-like syntax (See jscripts.py) #
+####################################################################################
+
+class MScripts:
   """ representa el conjunto de scripts """
 
   def __init__(self):

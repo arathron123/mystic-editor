@@ -246,10 +246,15 @@ class Personaje:
     self.nose9 = 0x00
     self.nose10 = 0x00
 
-    self.nose11 = 0x00
-    self.nose12 = 0x00
-    self.nose13 = 0x00
-    self.nose14 = 0x00
+    # it triggers a short behaviour (ex: walking and firing a projectile, jumping, etc)
+    # when the hero walks? (tested on chest_1)
+    self.behaviourOnHeroWalk1 = 0x00
+    # when the hero walks? (tested on rabbite) 
+    self.behaviourOnHeroWalk2 = 0x00
+    # when the hero is on the same vertical line than the enemy
+    self.behaviourOnVerticalSight = 0x00
+    # when the hero is on the same horizontal line than the enemy
+    self.behaviourOnHorizontalSight = 0x00
 
     self.nroScript  = 0x0000
     self.itemTesoro = 0x0000
@@ -282,10 +287,10 @@ class Personaje:
     self.nose9        = subArray[14] # 0x00   0,1,2
     self.nose10       = subArray[15] # 0x00   0,1,2
 
-    self.nose11       = subArray[16] # 0x04   02=suelo, 10=salta 12=fantasma bajo suelo 15=teleport
-    self.nose12       = subArray[17] # 0x04  
-    self.nose13       = subArray[18] # 0x04  
-    self.nose14       = subArray[19] # 0x04  
+    self.behaviourOnHeroWalk1 = subArray[16] # 0x04   02=suelo, 10=salta 12=fantasma bajo suelo 15=teleport
+    self.behaviourOnHeroWalk2 = subArray[17] # 0x04  
+    self.behaviourOnVerticalSight = subArray[18] # 0x04  
+    self.behaviourOnHorizontalSight = subArray[19] # 0x04  
 
     self.nroScript    = subArray[20] + subArray[21]*0x100 # 0x0267
     self.itemTesoro   = subArray[22] + subArray[23]*0x100 # 0x0000  
@@ -314,10 +319,10 @@ class Personaje:
     array.append(self.nose9)
     array.append(self.nose10)
 
-    array.append(self.nose11)
-    array.append(self.nose12)
-    array.append(self.nose13)
-    array.append(self.nose14)
+    array.append(self.behaviourOnHeroWalk1)
+    array.append(self.behaviourOnHeroWalk2)
+    array.append(self.behaviourOnVerticalSight)
+    array.append(self.behaviourOnHorizontalSight)
 
     array.append(self.nroScript%0x100)
     array.append(self.nroScript//0x100)
@@ -330,32 +335,32 @@ class Personaje:
     lines = []
 
     lines.append('\n------------ personaje: ' + mystic.variables.personajes[self.nroPersonaje] )
-    lines.append('nroPersonaje:   {:02x}'.format(self.nroPersonaje))
-    lines.append('amistad:        {:02x}'.format(self.amistad))
+    lines.append('nroPersonaje:               {:02x}'.format(self.nroPersonaje))
+    lines.append('amistad:                    {:02x}'.format(self.amistad))
 
-    lines.append('stats:          {:02x}'.format(self.stats))
-    lines.append('vramTileOffset: {:02x}'.format(self.vramTileOffset))
+    lines.append('stats:                      {:02x}'.format(self.stats))
+    lines.append('vramTileOffset:             {:02x}'.format(self.vramTileOffset))
 
-    lines.append('cantDosTiles:   {:02x}'.format(self.cantDosTiles))
-    lines.append('offsetBank8:    {:04x}'.format(self.offsetBank8))
+    lines.append('cantDosTiles:               {:02x}'.format(self.cantDosTiles))
+    lines.append('offsetBank8:                {:04x}'.format(self.offsetBank8))
 
-    lines.append('addrRaro:       {:04x}'.format(self.addrRaro))
-    lines.append('addrDosTiles:   {:04x}'.format(self.addrDosTiles))
+    lines.append('addrRaro:                   {:04x}'.format(self.addrRaro))
+    lines.append('addrDosTiles:               {:04x}'.format(self.addrDosTiles))
 
-    lines.append('patasSepa:      {:02x}'.format(self.patasSepa))
-    lines.append('muevePatas:     {:02x}'.format(self.muevePatas))
-    lines.append('nose7:          {:02x}'.format(self.nose7))
-    lines.append('nose8:          {:02x}'.format(self.nose8))
-    lines.append('nose9:          {:02x}'.format(self.nose9))
-    lines.append('nose10:         {:02x}'.format(self.nose10))
+    lines.append('patasSepa:                  {:02x}'.format(self.patasSepa))
+    lines.append('muevePatas:                 {:02x}'.format(self.muevePatas))
+    lines.append('nose7:                      {:02x}'.format(self.nose7))
+    lines.append('nose8:                      {:02x}'.format(self.nose8))
+    lines.append('nose9:                      {:02x}'.format(self.nose9))
+    lines.append('nose10:                     {:02x}'.format(self.nose10))
 
-    lines.append('nose11:         {:02x}'.format(self.nose11))
-    lines.append('nose12:         {:02x}'.format(self.nose12))
-    lines.append('nose13:         {:02x}'.format(self.nose13))
-    lines.append('nose14:         {:02x}'.format(self.nose14))
+    lines.append('behaviourOnHeroWalk1:       {:02x}'.format(self.behaviourOnHeroWalk1))
+    lines.append('behaviourOnHeroWalk2:       {:02x}'.format(self.behaviourOnHeroWalk2))
+    lines.append('behaviourOnVerticalSight:   {:02x}'.format(self.behaviourOnVerticalSight))
+    lines.append('behaviourOnHorizontalSight: {:02x}'.format(self.behaviourOnHorizontalSight))
 
-    lines.append('nroScript:      {:04x}'.format(self.nroScript))
-    lines.append('itemTesoro:     {:04x}'.format(self.itemTesoro))
+    lines.append('nroScript:                  {:04x}'.format(self.nroScript))
+    lines.append('itemTesoro:                 {:04x}'.format(self.itemTesoro))
 
     return lines
 
@@ -363,59 +368,59 @@ class Personaje:
     for line in lines:
 #      print('lineee: ' + line)
       if(line.startswith('nroPersonaje:')):
-        strNroPersonaje = line[13:].strip()
+        strNroPersonaje = line[len('nroPersonaje:'):].strip()
         self.nroPersonaje = int(strNroPersonaje,16)
       elif(line.startswith('amistad:')):
-        strAmistad = line[8:].strip()
+        strAmistad = line[len('amistad:'):].strip()
         self.amistad = int(strAmistad,16)
       elif(line.startswith('stats:')):
-        strStats = line[6:].strip()
+        strStats = line[len('stats:'):].strip()
         self.stats = int(strStats,16)
       elif(line.startswith('vramTileOffset:')):
-        strVramTileOffset = line[15:].strip()
+        strVramTileOffset = line[len('vramTileOffset:'):].strip()
         self.vramTileOffset = int(strVramTileOffset,16)
       elif(line.startswith('cantDosTiles:')):
-        strCantDosTiles = line[13:].strip()
+        strCantDosTiles = line[len('cantDosTiles:'):].strip()
         self.cantDosTiles = int(strCantDosTiles,16)
       elif(line.startswith('offsetBank8:')):
-        strOffsetBank8 = line[12:].strip()
+        strOffsetBank8 = line[len('offsetBank8:'):].strip()
         self.offsetBank8 = int(strOffsetBank8,16)
       elif(line.startswith('addrRaro:')):
-        strAddrRaro = line[9:].strip()
+        strAddrRaro = line[len('addrRaro:'):].strip()
         self.addrRaro = int(strAddrRaro,16)
       elif(line.startswith('addrDosTiles:')):
-        strAddrDosTiles = line[13:].strip()
+        strAddrDosTiles = line[len('addrDosTiles:'):].strip()
         self.addrDosTiles = int(strAddrDosTiles,16)
       elif(line.startswith('patasSepa:')):
-        strPatasSepa = line[10:].strip()
+        strPatasSepa = line[len('patasSepa:'):].strip()
         self.patasSepa = int(strPatasSepa,16)
       elif(line.startswith('muevePatas:')):
-        strMuevePatas = line[11:].strip()
+        strMuevePatas = line[len('muevePatas:'):].strip()
         self.muevePatas = int(strMuevePatas,16)
       elif(line.startswith('nose7:')):
-        strNose7 = line[6:].strip()
+        strNose7 = line[len('nose7:'):].strip()
         self.nose7 = int(strNose7,16)
       elif(line.startswith('nose8:')):
-        strNose8 = line[6:].strip()
+        strNose8 = line[len('nose8:'):].strip()
         self.nose8 = int(strNose8,16)
       elif(line.startswith('nose9:')):
-        strNose9 = line[6:].strip()
+        strNose9 = line[len('nose9:'):].strip()
         self.nose9 = int(strNose9,16)
       elif(line.startswith('nose10:')):
-        strNose10 = line[7:].strip()
+        strNose10 = line[len('nose10:'):].strip()
         self.nose10 = int(strNose10,16)
-      elif(line.startswith('nose11:')):
-        strNose11 = line[7:].strip()
-        self.nose11 = int(strNose11,16)
-      elif(line.startswith('nose12:')):
-        strNose12 = line[7:].strip()
-        self.nose12 = int(strNose12,16)
-      elif(line.startswith('nose13:')):
-        strNose13 = line[7:].strip()
-        self.nose13 = int(strNose13,16)
-      elif(line.startswith('nose14:')):
-        strNose14 = line[7:].strip()
-        self.nose14 = int(strNose14,16)
+      elif(line.startswith('behaviourOnHeroWalk1:')):
+        strNose11 = line[len('behaviourOnHeroWalk1:'):].strip()
+        self.behaviourOnHeroWalk1 = int(strNose11,16)
+      elif(line.startswith('behaviourOnHeroWalk2:')):
+        strNose12 = line[len('behaviourOnHeroWalk2:'):].strip()
+        self.behaviourOnHeroWalk2 = int(strNose12,16)
+      elif(line.startswith('behaviourOnVerticalSight:')):
+        strNose13 = line[len('behaviourOnVerticalSight:'):].strip()
+        self.behaviourOnVerticalSight = int(strNose13,16)
+      elif(line.startswith('behaviourOnHorizontalSight:')):
+        strNose14 = line[len('behaviourOnHorizontalSight:'):].strip()
+        self.behaviourOnHorizontalSight = int(strNose14,16)
       elif(line.startswith('nroScript:')):
         strNroScript = line[10:].strip()
         self.nroScript = int(strNroScript,16)
@@ -425,7 +430,7 @@ class Personaje:
 
   def __str__(self):
 
-    string = 'amist={:02x} stats={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.stats, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.nose11, self.nose12, self.nose13, self.nose14, self.nroScript, self.itemTesoro)
+    string = 'amist={:02x} stats={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.stats, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.behaviourOnHeroWalk1, self.behaviourOnHeroWalk2, self.behaviourOnVerticalSight, self.behaviourOnHorizontalSight, self.nroScript, self.itemTesoro)
 
     return string
 
@@ -824,7 +829,7 @@ class PersonajeStats:
     # the speed (0x01 is the faster, the higher the slower)
     self.speedSleep = 0x00
 
-    self.nose1    = 0x00
+    self.hp       = 0x00
     self.nose2    = 0x00
     self.nose3    = 0x00
     self.nose4    = 0x00
@@ -843,7 +848,7 @@ class PersonajeStats:
   def decodeRom(self, subArray):
 
     self.speedSleep = subArray[0] 
-    self.nose1    = subArray[1]
+    self.hp       = subArray[1]
     self.nose2    = subArray[2]
     self.nose3    = subArray[3]
     self.nose4    = subArray[4]
@@ -861,7 +866,7 @@ class PersonajeStats:
     array = []
 
     array.append(self.speedSleep)
-    array.append(self.nose1)
+    array.append(self.hp)
     array.append(self.nose2)
     array.append(self.nose3)
     array.append(self.nose4)
@@ -893,7 +898,7 @@ class PersonajeStats:
 
     lines.append('nroStats:         {:02x}'.format(self.nroStats))
     lines.append('speedSleep:       {:02x}'.format(self.speedSleep))
-    lines.append('nose1:            {:02x}'.format(self.nose1))
+    lines.append('hp:               {:02x}'.format(self.hp))
     lines.append('nose2:            {:02x}'.format(self.nose2))
     lines.append('nose3:            {:02x}'.format(self.nose3))
     lines.append('nose4:            {:02x}'.format(self.nose4))
@@ -918,9 +923,9 @@ class PersonajeStats:
       elif(line.startswith('speedSleep:')):
         strSpeed = line[len('speedSleep:'):].strip()
         self.speedSleep = int(strSpeed,16)
-      elif(line.startswith('nose1:')):
-        strNose1 = line[len('nose1:'):].strip()
-        self.nose1 = int(strNose1,16)
+      elif(line.startswith('hp:')):
+        strHp = line[len('hp:'):].strip()
+        self.hp = int(strHp,16)
       elif(line.startswith('nose2:')):
         strNose2 = line[len('nose2:'):].strip()
         self.nose2 = int(strNose2,16)
@@ -959,7 +964,7 @@ class PersonajeStats:
         self.maybeGP = int(strMaybeGP,16)
 
   def __str__(self):
-    string = ' speed={:02x} {:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.nose1, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.vulnerability, self.nose6, self.projectile, self.nose7, self.statusInflicting, self.maybeExp, self.maybeGP)
+    string = ' speed={:02x} hp={:02x} {:02x} {:02x} {:02x} DP?={:02x} AP?={:02x} {:02x} {:02x} {:02x} {:02x} {:02x} Exp?={:02x} GP?={:02x}'.format(self.speedSleep, self.hp, self.nose2, self.nose3, self.nose4, self.maybeDP, self.maybeAP, self.vulnerability, self.nose6, self.projectile, self.nose7, self.statusInflicting, self.maybeExp, self.maybeGP)
 
     return string + ' ' + mystic.variables.personajes[self.nroStats] + '?'
 

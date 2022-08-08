@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.7'
+VERSION = '0.95.8'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -188,10 +188,16 @@ def testPlayground():
 #  print('string: ' + string)
 
 
-#  print('exportando scripts...')
-#  mystic.romSplitter.exportScripts()
-#  print('importando scripts...')
-#  mystic.romSplitter.burnScripts('./en/scripts/scripts.txt')
+#  print('exportando mscripts...')
+#  mystic.romSplitter.exportMScripts()
+#  print('importando mscripts...')
+#  mystic.romSplitter.burnMScripts('./en/scripts/scripts.txt')
+
+
+#  print('exportando jscripts...')
+#  mystic.romSplitter.exportJScripts()
+#  print('importando jscripts...')
+#  mystic.romSplitter.burnJScripts('./en/scripts/jscripts.js')
 
   # exporto intro.txt
 #  mystic.romSplitter.exportIntro()
@@ -327,7 +333,7 @@ def testPlayground():
 
   # exporto los personajes
 #  print('exportando personajes...')
-  mystic.romSplitter.exportPersonajes()
+#  mystic.romSplitter.exportPersonajes()
 #  print('importando personajes...')
 #  personajes = mystic.romSplitter.burnPersonajes('./en/personajes/personajes.txt')
 
@@ -492,12 +498,12 @@ def testPlayground():
 #    print('pers: ' + str(pers))
 
 
-#  basePath = './en'
+  basePath = './en'
   # exporto nueva rom
 #  mystic.romSplitter.exportRom(basePath + '/newRom.gb')
 
-  pathStock = './stockRoms/en.gb'
-  pathNew = './en/newRom.gb'
+#  pathStock = './stockRoms/en.gb'
+#  pathNew = './en/newRom.gb'
 
 #  print('comparando ' + pathStock + ' con ' + pathNew)
 #  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
@@ -662,8 +668,10 @@ def main(argv):
     # exporto la magia, items y weapons
     mystic.romSplitter.exportItems()
 
-    print('exportando scripts...')
-    mystic.romSplitter.exportScripts()
+#    print('exportando mscripts...')
+#    mystic.romSplitter.exportMScripts()
+    print('exportando jscripts...')
+    mystic.romSplitter.exportJScripts()
 
     # exporto todos los mapas
     mystic.romSplitter.exportMapas(exportPngFile=True)
@@ -756,8 +764,11 @@ def main(argv):
 #    mystic.romSplitter.burnMapas(basePath + '/mapas/mapas.txt')
     mystic.romSplitter.burnMapasTiled()
 
-    print('quemando scripts...')
-    mystic.romSplitter.burnScripts(basePath + '/scripts/scripts.txt')
+#    print('quemando mscripts...')
+#    mystic.romSplitter.burnMScripts(basePath + '/scripts/mscripts.txt')
+    print('quemando jscripts...')
+    mystic.romSplitter.burnJScripts(basePath + '/scripts/jscripts.js')
+
 
     print('quemando songs...')
     # trata de mantener compatibilidad binaria con la rom original
@@ -769,6 +780,8 @@ def main(argv):
 
     # exporto la gbs rom con música
     mystic.romSplitter.exportGbsRom(basePath+'/audio.gb')
+
+    mystic.romSplitter.fixChecksums()
 
     # exporto nueva rom
     mystic.romSplitter.exportRom(basePath + '/newRom.gb')
