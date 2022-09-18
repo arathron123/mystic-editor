@@ -28,7 +28,80 @@ projectiles = {}
 for i in range(0,40):
   projectiles[i] = 'proj_{:02x}'.format(i)
 
+# diccionario de proyectiles del heroe
+hero_projectiles = {}
+hero_projectiles[0] = 'hero_SWORD'
+hero_projectiles[1] = 'hero_KAMEHAMEHA'
+hero_projectiles[2] = 'hero_FIRE'
+hero_projectiles[3] = 'hero_ICE'
+hero_projectiles[4] = 'hero_FIRE1'
+hero_projectiles[5] = 'hero_FIRE2'
+hero_projectiles[6] = 'hero_ICE1'
+hero_projectiles[7] = 'hero_ICE2'
+hero_projectiles[8] = 'hero_ICE3'
+hero_projectiles[9] = 'hero_ICE4'
+hero_projectiles[10] = 'hero_CURE1'
+hero_projectiles[11] = 'hero_CURE2'
+hero_projectiles[12] = 'hero_CURE3'
+hero_projectiles[13] = 'hero_CURE4'
+hero_projectiles[14] = 'hero_PURE'
+hero_projectiles[15] = 'hero_PURE1'
+hero_projectiles[16] = 'hero_PURE2'
+hero_projectiles[17] = 'hero_PURE3'
+hero_projectiles[18] = 'hero_PURE4'
+hero_projectiles[19] = 'hero_BLANK'
+hero_projectiles[20] = 'hero_SLEEP1'
+hero_projectiles[21] = 'hero_SLEEP2'
+hero_projectiles[22] = 'hero_SLEEP3'
+hero_projectiles[23] = 'hero_SLEEP4'
+hero_projectiles[24] = 'hero_MUTE1'
+hero_projectiles[25] = 'hero_MUTE2'
+hero_projectiles[26] = 'hero_MUTE3'
+hero_projectiles[27] = 'hero_MUTE4'
+hero_projectiles[28] = 'hero_NUKE1'
+hero_projectiles[29] = 'hero_NUKE2'
+hero_projectiles[30] = 'hero_THUNDER1'
+hero_projectiles[31] = 'hero_THUNDER2'
+hero_projectiles[32] = 'hero_THUNDER3'
+hero_projectiles[33] = 'hero_AXE'
+hero_projectiles[34] = 'hero_CHAIN'
+hero_projectiles[35] = 'hero_CHAIN1'
+hero_projectiles[36] = 'hero_CHAIN2'
+hero_projectiles[37] = 'hero_CHAIN3'
+hero_projectiles[38] = 'hero_CHAIN4'
+hero_projectiles[39] = 'hero_SICKLE'
+hero_projectiles[40] = 'hero_SICKLE1'
+hero_projectiles[41] = 'hero_SPEAR1'
+hero_projectiles[42] = 'hero_SPEAR2'
+hero_projectiles[43] = 'hero_MORNINGSTAR'
+hero_projectiles[44] = 'hero_MATTOCK'
+hero_projectiles[45] = 'hero_MATTOCK1'
+hero_projectiles[46] = 'hero_MATTOCK2'
+hero_projectiles[47] = 'hero_MATTOCK3'
 
+hero_projs_animation_type = ['type_EXPLOSION',
+                             'type_SWORD',
+                             'type_AXE',
+                             'type_CHAIN',
+                             'type_SICKLE',
+                             'type_SPEAR',
+                             'type_MORNINGSTAR',
+                             'type_NOTHING',
+                             'type_CURE',
+                             'type_PURE',
+                             'type_MUTE',
+                             'type_SLEEP',
+                             'type_FIRE',
+                             'type_ICE',
+                             'type_THUNDER',
+                             'type_NUKE'
+                            ]
+
+# diccionario de behaviours de hero_projectiles
+hero_projs_behavs = {}
+#for i in range(0,110):
+for i in range(0,114):
+  hero_projs_behavs[i] = 'behav_{:03}'.format(i)
 
 #self.equipamiento = {}
 # 0x09 empieza los items de items
@@ -65,7 +138,7 @@ items.append('1a 94 50')
 items.append('1b 8a 8e')
 items.append('1c 8a 8f')
 items.append('1d da d0')
-items.append('1e ff c6')
+items.append(' Mirror')
 items.append('1f db c8')
 items.append('20 c8 cb')
 items.append('💧Amanda')

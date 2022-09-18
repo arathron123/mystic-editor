@@ -33,4 +33,51 @@ class SoundNote:
   """ represents an instruction of mini-sound """
 
 
+# there are some of the firsts sound effects
 
+#00 = no sound
+#01 = slide sword
+#02 = straight sword
+#03 = fire
+#04 = break wall/open cave ?
+#05 = cure
+#06 = switch activated
+#07 = choco-cuack
+#08 = kamehameha
+#09 = strange 
+#0a = strange-heal?
+#0b = enemy defeated
+#0c = fall
+#0d = enemy hit
+#0e = error
+#0f = open chest
+#10 = open door
+#11 = open large door
+#12 = item select
+#13 = heal?
+#14 = open door quick
+#15 = shield blocking
+#16 = bowbow working
+#17 = airship flying
+#18 = switch ok
+#19 = broken wall
+#1a = close door?
+#1b = slide sword special
+#1c = straight sword 2?
+#1d = chain
+#1e = sickle?
+#1f = morning star
+#20 = defeated
+#21 = straight sword special
+#22 = mute?
+#23 = strange up
+#24 = strange down
+#25 = fire attacked
+#26 = waterfall?
+#27 = mute?
+#28 = fire? mute? shake?
+#29 = mute?
+#2a = water? doorway?
+#2b = mute?
+#2e = water switch?
+#30 = activate something?

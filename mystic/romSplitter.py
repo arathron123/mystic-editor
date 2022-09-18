@@ -21,11 +21,16 @@ import mystic.ippy
 # los bancos
 banks = []
 # los cinco tilesets
-tilesets = []
+#tilesets = []
+tilesets = None
 # los cinco spriteSheets
 spriteSheets = []
 # los mapas
 #mapas = None
+
+tilesetsOffsetsBank8 = [0x10000, 0x11000, 0x12000, 0x13000, 0xC000]
+# the base tile of each tileset is the offsetBank8/16
+baseTiles = [off//0x10 for off in tilesetsOffsetsBank8]
 
 
 def getVal(bank, offset):
@@ -139,7 +144,7 @@ def fixChecksums():
     c = bank0[i]
     checksum -= c + 1
   headerChecksum = checksum & 0xFF
-  print('setting headerChecksum (previous: {:02x}   now: {:02x})'.format(prevHeaderChecksum, headerChecksum))
+  print('setting headerChecksum (before: {:02x}   now: {:02x})'.format(prevHeaderChecksum, headerChecksum))
   bank0[0x014d] = headerChecksum
 
   globalChecksum = 0
@@ -151,7 +156,7 @@ def fixChecksums():
   for bank in mystic.romSplitter.banks:
     globalChecksum = (globalChecksum + sum(bank)) & 0xFFFF
 
-  print('setting globalChecksum (previous: {:04x} now: {:04x})'.format(prevGlobalChecksum, globalChecksum))
+  print('setting globalChecksum (before: {:04x} now: {:04x})'.format(prevGlobalChecksum, globalChecksum))
 #  bank0[0x014E] = globalChecksum >> 8
 #  bank0[0x014F] = globalChecksum & 0xFF
   bank0[0x014E] = globalChecksum // 0x100
@@ -448,7 +453,7 @@ def burnFont():
 
   mystic.romSplitter.burnBank(8, 0x1000*2+7*0x100, array)
 
-def exportTilesets():
+def exportTilesetsOld():
   """ exporta los cinco tilesets """
 
   basePath = mystic.address.basePath
@@ -488,10 +493,56 @@ def exportTilesets():
       mystic.romStats.appendDato(0x0b, 0x0000, 0x0d00, (rr, gg, bb), 'un tileset')
 
     tileset.exportPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
+    tileset.exportTiledXml(path + '/tileset_{:02}.tsx'.format(nroTileset))
 
     mystic.romSplitter.tilesets.append(tileset)
 
+ 
+def exportTilesets():
+  """ exporta el tilesets.png """
+
+  basePath = mystic.address.basePath
+  path = basePath + '/tilesets'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  tileset = mystic.tileset.Tileset(16,16*4*5)
+
+  array = []
+  # we make an array joining banks 8,9,10,11,12
+  for i in range(8,13):
+    banco = mystic.romSplitter.banks[i]
+    array.extend(banco)
+
+  array = array[0:0x1000*4*5]
+  # and decode it as a big tileset
+  tileset.decodeRom(array)
+  tileset.exportPngFile(path + '/tilesets.png')
+  tileset.exportTiledXml(path + '/tilesets.tsx')
+
+  # set the tilesets on the romSplitter
+  mystic.romSplitter.tilesets = tileset
+
+
 def burnTilesets():
+
+  basePath = mystic.address.basePath
+  path = basePath + '/tilesets'
+
+  tileset = mystic.tileset.Tileset(16,16*4*5)
+  tileset.importPngFile(path + '/tilesets.png')
+  array = tileset.encodeRom()
+
+  # we burn the tilesets into the banks (skipping the disabled tiles)
+  mystic.romSplitter.burnBank(8, 0x1A00, array[0x1A00:0x4000])
+  mystic.romSplitter.burnBank(9, 0x0900, array[0x4900:0x4000*2])
+  mystic.romSplitter.burnBank(10, 0x0000, array[0x4000*2:0x4000*3])
+  mystic.romSplitter.burnBank(11, 0x0000, array[0x4000*3:0x4000*4])
+  mystic.romSplitter.burnBank(12, 0x0000, array[0x4000*4:0x4000*5])
+
+def burnTilesetsOld():
 
   basePath = mystic.address.basePath
   path = basePath + '/tilesets'
@@ -525,17 +576,18 @@ def burnSpriteSheets():
 
     sheet = mystic.spriteSheet.SpriteSheet(16,8,nroSpriteSheet,sheetNames[nroSpriteSheet])
 
-    filepath = path + '/sheet_{:02x}.txt'.format(nroSpriteSheet)
-#    print('filepath: ' + filepath)
+    # decode from the .txt
+#    filepath = path + '/sheet_{:02x}.txt'.format(nroSpriteSheet)
+#    f = open(filepath, 'r', encoding="utf-8")
+#    lines = f.readlines()
+#    f.close()
+#    sheet.decodeTxt(lines)
 
-    f = open(filepath, 'r', encoding="utf-8")
-    lines = f.readlines()
-    f.close()
-
-    sheet.decodeTxt(lines)
+    filepath = path + '/sheet_{:02x}.tmx'.format(nroSpriteSheet)
+    sheet.importTiledXml(filepath)
 
     array = sheet.encodeRom()
-#    strArray = mystic.util.strHexa(array)
+    strArray = mystic.util.strHexa(array)
 #    print('array: ' + strArray)
 
     nroBank,addr = mystic.address.spriteSheetsAddr[nroSpriteSheet]
@@ -580,13 +632,16 @@ def exportSpriteSheets():
 
     lines = sheet.encodeTxt()
     string = '\n'.join(lines)
-    f = open(basePath + '/spriteSheets/sheet_{:02}.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
+    f = open(basePath + '/spriteSheets/sheet_{:02}_noedit.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
     f.write(string)
     f.close()
 
-    sheet.exportPngFile(basePath + '/spriteSheets/sheet_{:02}.png'.format(nroSpriteSheet))
+    sheet.exportPngFile(basePath + '/spriteSheets/sheet_{:02}_noedit.png'.format(nroSpriteSheet))
 
-    sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+#    sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+#    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}'.format(nroSpriteSheet))
+    sheet.exportJs(basePath + '/spriteSheets/sheet_{:02}.js'.format(nroSpriteSheet))
 
 
 def exportWindows():
@@ -673,7 +728,7 @@ def exportPersonajeStats(personajes):
     # lo creo
     os.makedirs(path)
 
-  f = open(path + '/personajeStats.txt', 'w', encoding="utf-8")
+  f = open(path + '/personajeStats_noedit.txt', 'w', encoding="utf-8")
 
   bank = mystic.romSplitter.banks[0x03]
 
@@ -703,6 +758,85 @@ def exportPersonajeStats(personajes):
   bb = random.randint(0,0xff)
   mystic.romStats.appendDato(0x03, 0x19fe, 0x19fe+length, (rr, gg, bb), 'personajes stats')
 
+def exportPersonajeStatsJs(personajes):
+  """ exporta los stat de los personajes """
+
+#  print('--- 3:19fe')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/personajes'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  bank = mystic.romSplitter.banks[0x03]
+
+  # la data del json
+  data = []
+
+  for i in range(0,0x62):
+    subArray = bank[0x19fe + i*14: 0x19fe + (i+1)*14]
+#    strArray = mystic.util.strHexa(subArray)
+#    print('strArray: ' + strArray)
+
+    stats = mystic.personaje.PersonajeStats(i)
+    stats.decodeRom(subArray)
+
+
+    # for all the personajes that use this stat
+    pers = [per for per in personajes.personajes if per.stats == stats.nroStats]
+    # get all their names
+    names = []
+    for per in pers:
+      name = mystic.variables.personajes[per.nroPersonaje]
+      names.append(name)
+
+    subData = {}
+    subData['comments'] = str(names)
+    subData['nroStats'] = '{:02x}'.format(stats.nroStats)
+    subData['speedSleep'] = '{:02x}'.format(stats.speedSleep)
+    subData['hp'] = '{:02x}'.format(stats.hp)
+    subData['nose2'] = '{:02x}'.format(stats.nose2)
+    subData['nose3'] = '{:02x}'.format(stats.nose3)
+    subData['nose4'] = '{:02x}'.format(stats.nose4)
+    subData['maybeDP'] = '{:02x}'.format(stats.maybeDP)
+    subData['maybeAP'] = '{:02x}'.format(stats.maybeAP)
+    subData['vulnerability'] = '{:02x}'.format(stats.vulnerability)
+    subData['nose6'] = '{:02x}'.format(stats.nose6)
+    subData['projectile'] = '{:02x}'.format(stats.projectile)
+    subData['nose7'] = '{:02x}'.format(stats.nose7)
+    subData['statusInflicting'] = '{:02x}'.format(stats.statusInflicting)
+    subData['maybeExp'] = '{:02x}'.format(stats.maybeExp)
+    subData['maybeGP'] = '{:02x}'.format(stats.maybeGP)
+
+    data.append(subData)
+
+  import json
+#  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+#  print('strPers: \n' + strJson)
+
+#  f = open(filepath, 'w', encoding="utf-8")
+#  f.write(strJson)
+#  f.close()
+
+  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/personajeStats.js', 'w', encoding="utf-8")
+  f.write('personajeStats = \n' + strJson)
+  f.close()
+
+
+  length = 14*len(data)
+  import random
+  rr = random.randint(0,0xff)
+  gg = random.randint(0,0xff)
+  bb = random.randint(0,0xff)
+  mystic.romStats.appendDato(0x03, 0x19fe, 0x19fe+length, (rr, gg, bb), 'personajes stats')
+
+
 
 def burnPersonajeStats(filepath):
   """ quema las stats de los personajes en la rom """
@@ -730,6 +864,54 @@ def burnPersonajeStats(filepath):
     subLines.append(line)
   stats = mystic.personaje.PersonajeStats(i)
   stats.decodeTxt(subLines)
+
+  array = []
+  for stats in personajeStatuses:
+#    print('stats: ' + str(stats)) 
+    subArray = stats.encodeRom()
+    array.extend(subArray)
+
+  mystic.romSplitter.burnBank(0x3, 0x19fe, array)
+
+
+
+def burnPersonajeStatsJs(filepath):
+  """ quema las stats de los personajes en la rom """
+  
+  personajeStatuses = []
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+  import json
+  jsonPer = json.loads(data)
+
+  i = 0
+  for p in jsonPer:
+#    print('p: ' + str(p))
+    pers = mystic.personaje.PersonajeStats(i)
+    pers.nroStats = int(p['nroStats'],16)
+    pers.speedSleep = int(p['speedSleep'],16)
+    pers.hp = int(p['hp'],16)
+    pers.nose2 = int(p['nose2'],16)
+    pers.nose3 = int(p['nose3'],16)
+    pers.nose4 = int(p['nose4'],16)
+    pers.maybeDP = int(p['maybeDP'],16)
+    pers.maybeAP = int(p['maybeAP'],16)
+    pers.vulnerability = int(p['vulnerability'],16)
+    pers.nose6 = int(p['nose6'],16)
+    pers.projectile = int(p['projectile'],16)
+    pers.nose7 = int(p['nose7'],16)
+    pers.statusInflicting = int(p['statusInflicting'],16)
+    pers.maybeExp = int(p['maybeExp'],16)
+    pers.maybeGP = int(p['maybeGP'],16)
+
+    personajeStatuses.append(pers)
+    i += 1
 
   array = []
   for stats in personajeStatuses:
@@ -802,6 +984,646 @@ def burnBosses(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMin
   array = bosses.encodeRom()
   mystic.romSplitter.burnBank(0x4, 0x0739, array)
 
+
+def exportHeroProjectiles():
+  """ exporta database de las armas y magia que usa el heroe """
+
+#  print('--- 1:1dcd')
+#  print('--- 1:20ff')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/projectiles'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  bank = mystic.romSplitter.banks[0x01]
+
+  heroProjs = {}
+
+  weaponAnims = []
+  addrWeaponAnims = 0x1dcd
+  for i in range(0,16):
+    weaponAnim = {}
+    data = bank[addrWeaponAnims+i]
+#    print('data: {:02x} '.format(data) + mystic.variables.armas[i])
+    weaponAnim['comment'] = mystic.variables.armas[i].encode('ascii', 'ignore').decode()
+    weaponAnim['stageType'] = '{:02x}'.format(data)
+    weaponAnims.append(weaponAnim)
+
+
+  magicItemsAnims = []
+  addrMagicItemsAnims = 0x1ddd
+  for i in range(0,8*8):
+    magicItemAnim = {}
+    data = bank[addrMagicItemsAnims+i]
+    if(i < 8):
+      label = mystic.variables.magias[i].encode('ascii', 'ignore').decode()
+    else:
+      label = mystic.variables.items[i-8].encode('ascii', 'ignore').decode()
+#    print('data: {:02x} '.format(data) + label)
+    magicItemAnim['comment'] = label
+    magicItemAnim['stageType'] = '{:02x}'.format(data)
+    magicItemsAnims.append(magicItemAnim)
+
+  tmpTableTypes = []
+
+  addrTableTypes = 0x1e1d
+  for j in range(0,6):
+#    print('----')
+    row = []
+    for i in range(0,16):
+      addr = bank[16*2*j + addrTableTypes + 2*i+1]*0x100 + bank[16*2*j + addrTableTypes + 2*i]
+      strAddr = '{:04x}'.format(addr)
+#      print('addr: ' + strAddr )
+      row.append(strAddr)
+    tmpTableTypes.append(row)
+
+
+  behavs = []
+  cmds = []
+  startAddr = 0x299f
+  i = 0
+  behav = None
+  nroBehav = 0
+  behav = None
+  nextSound = True
+  thrownAxe = False
+  turnoHero = True
+  while(i < 3226):
+    val = bank[startAddr+i]
+#    print('val: {:02x}'.format(val))
+
+    if(nextSound):
+
+      if(behav != None):
+        behavs.append(behav)
+#        print('behav: ' + str(behav))
+
+      nextSound = False
+      sound = val
+#      print('------ sound: {:02x}'.format(sound))
+
+
+      behav = {}
+      behav['nroBehav'] = '{:02x}'.format(nroBehav)
+      behav['comment'] = mystic.variables.hero_projs_behavs[nroBehav]
+      behav['vaPorAddr'] = '{:04x}'.format(startAddr+i+2)
+      behav['sound'] = '{:02x}'.format(sound)
+      behav['cmds'] = []
+
+      nroBehav += 1
+
+
+
+    else:
+
+      if(turnoHero and not thrownAxe):
+        heroSpriteAction = val
+#        print('heroAction: {:02x}'.format(heroSpriteAction))
+        behav['cmds'].append('heroAction: {:02x}'.format(heroSpriteAction))
+
+        turnoHero = False
+
+        action = heroSpriteAction % 0x10
+        # if thrown axe
+        if(action == 0x4):
+          thrownAxe = True
+
+
+          i += 1
+          speed = bank[startAddr+i]
+#          print('speed: {:02x}'.format(speed))
+          behav['cmds'].append('speed: {:02x}'.format(speed))
+
+
+      # sino, es el turno del proyectil
+      else:
+        projSprite = val
+
+        turnoHero = True
+
+        if(projSprite != 0x00):
+
+          i += 1
+          yy = bank[startAddr+i]
+
+          i += 1
+          xx = bank[startAddr+i]
+          vaPorAddr = startAddr + i - 2 + 0x4000
+#          print('projSprite,yy,xx: {:02x}({:02x},{:02x})   vaPorAddr: {:04x}'.format(projSprite,yy,xx,vaPorAddr))
+          behav['cmds'].append('projSprite,yy,xx: {:02x}({:02x},{:02x})'.format(projSprite,yy,xx))
+        else:
+#          print('projSprite: {:02x}'.format(projSprite))
+          behav['cmds'].append('END')
+          nextSound = True
+          thrownAxe = False
+
+
+    i += 1
+
+  # agrego el último behaviour
+  behavs.append(behav)
+
+
+
+  projs = []
+
+  for i in range(0,48):
+
+    heroProj = {}
+    subArray = bank[0x20ff+42*i:0x20ff+42*(i+1)]
+
+    heroProj['nroProjectil'] = '{:02x}'.format(i)
+    heroProj['comment'] = mystic.variables.hero_projectiles[i]
+    heroProj['vaPorAddr'] = '{:04x}'.format(0x20ff+42*i)
+
+    heroProj['speedSleep'] = '{:02x}'.format(subArray[0])
+    heroProj['attack'] = '{:02x}'.format(subArray[1])
+    heroProj['vramSlot'] = '{:02x}'.format(subArray[2])
+
+    heroProj['noseBytes'] = ['{:02x}'.format(nro) for nro in subArray[3:6]]
+
+    offsetBank7 = subArray[7]*0x100 + subArray[6]
+#    print('offsetBank7: {:04x}'.format(offsetBank7))
+    heroProj['offsetBank7'] = '{:04x}'.format(offsetBank7)
+
+    addrLoco = subArray[9]*0x100 + subArray[8]
+#    print('addrLoco: {:04x}'.format(addrLoco))
+    heroProj['addrSortTiles'] = '{:04x}'.format(addrLoco)
+
+    addrs = []
+    for j in range(0,4):
+      addr = subArray[11+j*2]*0x100 + subArray[11+j*2-1]
+      comment = '{:04x}'.format(addr)
+      for behav in behavs:
+        behavAddr = int(behav['vaPorAddr'],16) + 0x4000
+        if(behavAddr == addr):
+          comment = behav['comment']
+      addrs.append(comment)
+    # straight attack east,west,north,south
+    heroProj['behaviourStraightAttackEastWestNorthSouth'] = addrs
+
+    addrs = []
+    for j in range(4,8):
+      addr = subArray[11+j*2]*0x100 + subArray[11+j*2-1]
+      comment = '{:04x}'.format(addr)
+      for behav in behavs:
+        behavAddr = int(behav['vaPorAddr'],16) + 0x4000
+        if(behavAddr == addr):
+          comment = behav['comment']
+      addrs.append(comment)
+    heroProj['behaviourSlideAttackEastWestNorthSouth'] = addrs
+
+    addrs = []
+    for j in range(8,12):
+      addr = subArray[11+j*2]*0x100 + subArray[11+j*2-1]
+      comment = '{:04x}'.format(addr)
+      for behav in behavs:
+        behavAddr = int(behav['vaPorAddr'],16) + 0x4000
+        if(behavAddr == addr):
+          comment = behav['comment']
+      addrs.append(comment)
+    heroProj['behaviourSpecialStraightAttackEastWestNorthSouth'] = addrs
+
+    addrs = []
+    for j in range(12,16):
+      addr = subArray[11+j*2]*0x100 + subArray[11+j*2-1]
+      comment = '{:04x}'.format(addr)
+      for behav in behavs:
+        behavAddr = int(behav['vaPorAddr'],16) + 0x4000
+        if(behavAddr == addr):
+          comment = behav['comment']
+      addrs.append(comment)
+    heroProj['behaviourSpecialSlidetAttackEastWestNorthSouth'] = addrs
+
+#    print('heroProj: ' + str(heroProj))
+    projs.append(heroProj)
+
+
+#  for i in range(0,0x299f-0x28df):
+#    sort = bank[0x28df + i]
+#    heroProjsSortTiles.append(sort)
+
+  heroProjsSortTiles = []
+  for i in range(0,16):
+    heroProjsSortTile = []
+    for j in range(0,12):
+      sort = '{:02x}'.format(bank[0x28df + i*12+j])
+      heroProjsSortTile.append(sort)
+    heroProjsSortTiles.append(heroProjsSortTile)
+
+
+
+
+
+  table_stage_types = []
+  for i in range(0,16):
+    row = {}
+    row['comment'] = mystic.variables.hero_projs_animation_type[i]
+    row['nroType'] = '{:01x}'.format(i)
+    row['stages'] = []
+#    print('------- i: {:02x} '.format(i) + mystic.variables.hero_projs_animation_type[i])
+    for j in range(0,6):
+      strAddr = tmpTableTypes[j][i]
+#      print('strAddr: ' + strAddr)
+      addr = int(strAddr,16)-0x4000
+
+      label = 'NULL'
+      for proj in projs:
+        strProjAddr = proj['vaPorAddr']
+#        print('projAddr: ' + strProjAddr)
+        projAddr = int(strProjAddr,16)
+
+        if(addr == projAddr):
+          label = proj['comment']
+#          print('lo encontró: ' + label)        
+        
+#      row['row'].append(strAddr)
+      row['stages'].append(label)
+    table_stage_types.append(row)
+
+
+
+  heroProjs['weaponAnims'] = weaponAnims
+  heroProjs['magicItemsAnims'] = magicItemsAnims
+  heroProjs['table_stage_types'] = table_stage_types
+  heroProjs['projectiles'] = projs
+  heroProjs['sortTiles'] = heroProjsSortTiles
+  heroProjs['behavs'] = behavs
+ 
+  import json
+#  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+#  print('strPers: \n' + strJson)
+
+#  f = open(filepath, 'w', encoding="utf-8")
+#  f.write(strJson)
+#  f.close()
+
+  strJson = json.dumps(heroProjs, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/heroProjs.js', 'w', encoding="utf-8")
+  f.write('heroProjs = \n' + strJson)
+  f.close()
+
+
+
+
+def burnHeroProjectiles(filepath):
+  """ quema los hero-proyectiles en la rom """
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+#  print('data: ' + data)
+
+  import json
+  jsonHeroProjs = json.loads(data)
+#  print('jsonHeroProjs: ' + str(jsonHeroProjs))
+
+  array = []
+
+
+  arrayWeaponAnims = []
+  for weaponAnim in jsonHeroProjs['weaponAnims']:
+    stageType = int(weaponAnim['stageType'],16)
+    arrayWeaponAnims.append(stageType)
+
+  magicItemsAnims = []
+  for magicItemsAnim in jsonHeroProjs['magicItemsAnims']:
+    stageType = int(magicItemsAnim['stageType'],16)
+    magicItemsAnims.append(stageType)
+
+
+
+
+  arrayProj = []
+  projectiles = jsonHeroProjs['projectiles']
+  for heroProj in projectiles:
+#    print('heroProj: ' + str(heroProj))
+    speedSleep = int(heroProj['speedSleep'],16)
+    arrayProj.append(speedSleep)
+
+    attack = int(heroProj['attack'],16)
+    arrayProj.append(attack)
+ 
+    vramSlot = int(heroProj['vramSlot'],16)
+    arrayProj.append(vramSlot) 
+ 
+    noseBytes = [int(val,16) for val in heroProj['noseBytes']]
+    arrayProj.extend(noseBytes)
+
+    offsetBank7 = int(heroProj['offsetBank7'],16)
+#    print('offsetBank7: {:04x}'.format(offsetBank7))
+    arrayProj.extend([offsetBank7%0x100, offsetBank7//0x100])
+
+    addrSortTiles = int(heroProj['addrSortTiles'],16)
+    arrayProj.extend([addrSortTiles%0x100, addrSortTiles//0x100])
+
+    for strBehav in heroProj['behaviourStraightAttackEastWestNorthSouth']:
+#      print('strBehav: ' + strBehav)
+      strAddr = None
+      for behav in jsonHeroProjs['behavs']:
+        if(behav['comment'] == strBehav):
+          strAddr = behav['vaPorAddr']
+#      print('strAddr: ' + strAddr)
+      addr = int(strAddr,16)+0x4000
+      arrayProj.extend([addr%0x100, addr//0x100])
+
+    for strBehav in heroProj['behaviourSlideAttackEastWestNorthSouth']:
+#      print('strBehav: ' + strBehav)
+      strAddr = None
+      for behav in jsonHeroProjs['behavs']:
+        if(behav['comment'] == strBehav):
+          strAddr = behav['vaPorAddr']
+      addr = int(strAddr,16)+0x4000
+      arrayProj.extend([addr%0x100, addr//0x100])
+
+    for strBehav in heroProj['behaviourSpecialStraightAttackEastWestNorthSouth']:
+#      print('strBehav: ' + strBehav)
+      strAddr = None
+      for behav in jsonHeroProjs['behavs']:
+        if(behav['comment'] == strBehav):
+          strAddr = behav['vaPorAddr']
+      addr = int(strAddr,16)+0x4000
+      arrayProj.extend([addr%0x100, addr//0x100])
+
+    for strBehav in heroProj['behaviourSpecialSlidetAttackEastWestNorthSouth']:
+#      print('strBehav: ' + strBehav)
+      strAddr = None
+      for behav in jsonHeroProjs['behavs']:
+        if(behav['comment'] == strBehav):
+          strAddr = behav['vaPorAddr']
+      addr = int(strAddr,16)+0x4000
+      arrayProj.extend([addr%0x100, addr//0x100])
+
+
+  arraySort = []
+  sortTiles = jsonHeroProjs['sortTiles']
+  for sortTile in sortTiles:
+#    print('sortTile: ' + str(sortTile))
+    tiles = [int(strTile,16) for strTile in sortTile]
+    arraySort.extend(tiles)
+
+
+  arrayBehavs = []
+  behavs = jsonHeroProjs['behavs']
+  for behav in behavs:
+    sound = int(behav['sound'],16)
+#    print('sound: {:02x}'.format(sound))
+    arrayBehavs.append(sound)
+
+    for cmd in behav['cmds']:
+      if(cmd.startswith('heroAction')):
+#        print('heroAction: ' + cmd)
+        idx0 = cmd.index(':')
+        strHeroAction = cmd[idx0+1:].strip()
+        heroAction = int(strHeroAction,16)
+        arrayBehavs.append(heroAction)
+      elif(cmd.startswith('speed')):
+#        print('speed: ' + cmd)
+        idx0 = cmd.index(':')
+        strSpeed = cmd[idx0+1:].strip()
+        speed = int(strSpeed,16)
+        arrayBehavs.append(speed)
+
+
+      elif(cmd.startswith('projSprite')):
+#        print('projSprite: ' + cmd)
+        idx0 = cmd.index(':')
+        strProjSpriteYyXx = cmd[idx0+1:].strip()
+#        print('strProjSpriteYyXx:' + strProjSpriteYyXx)
+        projSprite = int(strProjSpriteYyXx[0:2],16)
+        yy = int(strProjSpriteYyXx[3:5],16)
+        xx = int(strProjSpriteYyXx[6:8],16)
+
+        arrayBehavs.extend([projSprite,yy,xx])
+
+      elif(cmd.startswith('END')):
+#        print('END')
+        arrayBehavs.append(0x00)
+
+
+  matrixStage = []
+  for stageType in jsonHeroProjs['table_stage_types']:
+#    print('-----')
+    row = []
+    for stage in stageType['stages']:
+#      print('stage: ' + stage)
+
+      listado = [proj['comment'] for proj in projectiles]
+      if(stage in listado):
+        idx = listado.index(stage)
+        strAddr = projectiles[idx]['vaPorAddr']
+#        print('lo encontramos ' + strAddr)
+        addr = int(strAddr,16)+0x4000
+      else:
+        addr = int('0000',16)
+      row.append(addr)
+    matrixStage.append(row)
+
+
+  arrayMatrix = []
+  for j in range(0,6):
+#    print('-----')
+    for i in range(0,len(matrixStage)):
+      addr = matrixStage[i][j]
+#      print('addr: {:04x}'.format(addr))
+      addr1 = addr % 0x100
+      addr2 = addr // 0x100
+      arrayMatrix.extend([addr1,addr2])
+
+
+#      for k in range(0, len(projectiles)):
+#        proj = projectiles[k]
+#        if(proj['comment'] == stage):
+
+#          print('lo encontramos tipo: ' + )
+
+
+  array1 = []
+  # creo el array completo
+  array1.extend(arrayWeaponAnims)
+  array1.extend(magicItemsAnims)
+  array1.extend(arrayMatrix)
+  mystic.romSplitter.burnBank(0x1, 0x1dcd, array1)
+
+#  mystic.romSplitter.burnBank(0x1, 0x1dcd, arrayWeaponAnims)
+#  mystic.romSplitter.burnBank(0x1, 0x1ddd, magicItemsAnims)
+#  mystic.romSplitter.burnBank(0x1, 0x1e1d, arrayMatrix)
+
+
+  array.extend(arrayProj)
+  array.extend(arraySort)
+  array.extend(arrayBehavs)
+
+#  print('array: ' + mystic.util.strHexa(array))
+  mystic.romSplitter.burnBank(0x1, 0x20ff, array)
+
+
+
+def exportProjectilesJs():
+  """ exporta los proyectiles de los npc """
+#  print('--- 9:0479')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/projectiles'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  bank = mystic.romSplitter.banks[0x09]
+  vaPorAddr = 0x0479
+  projsAddr = vaPorAddr
+
+  npcProjs = {}
+
+  npcProjs['projectiles'] = []
+  for i in range(0,40):
+    subArray = bank[projsAddr + 16*i : projsAddr + 16*(i+1)]
+    strHexa = mystic.util.strHexa(subArray)
+#    print('addr: {:04x}'.format(projsAddr+16*i))
+
+    proj = {}
+    proj['nroProjectil'] = '{:02x}'.format(i)
+    proj['comment'] = mystic.variables.projectiles[i]
+    proj['nose1'] = '{:02x}'.format(subArray[0])
+    proj['speedSleep'] = '{:02x}'.format(subArray[1])
+    proj['nose3'] = '{:02x}'.format(subArray[2])
+    proj['nose4'] = '{:02x}'.format(subArray[3])
+    proj['nose5'] = '{:02x}'.format(subArray[4])
+    proj['nose6'] = '{:02x}'.format(subArray[5])
+    proj['vramTileOffset'] = '{:02x}'.format(subArray[6])
+    proj['cantDosTiles'] = '{:02x}'.format(subArray[7])
+
+    off_1 = subArray[8]
+    off_2 = subArray[9]
+    offsetBank8 = off_2*0x100 + off_1
+    proj['offsetBank8'] = '{:04x}'.format(offsetBank8)
+
+    addr_1 = subArray[10]
+    addr_2 = subArray[11]
+    addrSortTiles = addr_2*0x100 + addr_1
+    proj['addrSortTiles'] = '{:04x}'.format(addrSortTiles)
+
+    addr2_1 = subArray[12]
+    addr2_2 = subArray[13]
+    addrDosTiles = addr2_2*0x100 + addr2_1
+    proj['addrDosTiles'] = '{:04x}'.format(addrDosTiles)
+
+    addr3_1 = subArray[14]
+    addr3_2 = subArray[15]
+    addr3 = addr3_2*0x100 + addr3_1
+    proj['addr3'] = '{:04x}'.format(addr3)
+
+    npcProjs['projectiles'].append(proj)
+
+
+
+  length = 16*len(npcProjs['projectiles'])
+  import random
+  rr = random.randint(0,0xff)
+  gg = random.randint(0,0xff)
+  bb = random.randint(0,0xff)
+  mystic.romStats.appendDato(0x09, projsAddr, projsAddr+length, (rr, gg, bb), 'projectiles')
+
+  vaPorAddr += length
+
+  addressesSortTiles = [int(proj['addrSortTiles'],16) for proj in npcProjs['projectiles']]
+#  print('addrs: ' + str(addressesSortTiles))
+
+  projSortTilesAddr = vaPorAddr
+#  print('projSortTilesAddr: {:04x}'.format(projSortTilesAddr))
+
+  npcProjs['sortTiles'] = []
+
+  prevAddrSortTile = vaPorAddr
+  arrayTiles = []
+  nroSortTiles = 0
+  primero = True
+  dicSortAddr = {}
+  for i in range(0,120):
+
+    if(vaPorAddr+0x4000 in addressesSortTiles):
+      if(primero):
+        primero = False
+      else:
+
+        stringTile = ''
+        if(vaPorAddr+0x4000 in addressesSortTiles):
+          idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
+          stringTile = mystic.variables.projectiles[idx] + ' sort-tiles'
+        strHexa = mystic.util.strHexa(arrayTiles)
+#        print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa + '\n')
+
+        sortTiles = {}
+        comment = ''
+        if(vaPorAddr+0x4000 in addressesSortTiles):
+          idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
+          comment = mystic.variables.projectiles[idx] + ' sort-tiles'
+        sortTiles['nroSortTiles'] = nroSortTiles
+        sortTiles['comment'] = comment
+        strVaPorAddr = '{:04x}'.format(prevAddrSortTile+0x4000)
+        sortTiles['vaPorAddr'] = strVaPorAddr
+        dicSortAddr[strVaPorAddr] = nroSortTiles
+        sortTiles['tiles'] = ['{:02x}'.format(tile) for tile in arrayTiles]
+        npcProjs['sortTiles'].append(sortTiles)
+        nroSortTiles += 1
+
+        arrayTiles = []
+      prevAddrSortTile = vaPorAddr
+
+    arrayTiles.append(bank[vaPorAddr - 0x4000])
+    vaPorAddr += 1
+
+ 
+  stringTile = ''
+  if(vaPorAddr+0x4000 in addressesSortTiles):
+    idx = addressesSortTiles.index(prevAddrSortTiles+0x4000)
+    stringTile = mystic.variables.bosses[idx] + ' sort-tiles'
+  strHexa = mystic.util.strHexa(arrayTiles)
+#  print('--- sortTiles: {:04x} '.format(prevAddrSortTile) + stringTile + '\n' + strHexa + '\n')
+
+  sortTiles = {}
+  comment = ''
+  if(vaPorAddr+0x4000 in addressesSortTiles):
+    idx = addressesSortTiles.index(prevAddrSortTile+0x4000)
+    comment = mystic.variables.projectiles[idx] + ' sort-tiles'
+  sortTiles['nroSortTiles'] = nroSortTiles
+  sortTiles['comment'] = comment
+  strVaPorAddr = '{:04x}'.format(prevAddrSortTile+0x4000)
+  sortTiles['vaPorAddr'] = strVaPorAddr
+  dicSortAddr[strVaPorAddr] = nroSortTiles
+  sortTiles['tiles'] = ['{:02x}'.format(tile) for tile in arrayTiles]
+  npcProjs['sortTiles'].append(sortTiles)
+  nroSortTiles += 1
+
+
+  for proj in npcProjs['projectiles']:
+
+#    print('proj: ' + str(proj))
+    nroSortTiles = dicSortAddr[proj['addrSortTiles']]
+#    print('nroSortTile: ' + str(nroSortTile))
+    proj['nroSortTiles'] = '{:02x}'.format(nroSortTiles)
+ 
+
+  import json
+  strJson = json.dumps(npcProjs, indent=2)
+  f = open(path + '/npcProjs_noedit.js', 'w', encoding="utf-8")
+  f.write('npcProjs = \n' + strJson)
+  f.close()
+
+
+
 def exportProjectiles():
   """ exporta las explosiones y cosas que arrojan los enemigos """
 
@@ -864,9 +1686,9 @@ def exportPersonajes():
     os.makedirs(path)
 
   # si el directorio para las imágenes no existía
-  if not os.path.exists(path + '/images_noedit'):
+#  if not os.path.exists(path + '/images_noedit'):
     # lo creo
-    os.makedirs(path + '/images_noedit')
+#    os.makedirs(path + '/images_noedit')
 
   personajes = mystic.personaje.Personajes()
   # decodifico
@@ -874,11 +1696,13 @@ def exportPersonajes():
   # los codifico en txt
   lines = personajes.encodeTxt()
   # lo grabo
-  filepath = path + '/personajes.txt'
+  filepath = path + '/personajes_noedit.txt'
   f = open(filepath, 'w', encoding="utf-8")
   strTxt = '\n'.join(lines)
   f.write(strTxt)
   f.close()
+
+  personajes.exportJs(path + '/personajes.js')
 
   length = 24*len(personajes.personajes)
   import random
@@ -888,9 +1712,25 @@ def exportPersonajes():
   mystic.romStats.appendDato(0x03, 0x1f5a, 0x1f5a+length, (rr, gg, bb), 'personajes')
 
   # exporto al personajes_noedit.html
-  personajes.exportHtml()
+#  personajes.exportHtml()
 
   return personajes
+
+def burnPersonajesJs(filepath):
+  """ quema los personajes en la rom """
+
+  personajes = mystic.personaje.Personajes()
+  personajes.importJs(filepath)
+
+  array = personajes.encodeRom()
+#    mystic.util.arrayToFile(array, './game/personajes/p.bin')
+#    iguales = mystic.util.compareFiles('./game/banks/bank_03/bank_03.bin', './game/personajes/p.bin', 0x1f5a, len(array))
+#    print('iguales = ' + str(iguales))
+
+  mystic.romSplitter.burnBank(0x3, 0x1f5a, array)
+
+  return personajes
+
 
 def burnPersonajes(filepath):
   """ quema los personajes en la rom """
@@ -936,9 +1776,50 @@ def exportGrupos3Personajes():
 
   strGrupos = '\n'.join(lines)
 
-  f = open(path + '/grupos3Personajes.txt', 'w', encoding="utf-8")
+  f = open(path + '/grupos3Personajes_noedit.txt', 'w', encoding="utf-8")
   f.write(strGrupos)
   f.close()
+
+
+def exportGrupos3PersonajesJs():
+  """ exporta grupos de 3 personajes a cargar """
+
+  # 3:4456  ld de,$7142
+#  print('--- 3:3142')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/personajes'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  vaPorAddr = 0x3142
+  bank = mystic.romSplitter.banks[0x03]
+  array = bank[0x3142:]
+
+  grupos = mystic.personaje.GruposPersonajes(0x3142)
+  grupos.decodeRom(array)
+
+  grupos.exportJs(path + '/grupos3Personajes.js')
+
+
+def burnGrupos3PersonajesJs(filepath, personajes):
+  """ quema los personajes en la rom """
+
+  grupos = mystic.personaje.GruposPersonajes(0x3142)
+  grupos.importJs(filepath)
+
+  array = grupos.encodeRom(personajes)
+#    mystic.util.arrayToFile(array, './game/personajes/p.bin')
+#    iguales = mystic.util.compareFiles('./game/banks/bank_03/bank_03.bin', './game/personajes/p.bin', 0x1f5a, len(array))
+#    print('iguales = ' + str(iguales))
+
+  mystic.romSplitter.burnBank(0x3, 0x3142, array)
+
+  return grupos
+
 
 
 def burnGrupos3Personajes(filepath, personajes):
@@ -952,7 +1833,6 @@ def burnGrupos3Personajes(filepath, personajes):
   grupos.decodeTxt(lines)
 
   array = grupos.encodeRom(personajes)
-
   mystic.romSplitter.burnBank(0x3, 0x3142, array)
 
 #  mystic.util.arrayToFile(array, './game/personajes/grupos.bin')
@@ -1042,6 +1922,82 @@ def exportPersonajesAnimations():
   gg = random.randint(0,0xff)
   bb = random.randint(0,0xff)
   mystic.romStats.appendDato(0x03, 0x3b72, 0x3b72+length, (rr, gg, bb), 'personajes animations dosTiles')
+
+
+
+def exportPersonajesAnimationsJs():
+  """ exporta las animaciones doble tiles de los personajes """
+
+#  print('--- 3:3b72')
+
+  bank = mystic.romSplitter.banks[0x03]
+
+  # obtengo la lista de personajes
+  personajes = []
+  for i in range(0,191):
+    subArray = bank[0x1f5a + i*24 : 0x1f5a + (i+1)*24]
+    strSubarray = mystic.util.strHexa(subArray)
+    pers = mystic.personaje.Personaje(i)
+    pers.decodeRom(subArray)
+    personajes.append(pers)
+
+  # creo la lista de animaciones
+  animations = []
+  # recorro los personajes
+  for pers in personajes:
+    anim = pers.addrDosTiles
+    # y agrego su animación a la lista
+    animations.append(anim)
+
+  # remuevo duplicados y ordeno
+  animAddrs = sorted(set(animations))
+
+  basePath = mystic.address.basePath
+  path = basePath + '/personajes'
+
+
+  data = []
+  animCounter = 1
+  tiles = []
+  for i in range(0,371):
+
+    addr = 0x3b72+i*3
+
+    if(addr + 0x4000 in animAddrs):
+#      print('---animation' + str(animCounter))
+      animCounter += 1
+
+    subArray = bank[0x3b72 + i*3 : 0x3b72 + (i+1)*3]
+    dosTiles = mystic.tileset.DosTiles(addr)
+    dosTiles.decodeRom(subArray)
+#    print('dosTiles: ' + str(dosTiles))
+    tiles.append(dosTiles)
+
+    data.append({'attr': '{:02x}'.format(dosTiles.attr), 'tile1' : '{:02x}'.format(dosTiles.tile1), 'tile2' : '{:02x}'.format(dosTiles.tile2)})
+
+
+  length = 3*len(tiles)
+  import random
+  rr = random.randint(0,0xff)
+  gg = random.randint(0,0xff)
+  bb = random.randint(0,0xff)
+  mystic.romStats.appendDato(0x03, 0x3b72, 0x3b72+length, (rr, gg, bb), 'personajes animations dosTiles')
+
+
+  import json
+#  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+#  print('strPers: \n' + strJson)
+
+#  f = open(filepath, 'w', encoding="utf-8")
+#  f.write(strJson)
+#  f.close()
+
+  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/personajeAnims.js', 'w', encoding="utf-8")
+  f.write('personajeAnims = \n' + strJson)
+  f.close()
 
 
 def burnPersonajesAnimations(filepath):
@@ -1386,6 +2342,7 @@ def burnSongsHeaders(filepath):
 
   mystic.romSplitter.burnBank(0xf, 0x4AC7 - 0x4000, array)
 
+
 def exportSpriteSheetHero():
   """ exporta sprite sheet del heroe """
 
@@ -1396,90 +2353,185 @@ def exportSpriteSheetHero():
     # lo creo
     os.makedirs(path)
 
+  bank01 = mystic.romSplitter.banks[0x01]
+  # los tiles se unen en spritesheets según esta tabla en 1:075e
+  bankHeroSprites, addrHeroSprites = 1, 0x075e
+
+  cantidad = 22 
+  heroSpritesTable = []
+  for i in range(0,cantidad):
+    renglon = []
+    for j in range(0,16):
+      nroTile = bank01[addrHeroSprites + 16*i + j]
+#      print('{:02x}, '.format(nroTile), end='')
+      renglon.append('{:02x}'.format(nroTile))
+#    print('')
+    heroSpritesTable.append(renglon)
+
+  import json
+  # exporto a json
+  strJson = json.dumps(heroSpritesTable, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/heroSpritesTable.js', 'w', encoding="utf-8")
+  f.write('heroSpritesTable = \n' + strJson)
+  f.close()
+
+
+  # construimos el hero_noedit.png
   bank08 = mystic.romSplitter.banks[0x08]
+  # los tiles del hero comienzan en 8:1a40
+  bankHeroTiles, addrHeroTiles = 8, 0x1a40
 
   import random
   rr = random.randint(0,0xff)
   gg = random.randint(0,0xff)
   bb = random.randint(0,0xff)
   # agrego info al stats
-  mystic.romStats.appendDato(0x08, 0x1a00, 0x4000, (rr, gg, bb), 'tiles del hero')
+#  mystic.romStats.appendDato(0x08, addrHeroTiles, 0x4000, (rr, gg, bb), 'tiles del hero')
 
   tiles = []
-  for i in range(0,96 + 16*7):
-    data = bank08[0x1a00 + i*0x10:0x1a00 + (i+1)*0x10]
+  for i in range(0,204):
+    data = bank08[addrHeroTiles + i*0x10:addrHeroTiles + (i+1)*0x10]
     tile = mystic.tileset.Tile()
     tile.decodeRom(data)
     tiles.append(tile)
 
   extraTiles = []
-  for i in range(0,8):
-    extraTiles.append(tiles[i])
-  extraTiles.append(tiles[4])
-  extraTiles.append(tiles[5])
-  for i in range(8,14):
-    extraTiles.append(tiles[i])
-  extraTiles.append(tiles[10])
-  extraTiles.append(tiles[11])
-  for i in range(14,64):
-    extraTiles.append(tiles[i])
-  extraTiles.append(tiles[28]) # estos dos no se si estan bien
-  extraTiles.append(tiles[29]) #
-  extraTiles.append(tiles[64])
-  extraTiles.append(tiles[65])
+  for i in range(0,cantidad):
 
-  extraTiles.append(tiles[66]) # estos dos tampoco se
-  extraTiles.append(tiles[67]) #
-  extraTiles.append(tiles[68])
-  extraTiles.append(tiles[69])
+#    for j in range(0,8):
+#      nroTile = bank01[addrHeroSprites + 16*i+2*j]
+#      tile = tiles[nroTile]
+#      extraTiles.append(tile)
 
-  extraTiles.append(tiles[70])
-  extraTiles.append(tiles[71])
-  extraTiles.append(tiles[72])
-  extraTiles.append(tiles[73])
+#    for j in range(0,8):
+#      nroTile = bank01[addrHeroSprites + 16*i+2*j+1]
+#      tile = tiles[nroTile]
+#      extraTiles.append(tile)
 
-#  extraTiles.append(tiles[74]) # estos dos nose para que se usan
-#  extraTiles.append(tiles[75]) #
+    nroTile = bank01[addrHeroSprites + 16*i+2]
+    tile2 = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    tile2b = mystic.tileset.Tile()
+    tile2b.tileData = tile2.tileData
+    tile2b.flipX()
+    tile2 = tile2b
+    extraTiles.append(tile2)
 
-  extraTiles.append(tiles[76])
-  extraTiles.append(tiles[77])
-  extraTiles.append(tiles[78])
-  extraTiles.append(tiles[79])
+    nroTile = bank01[addrHeroSprites + 16*i+0]
+    tile0 = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    tile0b = mystic.tileset.Tile()
+    tile0b.tileData = tile0.tileData
+    tile0b.flipX()
+    tile0 = tile0b
+    extraTiles.append(tile0)
 
-  extraTiles.append(tiles[80])
-  extraTiles.append(tiles[81])
-  extraTiles.append(tiles[82])
-  extraTiles.append(tiles[83])
+    nroTile = bank01[addrHeroSprites + 16*i+4]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
 
-  extraTiles.append(tiles[84])
-  extraTiles.append(tiles[85])
-  extraTiles.append(tiles[82])
-  extraTiles.append(tiles[83])
+    nroTile = bank01[addrHeroSprites + 16*i+6]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
 
-  extraTiles.append(tiles[86])
-  extraTiles.append(tiles[87])
-  extraTiles.append(tiles[88])
-  extraTiles.append(tiles[89])
+    nroTile = bank01[addrHeroSprites + 16*i+8]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
 
-  extraTiles.append(tiles[86])
-  extraTiles.append(tiles[90])
-  extraTiles.append(tiles[88])
-  extraTiles.append(tiles[89])
+    nroTile = bank01[addrHeroSprites + 16*i+10]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
 
-  extraTiles.append(tiles[91])
-  extraTiles.append(tiles[92])
-  extraTiles.append(tiles[93])
-  extraTiles.append(tiles[94]) # el tile 95 está en blanco?
- 
-  for i in range(96,96+16*7):
-    extraTiles.append(tiles[i])
+    nroTile = bank01[addrHeroSprites + 16*i+12]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
 
-  tileset = mystic.tileset.Tileset(2,2*(26+28))
+    nroTile = bank01[addrHeroSprites + 16*i+14]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+3]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    tile2 = mystic.tileset.Tile()
+    tile2.tileData = tile.tileData
+    tile2.flipX()
+    extraTiles.append(tile2)
+
+    nroTile = bank01[addrHeroSprites + 16*i+1]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    tile2 = mystic.tileset.Tile()
+    tile2.tileData = tile.tileData
+    tile2.flipX()
+    extraTiles.append(tile2)
+
+    nroTile = bank01[addrHeroSprites + 16*i+5]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+7]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+9]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+11]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+13]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+    nroTile = bank01[addrHeroSprites + 16*i+15]
+    tile = tiles[nroTile] if nroTile != 0xff else mystic.tileset.Tile()
+    extraTiles.append(tile)
+
+  tileset = mystic.tileset.Tileset(8,2*cantidad)
 #  tileset = mystic.tileset.Tileset(2,48)
 #  tileset.tiles = [tile0, tile1, tile2, tile3]
 #  tileset.tiles = tiles
   tileset.tiles = extraTiles
-  tileset.exportPngFile(path + '/hero.png')
+  tileset.exportPngFile(path + '/hero_noedit.png')
+
+
+def burnSpriteSheetHero():
+
+  basePath = mystic.address.basePath
+  path = basePath + '/spriteSheetHero'
+
+  filepath = path + '/heroSpritesTable.js'
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+#  print('data: ' + data)
+
+
+  import json
+  jsonHero = json.loads(data)
+
+#  print('jsonHero: ' + str(jsonHero))
+
+  array = []
+  for renglon in jsonHero:
+#    print('renglon: ' + str(renglon))
+    subArray = [int(val,16) for val in renglon]
+    array.extend(subArray)
+
+
+#  for stats in personajeStatuses:
+#    subArray = stats.encodeRom()
+#    array.extend(subArray)
+
+  # los tiles se unen en spritesheets según esta tabla en 1:075e
+  bankHeroSprites, addrHeroSprites = 1, 0x075e
+  mystic.romSplitter.burnBank(bankHeroSprites, addrHeroSprites, array)
+
 
 
 def exportSpriteSheetMonster():
@@ -1863,12 +2915,14 @@ def exportMapas(exportPngFile):
   # los codifico en txt
   lines = mapas.encodeTxt()
   # lo grabo
-  filepath = path + '/mapas.txt'
+  filepath = path + '/mapas_noedit.txt'
   f = open(filepath, 'w', encoding="utf-8")
   strTxt = '\n'.join(lines)
   f.write(strTxt)
   f.close()
 
+#  mapa = mapas.mapas[0]
+#  if(True):
   # para cada mapa
   for mapa in mapas.mapas:
 
@@ -1877,18 +2931,22 @@ def exportMapas(exportPngFile):
     # lo exporto a .txt
     lines = mapa.encodeTxt()
     strMapa = '\n'.join(lines)
-    f = open(path + '/mapa_{:02}_{:02x}.txt'.format(mapa.nroMapa, mapa.nroMapa), 'w', encoding="utf-8")
+    f = open(path + '/mapa_{:02}_{:02x}_noedit.txt'.format(mapa.nroMapa, mapa.nroMapa), 'w', encoding="utf-8")
     f.write(strMapa + '\n')
     f.close()
 
     # exporto a formato .tmx para Tiled
-    mapa.exportTiled(path + '/mapa_{:02}_{:02x}.tmx'.format(mapa.nroMapa, mapa.nroMapa))
+    mapa.exportTiledXml(path + '/mapa_{:02}_{:02x}.tmx'.format(mapa.nroMapa, mapa.nroMapa))
+
+    # exporto a formato .json
+    mapa.exportJs(path + '/mapa_{:02}_{:02x}.js'.format(mapa.nroMapa, mapa.nroMapa))
 
     if(exportPngFile):
-      mapa.exportPngFile(path + '/mapa_{:02}_{:02x}.png'.format(mapa.nroMapa, mapa.nroMapa))
+      mapa.exportPngFile(path + '/mapa_{:02}_{:02x}_noedit.png'.format(mapa.nroMapa, mapa.nroMapa))
 
     # verifico volviendo a encodearlo
     subArray = mapa.encodeRom(mapa.mapAddr)
+
 #    filepath = path + '/mapa_{:02}_{:02x}.bin'.format(mapa.nroMapa, mapa.nroMapa)
 #    mystic.util.arrayToFile(subArray, filepath)
 #    iguales = mystic.util.compareFiles(basePath + '/banks/bank_{:02x}/bank_{:02x}.bin'.format(mapa.mapBank, mapa.mapBank), path + '/mapa_{:02}_{:02x}.bin'.format(mapa.nroMapa, mapa.nroMapa), mapa.mapAddr, len(subArray))
@@ -1984,11 +3042,102 @@ def burnMapas(filepath):
 
   mystic.romSplitter.burnBank(0x08, 0x0000, array)
 
-def burnMapasTiled():
+
+def burnMapasJs():
+  """ quema los mapas usando los .json """
+
+  basePath = mystic.address.basePath
+  path = basePath + '/mapas'
+
+  mapas = mystic.maps.Mapas()
+
+  # por cada mapa
+#  for i in range(0,1):
+  for i in range(0,0x10):
+
+    filepath = path + '/mapa_{:02}_{:02x}.js'.format(i,i)
+#    print('burn mapa json: ' + filepath)
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    # elimino el primer renglón (no es json)
+    lines.pop(0)
+    data = '\n'.join(lines)
+
+    import json
+    jsonMapa = json.loads(data)
+
+
+    nroMapa = int(jsonMapa['property']['nroMapa'],16)
+    nroSpriteSheet = int(jsonMapa['property']['nroSpriteSheet'],16)
+    nose = int(jsonMapa['property']['nose'],16)
+    spriteAddr = int(jsonMapa['property']['spriteAddr'],16)
+    cantSprites = int(jsonMapa['property']['cantSprites'],16)
+    mapBank = int(jsonMapa['property']['mapBank'],16)
+    mapAddr = int(jsonMapa['property']['mapAddr'],16)
+    noseAddr = int(jsonMapa['property']['noseAddr'],16)
+
+    mapa = mystic.maps.Mapa(nroMapa, nroSpriteSheet, nose, spriteAddr, cantSprites, mapBank, mapAddr, noseAddr)
+    mapa.importJs(filepath)
+    mapas.mapas.append(mapa)
+
+  # quemo los mapas en la rom
+  _burnMapas(mapas)
+
+
+def burnMapasTiledXml():
   """ quema los mapas usando los .tmx del Tiled """
 
   basePath = mystic.address.basePath
   path = basePath + '/mapas'
+
+  mapas = mystic.maps.Mapas()
+
+  # por cada mapa
+#  for i in range(0,1):
+  for i in range(0,0x10):
+
+    filepath = path + '/mapa_{:02}_{:02x}.tmx'.format(i,i)
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    data = '\n'.join(lines)
+
+    import xml.etree.ElementTree as ET
+
+    myroot = ET.fromstring(data)
+#    print(myroot[0][0].attrib)
+
+    for prop in myroot[0]:
+
+      if(prop.attrib['name'] == 'nroMapa'):
+        nroMapa = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'nroSpriteSheet'):
+        nroSpriteSheet = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'nose'):
+        nose = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'spriteAddr'):
+        spriteAddr = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'cantSprites'):
+        cantSprites = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'mapBank'):
+        mapBank = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'mapAddr'):
+        mapAddr = int(prop.attrib['value'], 16)
+      elif(prop.attrib['name'] == 'noseAddr'):
+        noseAddr = int(prop.attrib['value'], 16)
+
+    mapa = mystic.maps.Mapa(nroMapa, nroSpriteSheet, nose, spriteAddr, cantSprites, mapBank, mapAddr, noseAddr)
+    mapa.importTiledXml(filepath)
+    mapas.mapas.append(mapa)
+
+  # quemo los mapas en la rom
+  _burnMapas(mapas)
+
+
+
+def _burnMapas(mapas):
 
   # donde va el addr en cada uno de los bancos de mapas (5,6,7)
 #  vaPorBank = 0x05
@@ -1999,66 +3148,6 @@ def burnMapasTiled():
   sortMapas = [0,9, 1,15,14,10,8, 3,2,13,4,5,11,12,6,7]
 
 #  mystic.romSplitter.cleanBank(5)
-
-  mapas = mystic.maps.Mapas()
-
-  # por cada mapa
-  for i in range(0,0x10):
-#  for i in range(0,2):
-#  for i in range(0,3):
-
-    filepath = path + '/mapa_{:02}_{:02x}.tmx'.format(i,i)
-    f = open(filepath, 'r', encoding="utf-8")
-    lines = f.readlines()
-    f.close()
-
-    for line in lines:
-      if('property name="nroMapa"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        nroMapa = int(strLine, 16)
-      elif('property name="nroSpriteSheet"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        nroSpriteSheet = int(strLine, 16)
-      elif('property name="nose"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        nose = int(strLine, 16)
-      elif('property name="spriteAddr"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        spriteAddr = int(strLine, 16)
-      elif('property name="cantSprites"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        cantSprites = int(strLine, 16)
-      elif('property name="mapBank"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        mapBank = int(strLine, 16)
-      elif('property name="mapAddr"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        mapAddr = int(strLine, 16)
-      elif('property name="noseAddr"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        noseAddr = int(strLine, 16)
- 
-    print('nroMapa {:02x}, nroSpriteSheet {:02x}, nose {:02x}, spriteAddr {:04x}, cantSprites {:02x}, mapBank {:02x}, mapAddr {:04x}, noseAddr {:04x}'.format(nroMapa, nroSpriteSheet, nose, spriteAddr, cantSprites, mapBank, mapAddr, noseAddr)) 
-
-    mapa = mystic.maps.Mapa(nroMapa, nroSpriteSheet, nose, spriteAddr, cantSprites, mapBank, mapAddr, noseAddr)
-    mapa.importTiled(filepath)
-    mapas.mapas.append(mapa)
 
   # por cada mapa
   for i in range(0,0x10):
@@ -2098,7 +3187,6 @@ def burnMapasTiled():
 #    print('quedó en: {:04x}'.format(vaPorAddr))
 
 
-
   array = []
   # para cada mapa
   for nroMapa in range(0,0x10):
@@ -2122,7 +3210,6 @@ def burnMapasTiled():
     array.extend(subArray)
 
   mystic.romSplitter.burnBank(0x08, 0x0000, array)
-
 
 
 
@@ -2319,7 +3406,7 @@ def exportJScripts():
   f.close()
 
 
-  shutil.copyfile('./mystic/jscripts.html', basePath + '/jscripts.html')
+  shutil.copyfile('./mystic/__index.html', basePath + '/index.html')
   shutil.copyfile('./mystic/jscriptsEngine.js', basePath + '/jscriptsEngine.js')
 
 

@@ -216,7 +216,9 @@ class SpriteSheet:
     dibu = mystic.tileset.Tileset(2*w,2*h)
 
     # agarro el tileset para colorear
-    tileset = mystic.romSplitter.tilesets[self.nroTileset]
+#    tileset = mystic.romSplitter.tilesets[self.nroTileset]
+    tileset = mystic.romSplitter.tilesets
+    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
 
     # creo un array de tiles vacío 
     tiles = [None for i in range(0, 4*w*h)]
@@ -238,7 +240,7 @@ class SpriteSheet:
           u = 2*i + dx 
           v = 2*j + dy
 #          print('(u,v) = ' + str(u) + ', ' + str(v))
-          tiles[2*w*v + u] = tileset.tiles[sprite.tiles[k]]
+          tiles[2*w*v + u] = tileset.tiles[baseTile + sprite.tiles[k]]
 
 
     # seteo los tiles en el orden adecuado    
@@ -247,11 +249,12 @@ class SpriteSheet:
     # y exporto el .png
     dibu.exportPngFile(filepath)
 
-  def exportTiled(self, filepath):
+  def exportTiledOld(self, filepath):
+    """ deprecated, see exportTiledXmlTsx """
     lines = []
 
     lines.append('<?xml version="1.0" encoding="UTF-8"?>')
-    lines.append('<tileset version="1.5" tiledversion="1.5.0" name="' + self.name + '" tilewidth="16" tileheight="16" tilecount="128" columns="16">')
+    lines.append('<tileset version="1.9" tiledversion="1.9.0" name="' + self.name + '" tilewidth="16" tileheight="16" tilecount="128" columns="16">')
     lines.append(' <image source="sheet_{:02x}.png" width="256" height="128"/>'.format(self.nroSpriteSheet))
 #    lines.append(' <tile id="125" type="Otracosa"/>')
 #    lines.append(' <tile id="126" type="Evento"/>')
@@ -263,5 +266,211 @@ class SpriteSheet:
     f.write(strTxt)
     f.close()
 
+
+  def exportTiledXmlTsxOld(self, filepath):
+    """ deprecated, now it is exported as a metatile map, see exportTiledXml """
+
+    import xml.etree.cElementTree as ET
+
+    root = ET.Element("tileset", version='1.9', tiledversion="1.9.0", name=self.name, tilewidth="16", tileheight="16", tilecount="128", columns="16")
+
+    img = ET.SubElement(root, "image", source="sheet_{:02x}.png".format(self.nroSpriteSheet), width="256", height="128")
+
+
+    tree = ET.ElementTree(root)
+    ET.indent(root, space=" ", level=0)
+    tree.write(filepath, xml_declaration=True, encoding='utf-8')
+#    print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
+
+
+
+  def exportTiledXml(self, filepath):
+
+    width = self.w*2
+    height = self.h*2
+    # el id a ir incrementando
+    iidd = 1
+
+    import xml.etree.cElementTree as ET
+
+    root = ET.Element("map", version='1.9', tiledversion="1.9.0", orientation="orthogonal", renderorder="right-down", width=str(width), height=str(height), tilewidth="8", tileheight="8", infinite="0", nextlayerid="3", nextobjectid="14")
+
+#    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tileset_{:02x}.tsx'.format(self.nroTileset))
+    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tilesets.tsx')
+
+    layer1 = ET.SubElement(root, "layer", id=str(iidd), name="Tile Layer 1", width=str(width), height=str(height))
+    iidd += 1
+    data = ET.SubElement(layer1, "data", encoding="csv")
+
+    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
+
+    renglones = []
+    renglones.append("")
+    for j in range(0,height):
+      renglon = ''
+      for i in range(0,width):
+#        renglon += '0'
+        spritex = i//2
+        spritey = j//2
+
+        if(spritey*self.w + spritex < len(self.sprites)):
+          sprite = self.sprites[spritey*self.w + spritex]
+          nroTile = baseTile + sprite.tiles[(j%2)*2+(i%2)]
+          renglon += str(nroTile+1)
+        else:
+          sprite = None
+          nroTile = None
+          renglon += ''
+
+
+        if(i != width-1 or j != height-1):
+          renglon += ','
+      renglones.append(renglon)
+
+    renglones.append("")
+    textData = '\n'.join(renglones)
+    data.text = textData
+
+
+    objgroup1 = ET.SubElement(root, "objectgroup", color="#550000", id=str(iidd), name="Properties Layer", visible="0")
+    iidd += 1
+
+    for j in range(0,self.h):
+      for i in range(0,self.w):
+        if(j*self.w+i < len(self.sprites)):
+          sprite = self.sprites[j*self.w + i]
+          bloqueo = '{:02x}'.format(sprite.bloqueo)
+          tipo = '{:02x}'.format(sprite.tipo)
+
+          obj = ET.SubElement(objgroup1, "object", {'id':str(iidd), 'class':"Prop", 'x':str(i*2*8), 'y':str(j*2*8), 'width':"16", 'height':"16"})
+          iidd += 1
+
+          props = ET.SubElement(obj, "properties")
+          prop = ET.SubElement(props, "property", name="bloqueo", value=bloqueo)
+          prop = ET.SubElement(props, "property", name="tipo", value=tipo)
+
+
+    tree = ET.ElementTree(root)
+    ET.indent(root, space=" ", level=0)
+    tree.write(filepath + '.tmx', xml_declaration=True, encoding='utf-8')
+#    print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
+
+
+
+    # y ahora exporto el .tsx para utilizarlo como tileset de los mapas
+    root = ET.Element("tileset", version='1.9', tiledversion="1.9.0", name=self.name, tilewidth="16", tileheight="16", tilecount="128", columns="16")
+
+    img = ET.SubElement(root, "image", source="sheet_{:02x}.tmx".format(self.nroSpriteSheet), width="256", height="128")
+
+
+    tree = ET.ElementTree(root)
+    ET.indent(root, space=" ", level=0)
+    tree.write(filepath + '.tsx', xml_declaration=True, encoding='utf-8')
+#    print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
+  def importTiledXml(self, filepath):
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    data = '\n'.join(lines)
+
+    import xml.etree.ElementTree as ET
+    myroot = ET.fromstring(data)
+
+    tileData = []
+
+    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
+
+    tiles = myroot[1][0].text
+#    print('tiles: ' + tiles)
+#    tiles = tiles.strip().split(',')
+    lines = tiles.strip().split('\n\n')
+    for line in lines:
+      tiles = line.strip().split(',')
+#      print('tiles: ' + str(tiles))
+
+      renglon = []
+
+      for tile in tiles:
+        numTile = -1
+        if(len(tile)>0):
+          numTile = int(tile,10)-1 - baseTile
+        renglon.append(numTile)
+
+      tileData.append(renglon)
+
+       
+    k = 0
+    objectgroup = myroot[2]
+    for obj in objectgroup:
+
+#      print('obj: ' + str(obj))
+
+      # parseo sus propiedades
+      for prop in obj[0]:
+#        print('prop: ' + str(prop))
+        if(prop.attrib['name'] == 'bloqueo'):
+          bloqueo = prop.attrib['value']
+          bloqueo = int(bloqueo,16)
+        elif(prop.attrib['name'] == 'tipo'):
+          tipo = prop.attrib['value']
+          tipo = int(tipo,16)
+ 
+
+      sprite = mystic.spriteSheet.Sprite(self.nroTileset)
+
+      x = k%16
+      y = k//16
+
+      tile1 = tileData[2*y][2*x]
+      tile2 = tileData[2*y][2*x+1]
+      tile3 = tileData[2*y+1][2*x]
+      tile4 = tileData[2*y+1][2*x+1]
+      sprite.tiles = [tile1,tile2,tile3,tile4]
+
+      sprite.bloqueo = bloqueo
+      sprite.tipo = tipo
+
+      self.sprites.append(sprite)
+
+      k += 1
+
+
+  def exportJs(self, filepath):
+
+    # la data del json
+    data = {}
+
+    data['nroSpriteSheet'] = '{:02x}'.format(self.nroSpriteSheet)
+    data['nroTileset'] = '{:02x}'.format(self.nroTileset)
+
+    data['sprites'] = []
+
+    for sprite in self.sprites:
+      jsonSprite = {}
+      jsonSprite['tiles'] = ['{:02x}'.format(sprite.tiles[0]), '{:02x}'.format(sprite.tiles[1]), '{:02x}'.format(sprite.tiles[2]), '{:02x}'.format(sprite.tiles[3])]
+      jsonSprite['bloqueo'] = '{:02x}'.format(sprite.bloqueo)
+      jsonSprite['tipo'] = '{:02x}'.format(sprite.tipo)
+
+      data['sprites'].append(jsonSprite)
+
+
+    import json
+    strSheet = json.dumps(data, indent=2)
+#    strSheet = json.dumps(data)
+#    print('strSheet: \n' + strMapa)
+
+#    f = open(filepath, 'w', encoding="utf-8")
+#    f.write(strSheet)
+#    f.close()
+
+    strSheet = json.dumps(data, indent=2)
+#    strSheet = json.dumps(data)
+    f = open(filepath, 'w', encoding="utf-8")
+    f.write('sheet_{:02x} = \n'.format(self.nroSpriteSheet) + strSheet)
+    f.close()
 
 

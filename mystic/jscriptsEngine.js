@@ -634,8 +634,8 @@ function openChest() {
   console.log('openChest');
 }
 
-function sprite(nn,xx,yy) {
-  console.log('sprite nn=' + toHex(nn, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
+function drawSprite(nn,xx,yy) {
+  console.log('drawSprite nn=' + toHex(nn, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
 }
 
 function attackEffect(tt,xx,yy) {

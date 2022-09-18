@@ -205,21 +205,266 @@ class Mapa:
 
   def exportPngFile(self, filepath):
 
-    basePath = mystic.address.basePath
+#    basePath = mystic.address.basePath
+#    filepath = basePath + '/mapas/mapa_{:02}_{:02x}.png'.format(self.nroMapa, self.nroMapa)
 
     # agarro el spriteSheet del nroSpriteSheet indicado
     sheet = mystic.romSplitter.spriteSheets[self.nroSpriteSheet]
 
-    filepath = basePath + '/mapas/mapa_{:02}_{:02x}.png'.format(self.nroMapa, self.nroMapa)
     self.mapa.exportPngFile(filepath, sheet)
 
 
-  def exportTiled(self, filepath):
 
+  def exportJs(self, filepath):
+#    print('export json: ' + filepath)
+
+    # tipo de mapa
+    TIPO_EXTERIOR = 0
+    TIPO_INTERIOR = 1
+
+    # la data del json
+    data = {}
+
+    data['property'] = {}
+    data['property']['nroMapa'] = '{:02x}'.format(self.nroMapa)
+    data['property']['nroSpriteSheet'] = '{:02x}'.format(self.nroSpriteSheet)
+    data['property']['nose'] = '{:02x}'.format(self.nose)
+    data['property']['spriteAddr'] = '{:04x}'.format(self.spriteAddr)
+    data['property']['cantSprites'] = '{:02x}'.format(self.cantSprites)
+    data['property']['mapBank'] = '{:02x}'.format(self.mapBank)
+    data['property']['mapAddr'] = '{:04x}'.format(self.mapAddr)
+    data['property']['noseAddr'] = '{:04x}'.format(self.noseAddr)
+
+    data['property']['tipo'] = '{:02x}'.format(self.mapa.tipo)
+    data['property']['compress'] = '{:02x}'.format(self.mapa.compress)
+    data['property']['sizeY'] = '{:02x}'.format(self.mapa.sizeY)
+    data['property']['sizeX'] = '{:02x}'.format(self.mapa.sizeX)
+
+    # si el mapa es interior
+    if(self.mapa.tipo == TIPO_INTERIOR):
+      # exporto el headerLoco
+      headerLoco = self.mapa.headerLoco
+      strHeaderLoco = mystic.util.strHexa(headerLoco)
+      data['property']['headerLoco'] = strHeaderLoco
+
+    data['rooms'] = []
+
+    idxX = 0
+    idxY = 0
+#    if(True):
+    for bloque in self.mapa.bloques:
+#      bloque = self.mapa.bloques[0]
+      room = {}
+
+      room['xy'] = ['{:02x}'.format(idxX), '{:02x}'.format(idxY)]
+      idxX += 1
+      if(idxX == self.mapa.sizeX):
+        idxX = 0
+        idxY += 1
+      room['enabled'] = bloque.enabled 
+      room['eventoEntrada'] = '{:04x}'.format(bloque.eventoEntrada)
+      room['eventos'] = []
+      for pos, nroScript in bloque.listEvents:
+        evt = [ '{:02x}'.format(pos), '{:04x}'.format(nroScript) ]
+        room['eventos'].append(evt)
+      if(self.mapa.tipo == TIPO_INTERIOR):
+        room['right_left_north_south'] = [ '{:02x}'.format(door) for door in [bloque.doorRight, bloque.doorLeft, bloque.doorNorth, bloque.doorSouth]]
+
+      room['data'] = []
+
+      for j in range(0, 8):
+        renglon = []
+        for i in range(0, 10):
+          if(self.mapa.tipo == TIPO_EXTERIOR):
+            spr = bloque.sprites[j][i]
+          else:
+            spr = bloque.getSprites()[j][i]
+
+          renglon.append('{:02x}'.format(spr))
+        room['data'].append(renglon)
+
+      data['rooms'].append(room)
+
+    import json
+#    strMapa = json.dumps(data, indent=2)
+#    strMapa = json.dumps(data)
+#    print('strMapa: \n' + strMapa)
+
+#    f = open(filepath, 'w', encoding="utf-8")
+#    f.write(strMapa)
+#    f.close()
+
+    strMapa = json.dumps(data, indent=2)
+#    strMapa = json.dumps(data)
+    f = open(filepath, 'w', encoding="utf-8")
+    f.write('mapa_{:02x} = \n'.format(self.nroMapa) + strMapa)
+    f.close()
+
+
+
+  def importJs(self, filepath):
+#    print('import json: ' + filepath)
+
+    # --- tipod de mapa
+    TIPO_EXTERIOR = 0
+    TIPO_INTERIOR = 1
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    # elimino el primer renglón (no es json)
+    lines.pop(0)
+    data = '\n'.join(lines)
+
+    import json
+    jsonMapa = json.loads(data)
+
+    tipo = int(jsonMapa['property']['tipo'],16)
+    if(tipo == TIPO_EXTERIOR):
+      mapa = MapaExterior(self.nroMapa)
+    else:
+      mapa = MapaInterior(self.nroMapa)
+      headerLoco = jsonMapa['property']['headerLoco']
+      headerLoco = headerLoco.split()
+      headerLoco = [int(num,16) for num in headerLoco]
+
+    compress = int(jsonMapa['property']['compress'],16)
+    sizeY = int(jsonMapa['property']['sizeY'],16)
+    sizeX = int(jsonMapa['property']['sizeX'],16)
+
+
+
+#    self.tipo, self.compress, self.sizeX, self.sizeY = tipo, compress, sizeX, sizeY
+    mapa.tipo, mapa.compress, mapa.sizeX, mapa.sizeY = tipo, compress, sizeX, sizeY
+
+    # si es mapa exterior
+    if(tipo == TIPO_EXTERIOR):
+      # creo los bloques
+      bloques = [ [BloqueExterior() for i in range(0,sizeX)] for j in range(0,sizeY) ]
+    # sino, es mapa interior
+    else:
+      mapa.headerLoco = headerLoco
+      # creo los bloques
+      bloques = [ [BloqueInterior() for i in range(0,sizeX)] for j in range(0,sizeY) ]
+
+      # genero los sprites de fondo
+      spritesFondo = [ [0x00 for i in range(0,10)] for j in range(0,8) ]
+      # tomando como referencia el último bloque del mapa.  VOY POR ACA HAY QUE MEJORAR ESTO!!
+      lastRoom = jsonMapa['rooms'][sizeX*sizeY-1]
+      listStrSprites = lastRoom['data']
+      # recorro los sprites interiores del primer bloque
+      for v in range(0,8):
+        for u in range(0,10):
+          nroSprite = int(listStrSprites[v][u],16)
+          # si está dentro del bloque
+          if(u>0 and v>0 and u<9 and v<7):
+            # lo limpio
+            nroSprite = 0x00
+          spritesFondo[v][u] = nroSprite
+      mapa.spritesFondo = spritesFondo
+
+
+    k = 0
+    for j in range(0, sizeY):
+      for i in range(0, sizeX):
+#        print('va por bloque: ' + str(i) + ', ' + str(j))
+        bloque = bloques[j][i]
+        bloque.mapa = mapa
+
+        jsonRoom = jsonMapa['rooms'][k]
+
+        # si es mapa exterior
+        if(tipo == TIPO_EXTERIOR):
+
+          bloque.enabled = jsonRoom['enabled']
+          bloque.eventoEntrada = int(jsonRoom['eventoEntrada'], 16)
+
+          subSprites = [ [0x00 for i in range(0,10)] for j in range(0,8) ]
+          for v in range(0,8):
+            for u in range(0,10):
+#              subSprites[v][u] = listSprites[j*sizeX*10+i*10 + u]
+              subSprites[v][u] = int(jsonRoom['data'][v][u],16)
+          bloque.sprites = subSprites
+
+        # sino, es tipo interior
+        else:
+
+          bloque.enabled = jsonRoom['enabled']
+          bloque.eventoEntrada = int(jsonRoom['eventoEntrada'], 16)
+          bloque.doorRight = int(jsonRoom['right_left_north_south'][0],16)
+          bloque.doorLeft = int(jsonRoom['right_left_north_south'][1],16)
+          bloque.doorNorth = int(jsonRoom['right_left_north_south'][2],16)
+          bloque.doorSouth = int(jsonRoom['right_left_north_south'][3],16)
+
+
+          subListSprites = []
+          # recorro los sprites
+          for v in range(0,8):
+            for u in range(0,10):
+              nroSprite = int(jsonRoom['data'][v][u],16)
+              nroSpriteFondo = spritesFondo[v][u]
+              # si cambió respecto al fondo
+              if(nroSprite != nroSpriteFondo):
+                pos = v*0x10 + u
+                # lo agrego a la lista con su posición
+                subListSprites.append( [pos, nroSprite] )
+          # seteo la lista de sprites
+          bloque.listSprites = subListSprites
+
+        strEventos = jsonRoom['eventos']
+#        print('strEventos: ' + str(strEventos))
+
+        for pos, nroScript in jsonRoom['eventos']:
+          # y lo agrego a la lista de sus eventos
+          bloque.listEvents.append( [int(pos,16), int(nroScript,16)] )
+
+
+        k += 1
+
+
+    # convierto los bloques en un listado
+    listBloques = []
+    for j in range(0, sizeY):
+      for i in range(0, sizeX):
+        bloque = bloques[j][i]
+        listBloques.append(bloque)
+    # y los seteo como bloques de este mapa
+#    self.bloques = listBloques
+    mapa.bloques = listBloques
+
+
+    if(False):
+#    if(True):
+#    if(mapa.nroMapa == 2):
+
+      array = mapa.encodeRom(self.mapAddr)
+#      array = mapa.encodeRom(0x0871)
+      mystic.util.arrayToFile(array, './en/mapu_{:02x}.bin'.format(self.nroMapa))
+
+      iguales = mystic.util.compareFiles('./en/banks/bank_{:02x}/bank_{:02x}.bin'.format(self.mapBank, self.mapBank), './en/mapu_{:02x}.bin'.format(self.nroMapa), self.mapAddr, len(array))
+      print('mapa iguales = ' + str(iguales))
+
+
+
+#      sheet = mystic.romSplitter.spriteSheets[2]
+#      mapa.exportPngFile('./game/mapu.png', sheet)
+#      bloque.exportPngFile('./game/mapu.png', sheet)
+#      primerBloque.exportPngFile('./game/mapu.png', sheet)
+      lines = mapa.encodeTxt()
+      strTxt = '\n'.join(lines)
+
+      f = open('./en/mapu_{:02x}.txt'.format(mapa.nroMapa), 'w', encoding="utf-8")
+      f.write(strTxt)
+      f.close()
+
+    self.mapa = mapa
+
+
+  def exportTiledXml(self, filepath):
 
     lines = []
 
-    # --- obtengo el mapa
+    # --- tipod de mapa
     TIPO_EXTERIOR = 0
     TIPO_INTERIOR = 1
 
@@ -231,41 +476,40 @@ class Mapa:
     # el id a ir incrementando
     iidd = 1
 
-    lines.append('<?xml version="1.0" encoding="UTF-8"?>')
-    lines.append('<map version="1.5" tiledversion="1.5.0" orientation="orthogonal" renderorder="right-down" width="' + str(width) + '" height="' + str(height) + '" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="13">')
+    import xml.etree.cElementTree as ET
 
-    lines.append(' <properties>')
-    lines.append(' <property name="nroMapa" value="{:02x}"/>'.format(self.nroMapa))
-    lines.append(' <property name="nroSpriteSheet" value="{:02x}"/>'.format(self.nroSpriteSheet))
-    lines.append(' <property name="nose" value="{:02x}"/>'.format(self.nose))
-    lines.append(' <property name="spriteAddr" value="{:04x}"/>'.format(self.spriteAddr))
-    lines.append(' <property name="cantSprites" value="{:02x}"/>'.format(self.cantSprites))
-    lines.append(' <property name="mapBank" value="{:02x}"/>'.format(self.mapBank))
-    lines.append(' <property name="mapAddr" value="{:04x}"/>'.format(self.mapAddr))
-    lines.append(' <property name="noseAddr" value="{:04x}"/>'.format(self.noseAddr))
+    root = ET.Element("map", version='1.9', tiledversion="1.9.0", orientation="orthogonal", renderorder="right-down", width=str(width), height=str(height), tilewidth="16", tileheight="16", infinite="0", nextlayerid="4", nextobjectid="13")
 
-    lines.append(' <property name="tipo" value="{:02x}"/>'.format(self.mapa.tipo))
-    lines.append(' <property name="compress" value="{:02x}"/>'.format(self.mapa.compress))
-    lines.append(' <property name="sizeY" value="{:02x}"/>'.format(self.mapa.sizeY))
-    lines.append(' <property name="sizeX" value="{:02x}"/>'.format(self.mapa.sizeX))
+    props = ET.SubElement(root, "properties")
+
+    ET.SubElement(props, "property", name="nroMapa", value='{:02x}'.format(self.nroMapa))
+    ET.SubElement(props, "property", name="nroSpriteSheet", value='{:02x}'.format(self.nroSpriteSheet))
+    ET.SubElement(props, "property", name="nose", value='{:02x}'.format(self.nose))
+    ET.SubElement(props, "property", name="spriteAddr", value='{:04x}'.format(self.spriteAddr))
+    ET.SubElement(props, "property", name="cantSprites", value='{:02x}'.format(self.cantSprites))
+    ET.SubElement(props, "property", name="mapBank", value='{:02x}'.format(self.mapBank))
+    ET.SubElement(props, "property", name="mapAddr", value='{:04x}'.format(self.mapAddr))
+    ET.SubElement(props, "property", name="noseAddr", value='{:04x}'.format(self.noseAddr))
+
+    ET.SubElement(props, "property", name="tipo", value='{:02x}'.format(self.mapa.tipo))
+    ET.SubElement(props, "property", name="compress", value='{:02x}'.format(self.mapa.compress))
+    ET.SubElement(props, "property", name="sizeY", value='{:02x}'.format(self.mapa.sizeY))
+    ET.SubElement(props, "property", name="sizeX", value='{:02x}'.format(self.mapa.sizeX))
 
     # si el mapa es interior
     if(self.mapa.tipo == TIPO_INTERIOR):
       # exporto el headerLoco
       headerLoco = self.mapa.headerLoco
       strHeaderLoco = mystic.util.strHexa(headerLoco)
-      lines.append(' <property name="headerLoco" value="' + strHeaderLoco + '"/>')
+      ET.SubElement(props, "property", name="headerLoco", value=strHeaderLoco)
 
-    lines.append('</properties>')
-
-
-    # le asocio el tileset correcto
-    lines.append(' <tileset firstgid="1" source="../spriteSheets/sheet_{:02x}.tsx"/>'.format(self.nroSpriteSheet))
-    # creo el mapa
-    lines.append(' <layer id="' + str(iidd) + '" name="Tile Layer 1" width="' + str(width) + '" height="' + str(height) + '">')
+    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../spriteSheets/sheet_{:02x}.tsx'.format(self.nroSpriteSheet))
+    layer1 = ET.SubElement(root, "layer", id=str(iidd), name="Tile Layer 1", width=str(width), height=str(height))
     iidd += 1
-    lines.append('  <data encoding="csv">')
+    data = ET.SubElement(layer1, "data", encoding="csv")
 
+    renglones = []
+    renglones.append("")
     for j in range(0,height):
       renglon = ''
       for i in range(0,width):
@@ -283,14 +527,16 @@ class Mapa:
 
         if(i != width-1 or j != height-1):
           renglon += ','
-      lines.append(renglon)
-        
-    lines.append('  </data>')
-    lines.append(' </layer>')
+      renglones.append(renglon)
 
-    # creo bloquesA
-    lines.append(' <objectgroup color="#005500" id="' + str(iidd) + '" name="Object Layer bloquesA">')
+    renglones.append("")
+    textData = '\n'.join(renglones)
+    data.text = textData
+
+
+    objgroup1 = ET.SubElement(root, "objectgroup", color="#005500", id=str(iidd), name="Rooms Layer")
     iidd += 1
+
     for j in range(0,self.mapa.sizeY):
       for i in range(0,self.mapa.sizeX):
         bloque = self.mapa.bloques[j*self.mapa.sizeX + i]
@@ -298,43 +544,19 @@ class Mapa:
         if(bloque.enabled == False):
           enabled = 'false'
         eventoEntrada = '{:04x}'.format(bloque.eventoEntrada)
-        if( (i+j) % 2 == 0):
-          lines.append('  <object id="' + str(iidd) + '" type="bloqueA" x="' + str(i*10*16) + '" y="' + str(j*8*16) + '" width="160" height="127">')
-          iidd += 1
-          lines.append('   <properties>')
-          lines.append('    <property name="enabled" type="bool" value="' + enabled + '"/>')
-          lines.append('    <property name="eventoEntrada" value="' + eventoEntrada + '"/>')
-          if(self.mapa.tipo == TIPO_INTERIOR):
-            lines.append('    <property name="right,left,north,south" value="{:02x},{:02x},{:02x},{:02x}"/>'.format(bloque.doorRight,bloque.doorLeft,bloque.doorNorth,bloque.doorSouth))
-          lines.append('   </properties>')
-          lines.append('  </object>')
-    lines.append(' </objectgroup>')
-
-    # creo bloquesB
-    lines.append(' <objectgroup color="#aa0000" id="' + str(iidd) + '" name="Object Layer bloquesB">')
-    iidd += 1
-    for j in range(0,self.mapa.sizeY):
-      for i in range(0,self.mapa.sizeX):
-        bloque = self.mapa.bloques[j*self.mapa.sizeX + i]
-        enabled = 'true'
-        if(bloque.enabled == False):
-          enabled = 'false'
-        eventoEntrada = '{:04x}'.format(bloque.eventoEntrada)
-        if( (i+j) % 2 != 0):
-          lines.append('  <object id="' + str(iidd) + '" type="bloqueB" x="' + str(i*10*16) + '" y="' + str(j*8*16) + '" width="160" height="127">')
-          iidd += 1
-          lines.append('   <properties>')
-          lines.append('    <property name="enabled" type="bool" value="' + enabled + '"/>')
-          lines.append('    <property name="eventoEntrada" value="' + eventoEntrada + '"/>')
-          if(self.mapa.tipo == TIPO_INTERIOR):
-            lines.append('    <property name="right,left,north,south" value="{:02x},{:02x},{:02x},{:02x}"/>'.format(bloque.doorRight,bloque.doorLeft,bloque.doorNorth,bloque.doorSouth))
-          lines.append('   </properties>')
-          lines.append('  </object>')
-    lines.append(' </objectgroup>')
 
 
-    # creo eventos
-    lines.append(' <objectgroup color="#ffaaff" id="' + str(iidd) + '" name="Object Layer eventos">')
+        obj = ET.SubElement(objgroup1, "object", {'id':str(iidd), 'class':"Room", 'x':str(i*10*16), 'y':str(j*8*16), 'width':"160", 'height':"127"})
+        iidd += 1
+
+        props = ET.SubElement(obj, "properties")
+        prop = ET.SubElement(props, "property", name="enabled", type="bool", value=enabled)
+        prop = ET.SubElement(props, "property", name="eventoEntrada", value=eventoEntrada)
+
+        if(self.mapa.tipo == TIPO_INTERIOR):
+          prop = ET.SubElement(props, "property", name="right,left,north,south", value="{:02x},{:02x},{:02x},{:02x}".format(bloque.doorRight,bloque.doorLeft,bloque.doorNorth,bloque.doorSouth))
+
+    objgroup2 = ET.SubElement(root, "objectgroup", color="#ffaaff", id=str(iidd), name="Events Layer")
     iidd += 1
 
     for j in range(0,self.mapa.sizeY):
@@ -344,7 +566,6 @@ class Mapa:
         for evt in bloque.listEvents:
           pos = evt[0]
           nroScript = evt[1]
-          strNroScript = '{:04x}'.format(nroScript)
 
           posx = pos%0x10
           posy = pos//0x10
@@ -352,24 +573,24 @@ class Mapa:
           evtx = i*10*16 + posx*16
           evty = j*8*16 + posy*16
 
-          lines.append('  <object id="' + str(iidd) + '" type="Evento" x="' + str(evtx) + '" y="' + str(evty) + '" width="16" height="16">')
+
+          obj = ET.SubElement(objgroup2, "object", {'id':str(iidd), 'class':"Event", 'x':str(evtx), 'y':str(evty), 'width':"16", 'height':"16"})
           iidd += 1
-          lines.append('   <properties>')
-          lines.append('    <property name="nroScript" value="' + strNroScript + '"/>')
-          lines.append('   </properties>')
-          lines.append('  </object>')
 
-    lines.append(' </objectgroup>')
+          props = ET.SubElement(obj, "properties")
+          prop = ET.SubElement(props, "property", name="nroScript", value='{:04x}'.format(nroScript))
 
-    lines.append('</map>')
 
-    strTxt = '\n'.join(lines)
+    tree = ET.ElementTree(root)
+#    tree.write(filepath + '_banana.tmx')
+#    printed_xml = tree.tostring(root, encoding='UTF-8', xml_declaration=True, pretty_print=True)
+    ET.indent(root, space=" ", level=0)
+    tree.write(filepath, xml_declaration=True, encoding='utf-8')
+#    print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
 
-    f = open(filepath, 'w', encoding="utf-8")
-    f.write(strTxt)
-    f.close()
 
-  def importTiled(self, filepath):
+
+  def importTiledXml(self, filepath):
 
     # --- obtengo el mapa
     TIPO_EXTERIOR = 0
@@ -378,194 +599,86 @@ class Mapa:
     f = open(filepath, 'r', encoding="utf-8")
     lines = f.readlines()
     f.close()
+    data = '\n'.join(lines)
 
+    import xml.etree.ElementTree as ET
+    myroot = ET.fromstring(data)
 
-    # asumo que el tipo es exterior
-    tipo = TIPO_EXTERIOR
-    # para cada renglón del archivo
-    for line in lines:
-      # si está seteando el tipo
-      if('name="tipo"' in line):
-#        print('line: ' + line)
-        idx0 = line.find('value="')
-        strTipo = line[idx0+7:idx0+9]
-        # lo seteo
-        tipo = int(strTipo)
-
-    # el tipo es exterior
-#    tipo = TIPO_EXTERIOR
-    # salvo que use nroSpriteSheets 2 ó 3
-#    if(self.nroSpriteSheet in [2,3]):
-      # en cuyo caso es interior
-#      tipo = TIPO_INTERIOR
-
+    for prop in myroot[0]:
+      if(prop.attrib['name'] == 'tipo'):
+        tipo = int(prop.attrib['value'],16)
 
     if(tipo == TIPO_EXTERIOR):
       mapa = MapaExterior(self.nroMapa)
-#      mapa.importTiled(filepath)
     else:
       mapa = MapaInterior(self.nroMapa)
-#      mapa.importTiled(filepath)
 
-
-    renglonesSprites = False
-    listSprites = []
-    renglonesA = False
-    listBloquesA = []
-    renglonesB = False
-    listBloquesB = []
-    renglonesEvento = False
-    listEventos = []
-
-
-    for line in lines:
-#      print('line: ' + line)
-
-      if('property name="tipo"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        tipo = int(strLine, 16)
-      elif('property name="compress"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        compress = int(strLine, 16)
-      elif('property name="sizeY"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        sizeY = int(strLine, 16)
-      elif('property name="sizeX"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        sizeX = int(strLine, 16)
-
-      elif('property name="headerLoco"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        headerLoco = strLine.split()
+    for prop in myroot[0]:
+      if(prop.attrib['name'] == 'tipo'):
+        tipo = int(prop.attrib['value'],16)
+      elif(prop.attrib['name'] == 'compress'):
+        compress = int(prop.attrib['value'],16)
+      elif(prop.attrib['name'] == 'sizeY'):
+        sizeY = int(prop.attrib['value'],16)
+      elif(prop.attrib['name'] == 'sizeX'):
+        sizeX = int(prop.attrib['value'],16)
+      elif(prop.attrib['name'] == 'headerLoco'):
+        headerLoco = prop.attrib['value'].split()
         headerLoco = [int(num,16) for num in headerLoco]
+#        print('headerLoco: ' + str(headerLoco))
+
+    listSprites = []
+    tiles = myroot[2][0].text
+#    print('tiles: ' + tiles)
+    tiles = tiles.strip().split(',')
+#    print('tiles1: ' + str(tiles))
+    tiles = [tile for tile in tiles if len(tile) > 0]
+#    print('tiles2: ' + str(tiles))
+    tiles = [int(tile)-1 for tile in tiles]
+#    print('tiles3: ' + str(tiles))
+    listSprites.extend(tiles)
+
+    listBloques = []
+    objectgroup = myroot[3]
+#    print('objectgroup = ' + str(objectgroup))
+    for obj in objectgroup:
+      # obtengo sus coordenadas 
+      bloqueX = int(obj.attrib['x'])//(16*10)
+      bloqueY = int(obj.attrib['y'])//(16*8)
+      # parseo sus propiedades
+      for prop in obj[0]:
+        if(prop.attrib['name'] == 'enabled'):
+          enabled = prop.attrib['value']
+#          print('enabled: ' + enabled)
+          enabled = (enabled == "true")
+        elif(prop.attrib['name'] == 'eventoEntrada'):
+          eventoEntrada = prop.attrib['value']
+#          print('eventoEntrada: ' + eventoEntrada)
+          eventoEntrada = int(eventoEntrada, 16)
+        elif(prop.attrib['name'] == 'right,left,north,south'):
+          doors = prop.attrib['value']
+          doors = doors.split(',')
+          doors = [int(door,16) for door in doors]
+#          print('doors: ' + str(doors))
+      # lo agrego al listado de bloques según el tipo de mapa
+      if(tipo == TIPO_EXTERIOR):
+        listBloques.append( [enabled, eventoEntrada, bloqueX, bloqueY] )
+      else:
+        listBloques.append( [enabled, eventoEntrada, bloqueX, bloqueY, doors] )
 
 
-      if('</data>' in line):
-        renglonesSprites = False
-      if(renglonesSprites):
-#        print('tiles: ' + line)
-        tiles = line.strip().split(',')
-#        print('tiles1: ' + str(tiles))
-        tiles = [tile for tile in tiles if len(tile) > 0]
-#        print('tiles2: ' + str(tiles))
-        tiles = [int(tile)-1 for tile in tiles]
-#        print('tiles3: ' + str(tiles))
-        listSprites.extend(tiles)
+    listEventos = []
+    objectgroup = myroot[4]
+#    print('objectgroup = ' + str(objectgroup))
+    for obj in objectgroup:
+      # obtengo sus coordenadas 
+      evtX = int(obj.attrib['x'])//16
+      evtY = int(obj.attrib['y'])//16
+      nroScript = obj[0][0].attrib['value']
+#      print('nroScript: ' + nroScript)
+      nroScript = int(nroScript, 16)
+      listEventos.append( [nroScript, evtX, evtY] )
 
-      if('<data encoding="csv">' in line):
-        renglonesSprites = True
-
-
-      if('</object>' in line):
-
-        if(renglonesA):
-          renglonesA = False
-          if(tipo == TIPO_EXTERIOR):
-            listBloquesA.append( [enabled, eventoEntrada, bloqueX, bloqueY] )
-          else:
-            listBloquesA.append( [enabled, eventoEntrada, bloqueX, bloqueY, doors] )
-
-        if(renglonesB):
-          renglonesB = False
-          if(tipo == TIPO_EXTERIOR):
-            listBloquesB.append( [enabled, eventoEntrada, bloqueX, bloqueY] )
-          else:
-            listBloquesB.append( [enabled, eventoEntrada, bloqueX, bloqueY, doors] )
-
-        if(renglonesEvento):
-          renglonesEvento = False
-          listEventos.append( [nroScript, evtX, evtY] )
-
-
-      if('property name="enabled"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        enabled = (strLine == "true")
-      elif('property name="eventoEntrada"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        eventoEntrada = int(strLine, 16)
-      elif('property name="right,left,north,south"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        doors = strLine.split(',')
-        doors = [int(door,16) for door in doors]
-#        print('puertas: ' + str(doors))
-      elif('property name="nroScript"' in line):
-        idx = line.index('value=')
-        subLine = line[idx:]
-        strLine = subLine.split('"')[1]
-        nroScript = int(strLine, 16)
- 
- 
-      if('type="bloqueA"' in line):
-        renglonesA = True
-
-        idx0 = line.index('x=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringx: ' + string)
-        bloqueX = int(string)//(16*10)
- 
-        idx0 = line.index('y=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringy: ' + string)
-        bloqueY = int(string)//(16*8)
-#        print('coord: ' + str(bloqueX) + ', ' + str(bloqueY))
-        
-      if('type="bloqueB"' in line):
-        renglonesB = True
-
-        idx0 = line.index('x=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringx: ' + string)
-        bloqueX = int(string)//(16*10)
- 
-        idx0 = line.index('y=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringy: ' + string)
-        bloqueY = int(string)//(16*8)
-#        print('coord: ' + str(bloqueX) + ', ' + str(bloqueY))
- 
-
-      if('type="Evento"' in line):
-        renglonesEvento = True
-
-        idx0 = line.index('x=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringx: ' + string)
-        evtX = int(string)//(16)
- 
-        idx0 = line.index('y=')
-        subLine = line[idx0+3:]
-        idx1 = line.index('"',idx0+3)
-        string = line[idx0+3:idx1]
-#        print('stringy: ' + string)
-        evtY = int(string)//(16)
-#        print('coord: ' + str(evtX) + ', ' + str(evtY))
- 
 
 #    self.tipo, self.compress, self.sizeX, self.sizeY = tipo, compress, sizeX, sizeY
     mapa.tipo, mapa.compress, mapa.sizeX, mapa.sizeY = tipo, compress, sizeX, sizeY
@@ -597,8 +710,6 @@ class Mapa:
 
 
 
-
-
 #    print('len: ' + str(len(listSprites)))
 #    print('sprites: ' + str(listSprites))
 
@@ -613,13 +724,7 @@ class Mapa:
         # si es mapa exterior
         if(tipo == TIPO_EXTERIOR):
 
-          for enabled, eventoEntrada, bloqueX, bloqueY in listBloquesA:
-            if(i == bloqueX and j == bloqueY):
-              bloque.enabled = enabled
-              bloque.eventoEntrada = eventoEntrada
-#              print('encontro evento: {:04x}'.format(eventoEntrada))
-
-          for enabled, eventoEntrada, bloqueX, bloqueY in listBloquesB:
+          for enabled, eventoEntrada, bloqueX, bloqueY in listBloques:
             if(i == bloqueX and j == bloqueY):
               bloque.enabled = enabled
               bloque.eventoEntrada = eventoEntrada
@@ -635,13 +740,7 @@ class Mapa:
         # sino, es tipo interior
         else:
 
-          for enabled, eventoEntrada, bloqueX, bloqueY, doors in listBloquesA:
-            if(i == bloqueX and j == bloqueY):
-              bloque.enabled = enabled
-              bloque.eventoEntrada = eventoEntrada
-              bloque.doorRight, bloque.doorLeft, bloque.doorNorth, bloque.doorSouth = doors[0], doors[1], doors[2], doors[3]
-
-          for enabled, eventoEntrada, bloqueX, bloqueY, doors in listBloquesB:
+          for enabled, eventoEntrada, bloqueX, bloqueY, doors in listBloques:
             if(i == bloqueX and j == bloqueY):
               bloque.enabled = enabled
               bloque.eventoEntrada = eventoEntrada
@@ -703,9 +802,9 @@ class Mapa:
 
       array = mapa.encodeRom(self.mapAddr)
 #      array = mapa.encodeRom(0x0871)
-      mystic.util.arrayToFile(array, './game/mapu_{:02x}.bin'.format(self.nroMapa))
+      mystic.util.arrayToFile(array, './en/mapu_{:02x}.bin'.format(self.nroMapa))
 
-      iguales = mystic.util.compareFiles('./game/banks/bank_{:02x}/bank_{:02x}.bin'.format(self.mapBank, self.mapBank), './game/mapu_{:02x}.bin'.format(self.nroMapa), self.mapAddr, len(array))
+      iguales = mystic.util.compareFiles('./en/banks/bank_{:02x}/bank_{:02x}.bin'.format(self.mapBank, self.mapBank), './en/mapu_{:02x}.bin'.format(self.nroMapa), self.mapAddr, len(array))
       print('mapa iguales = ' + str(iguales))
 
 
@@ -717,12 +816,11 @@ class Mapa:
       lines = mapa.encodeTxt()
       strTxt = '\n'.join(lines)
 
-      f = open('./game/mapu_{:02x}.txt'.format(mapa.nroMapa), 'w', encoding="utf-8")
+      f = open('./en/mapu_{:02x}.txt'.format(mapa.nroMapa), 'w', encoding="utf-8")
       f.write(strTxt)
       f.close()
 
     self.mapa = mapa
-
 
   def __str__(self):
     strMapa = '{:02x}'.format(self.nroMapa)
@@ -762,8 +860,6 @@ class MapaExterior:
 
     # para cada bloque
     for i in range(0, sizeX*sizeY):
-
-#      print('----- bloque: ' + str(i))
 
       bloque = BloqueExterior()
       bloque.mapa = self
@@ -828,7 +924,7 @@ class MapaExterior:
         self.bloques.append(bloque)
 
   def encodeRom(self, idx0):
-    """ el idx0 es el addr donde comienza el mapa en el banko (para armar los índices) """
+    """ el idx0 es el addr donde comienza el mapa en el banco (para armar los índices) """
 
     if(self.nroMapa == 0x0e):
       disabledSpriteBytes=16
@@ -929,7 +1025,6 @@ class BloqueExterior:
   def decodeRom(self, array, compress):
 
     self._decodeRomEvents(array)
-
     subArray = self._encodeRomEvents()
     array = array[len(subArray):]
 
@@ -969,7 +1064,6 @@ class BloqueExterior:
 
     nroScript = array[1] * 0x100 + array[0]
     self.eventoEntrada = nroScript
-#    print('eventoEntrada: {:04x}'.format(nroScript))
 
     # si el nroScript es FFFF considero que el bloque está anulado
     if(nroScript == 0xffff):
@@ -1637,7 +1731,6 @@ class BloqueInterior:
 
     nroScript = array[1] * 0x100 + array[0]
     self.eventoEntrada = nroScript
-#    print('eventoEntrada: {:04x}'.format(nroScript))
 
     i = 2
     pos = array[i]
@@ -1721,6 +1814,7 @@ class BloqueInterior:
 
     strEventoEntrada = lines[0][15:15+4]
     self.eventoEntrada = int(strEventoEntrada, 16)
+#    print('eventoEntrada: {:04x}'.format(self.eventoEntrada))
 
     strListEventos = lines[1][9:]
     strEventos = strListEventos.split('(')

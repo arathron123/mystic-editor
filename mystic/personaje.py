@@ -75,6 +75,112 @@ class Personajes:
     self.personajes.append(p)
 
 
+  def importJs(self, filepath):
+    self.personajes = []
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    # elimino el primer renglón (no es json)
+    lines.pop(0)
+    data = '\n'.join(lines)
+
+    import json
+    jsonPer = json.loads(data)
+
+    i = 0
+    for p in jsonPer:
+#      print('p: ' + str(p))
+      pers = mystic.personaje.Personaje(i)
+      pers.nroPersonaje = int(p['nroPersonaje'],16)
+      pers.amistad = int(p['amistad'],16)
+      pers.stats = int(p['stats'],16)
+      pers.vramTileOffset = int(p['vramTileOffset'],16)
+      pers.cantDosTiles = int(p['cantDosTiles'],16)
+      pers.offsetBank8 = int(p['offsetBank8'],16)
+      pers.addrRaro = int(p['addrRaro'],16)
+      pers.addrDosTiles = int(p['addrDosTiles'],16)
+      pers.patasSepa = int(p['patasSepa'],16)
+      pers.muevePatas = int(p['muevePatas'],16)
+      pers.nose7 = int(p['nose7'],16)
+      pers.nose8 = int(p['nose8'],16)
+      pers.nose9 = int(p['nose9'],16)
+      pers.nose10 = int(p['nose10'],16)
+      pers.behaviourOnHeroWalk1 = int(p['behaviourOnHeroWalk1'],16)
+      pers.behaviourOnHeroWalk2 = int(p['behaviourOnHeroWalk2'],16)
+      pers.behaviourOnVerticalSight = int(p['behaviourOnVerticalSight'],16)
+      pers.behaviourOnHorizontalSight = int(p['behaviourOnHorizontalSight'],16)
+      pers.nroScript = int(p['nroScript'],16)
+      pers.itemTesoro = int(p['itemTesoro'],16)
+
+      self.personajes.append(pers)
+
+
+      i += 1
+
+
+
+  def exportJs(self, filepath):
+#    print('export json: ' + filepath)
+
+    # la data del json
+    data = []
+
+    for p in self.personajes:
+#      print('p: ' + str(p)) 
+
+      subData = {}
+
+      subData['comments'] = mystic.variables.personajes[p.nroPersonaje]
+
+      subData['nroPersonaje'] = '{:02x}'.format(p.nroPersonaje)
+      subData['amistad'] = '{:02x}'.format(p.amistad)
+
+      subData['stats'] = '{:02x}'.format(p.stats)
+      subData['vramTileOffset'] = '{:02x}'.format(p.vramTileOffset)
+
+      subData['cantDosTiles'] = '{:02x}'.format(p.cantDosTiles)
+      subData['offsetBank8'] = '{:04x}'.format(p.offsetBank8)
+
+      subData['addrRaro'] = '{:04x}'.format(p.addrRaro)
+      subData['addrDosTiles'] = '{:04x}'.format(p.addrDosTiles)
+
+      subData['patasSepa'] = '{:02x}'.format(p.patasSepa)
+      subData['muevePatas'] = '{:02x}'.format(p.muevePatas)
+      subData['nose7'] = '{:02x}'.format(p.nose7)
+      subData['nose8'] = '{:02x}'.format(p.nose8)
+      subData['nose9'] = '{:02x}'.format(p.nose9)
+      subData['nose10'] = '{:02x}'.format(p.nose10)
+
+      subData['behaviourOnHeroWalk1'] = '{:02x}'.format(p.behaviourOnHeroWalk1)
+      subData['behaviourOnHeroWalk2'] = '{:02x}'.format(p.behaviourOnHeroWalk2)
+      subData['behaviourOnVerticalSight'] = '{:02x}'.format(p.behaviourOnVerticalSight)
+      subData['behaviourOnHorizontalSight'] = '{:02x}'.format(p.behaviourOnHorizontalSight)
+
+      subData['nroScript'] = '{:04x}'.format(p.nroScript)
+      subData['itemTesoro'] = '{:04x}'.format(p.itemTesoro)
+
+
+      data.append(subData)
+
+
+
+    import json
+#    strJson = json.dumps(data, indent=2)
+#    strJson = json.dumps(data)
+#    print('strPers: \n' + strJson)
+
+#    f = open(filepath, 'w', encoding="utf-8")
+#    f.write(strJson)
+#    f.close()
+
+    strJson = json.dumps(data, indent=2)
+#    strJson = json.dumps(data)
+    f = open(filepath, 'w', encoding="utf-8")
+    f.write('personajes = \n' + strJson)
+    f.close()
+
+
 
   def exportHtml(self):
     """ exporta al archivo personajes_noedit.html """
@@ -594,6 +700,126 @@ class GruposPersonajes:
 
     return lines
 
+
+
+  def exportJs(self, filepath):
+#    print('export json: ' + filepath)
+
+    # la data del json
+    grupos = []
+    for g in self.grupos:
+#      print('g: ' + str(g))
+
+      subData = {}
+      subData['grupo'] = [g.labelA, g.labelB, g.labelC]
+
+      grupos.append(subData)
+
+    apas = []
+    for apa in self.apariciones:
+
+      subData = {}
+      subData['nro'] = 'nro{:03}'.format(apa.nro)
+      subData['valMin'] = '{:02}'.format(apa.valMin)
+      subData['valMax'] = '{:02}'.format(apa.valMax)
+      subData['personajes'] = ['{:02x}'.format(apa.personajes[i]) for i in range(0,4)]
+      subData['position_xy'] = ['{:02x}'.format(apa.position_xy[i]) for i in range(0,len(apa.position_xy))]   
+      subData['cierre'] = ['{:02x}'.format(apa.cierre[0]), '{:02x}'.format(apa.cierre[1])]
+
+      apas.append(subData)
+
+
+    data = {'grupos':grupos, 'apariciones':apas}
+
+    import json
+#    strJson = json.dumps(data, indent=2)
+#    strJson = json.dumps(data)
+#    print('strPers: \n' + strJson)
+
+#    f = open(filepath, 'w', encoding="utf-8")
+#    f.write(strJson)
+#    f.close()
+
+    strJson = json.dumps(data, indent=2)
+#    strJson = json.dumps(data)
+    f = open(filepath, 'w', encoding="utf-8")
+    f.write('grupos = \n' + strJson)
+    f.close()
+
+
+
+  def importJs(self, filepath):
+
+    f = open(filepath, 'r', encoding="utf-8")
+    lines = f.readlines()
+    f.close()
+    # elimino el primer renglón (no es json)
+    lines.pop(0)
+    data = '\n'.join(lines)
+
+    import json
+    jsonG = json.loads(data)
+
+
+    vaPorAddr = self.addr
+
+    self.grupos = []
+    i = 0
+    for g in jsonG['grupos']:
+#      print('g: ' + str(g))
+      gru = mystic.personaje.GrupoPersonaje(i)
+      gru.labelA = g['grupo'][0]
+      gru.labelB = g['grupo'][1]
+      gru.labelC = g['grupo'][2]
+
+#      print('gru: ' + str(gru))
+      self.grupos.append(gru)
+      i += 1
+
+
+    vaPorAddr += 6*len(self.grupos)
+    addr = vaPorAddr + 0x4000
+
+    self.apariciones = []
+    i = 0
+    for a in jsonG['apariciones']:
+      apa = mystic.personaje.AparicionPersonaje(i)
+#      apa.nro = a['nro']
+      apa.valMin = int(a['valMin'],16)
+      apa.valMax = int(a['valMax'],16)
+      apa.personajes = [int(a['personajes'][j],16) for j in range(0,4)]
+      apa.position_xy = [int(a['position_xy'][j],16) for j in range(0,len(a['position_xy']))]
+      apa.cierre = [int(a['cierre'][j],16) for j in range(0,len(a['cierre']))]
+
+      apa.addr = addr
+      arru = apa.encodeRom()
+      addr += len(arru)
+
+#      print('apa: ' + str(apa))
+
+      self.apariciones.append(apa)
+      i += 1
+
+
+    # vuelvo a recorrer los grupos
+    for grupo in self.grupos:
+      labelA = grupo.labelA
+      nro = int(labelA[3:6])
+      apa = self.apariciones[nro]
+      # y refesco sus addr
+      grupo.addrA = apa.addr
+
+      labelB = grupo.labelB
+      nro = int(labelB[3:6])
+      apa = self.apariciones[nro]
+      grupo.addrB = apa.addr
+
+      labelC = grupo.labelC
+      nro = int(labelC[3:6])
+      apa = self.apariciones[nro]
+      grupo.addrC = apa.addr
+
+
   def encodeRom(self, personajes):
 
     array = []
@@ -659,10 +885,8 @@ class GruposPersonajes:
 
 #      print('collision: ' + str(collision))
 
-
-
-
       subArray = grupo.encodeRom()
+#      print('subArray: ' + mystic.util.strHexa(subArray))
       array.extend(subArray)
 
     for apa in self.apariciones:

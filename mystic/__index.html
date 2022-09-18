@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Mystic Engine</title>
+
+
+<style>
+body {
+  margin: 0;
+/*  font-family: Arial, Helvetica, sans-serif;*/
+  font-family: monospace;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.navbar {
+  overflow: hidden;
+  background-color: #333; 
+/*  position: fixed; */
+  top: 0;
+  width: 100%;
+
+}
+.navbar a {
+  float: left;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.subnav {
+  float: left;
+  overflow: hidden;
+}
+.subnav .subnavbtn {
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+.navbar a:hover, .subnav:hover .subnavbtn {
+  background-color: green;
+}
+.subnav-content {
+  display: none;
+  position: absolute;
+  left: 0;
+  background-color: green;
+  width: 100%;
+  z-index: 1;
+}
+.subnav-content a {
+  float: left;
+  color: white;
+  text-decoration: none;
+}
+.subnav-content a:hover {
+  background-color: #eee;
+  color: black;
+}
+.subnav:hover .subnav-content {
+  display: block;
+}
+
+
+img {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+th, td {
+  border-color: #12b15e;
+}
+img {
+  image-rendering: pixelated;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- Top navigation menu -->
+<div class="navbar" id="navbar">
+  <a href="#" id="menuMysticVM" onclick="selectMysticVM();">Home</a>
+  <div class="subnav">
+    <button class="subnavbtn">Sprites<i class="fa fa-caret-down"></i></button>
+    <div class="subnav-content">
+      <a href="#" id="menuHeroSprites" onclick="selectHeroSprites();">HeroSprites</a>
+      <a href="#" id="menuHeroProjs" onclick="selectHeroProjs();">HeroProjs</a>
+      <a href="#" id="menuNpc" onclick="selectNpc();">Npc</a>
+      <a href="#" id="menuNpcProjs" onclick="selectNpcProjs();">NpcProjs</a>
+
+      <!--a href="#bosses">Bosses</a>
+      <a href="#projectiles">Projectiles</a>
+      <a href="#weapons">Weapons</a-->
+    </div>
+  </div> 
+  <div class="subnav">
+    <button class="subnavbtn">Graphics <i class="fa fa-caret-down"></i></button>
+    <div class="subnav-content">
+      <a href="#" id="menuMaps" onclick="selectMaps();">Maps</a>
+      <a href="#" id="menuSpriteSheets" onclick="selectSpriteSheets();">SpriteSheets</a>
+      <a href="#" id="menuTilesets" onclick="selectTilesets();">Tilesets</a>
+    </div>
+  </div> 
+  <a href="#" id="menuScripts" onclick="selectScripts();">Scripts</a>
+</div>
+
+
+
+<!-- cargo la VM -->
+<div class="maindiv" id="mysticVM" style="display:none;">
+<h1 style="color:red;">MysticVM</h1>
+<canvas id="canvasScreen" width="640" height="512" style="border: 4px solid green;"></canvas>
+</div>
+
+<!-- cargo los mapas -->
+<div class="maindiv" id="maps" style="display:none;">
+<h1 style="color:red;">Maps</h1>
+<h3>Map_00</h3>
+<!--img id="map_00" src="../en/mapas/mapa_00_00.png" /-->
+<canvas id="cMap_00" width="2560" height="2048" style="border: 4px solid green;"></canvas>
+<h3>Map_01</h3>
+<!--img id="map_01" src="../en/mapas/mapa_01_01.png" /-->
+<canvas id="cMap_01" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_02</h3>
+<!--img id="map_02" src="../en/mapas/mapa_02_02.png" /-->
+<canvas id="cMap_02" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_03</h3>
+<!--img id="map_03" src="../en/mapas/mapa_03_03.png" /-->
+<canvas id="cMap_03" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_04</h3>
+<!--img id="map_04" src="../en/mapas/mapa_04_04.png" /-->
+<canvas id="cMap_04" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_05</h3>
+<!--img id="map_05" src="../en/mapas/mapa_05_05.png" /-->
+<canvas id="cMap_05" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_06</h3>
+<!--img id="map_06" src="../en/mapas/mapa_06_06.png" /-->
+<canvas id="cMap_06" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_07</h3>
+<!--img id="map_07" src="../en/mapas/mapa_07_07.png" /-->
+<canvas id="cMap_07" width="2560" height="256" style="border: 4px solid green;"></canvas>
+<h3>Map_08</h3>
+<!--img id="map_08" src="../en/mapas/mapa_08_08.png" /-->
+<canvas id="cMap_08" width="1120" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_09</h3>
+<!--img id="map_09" src="../en/mapas/mapa_09_09.png" /-->
+<canvas id="cMap_09" width="800" height="512" style="border: 4px solid green;"></canvas>
+<h3>Map_0a</h3>
+<!--img id="map_0a" src="../en/mapas/mapa_10_0a.png" /-->
+<canvas id="cMap_0a" width="1120" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_0b</h3>
+<!--img id="map_0b" src="../en/mapas/mapa_11_0b.png" /-->
+<canvas id="cMap_0b" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_0c</h3>
+<!--img id="map_0c" src="../en/mapas/mapa_12_0c.png" /-->
+<canvas id="cMap_0c" width="800" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_0d</h3>
+<!--img id="map_0d" src="../en/mapas/mapa_13_0d.png" /-->
+<canvas id="cMap_0d" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_0e</h3>
+<!--img id="map_0e" src="../en/mapas/mapa_14_0e.png" /-->
+<canvas id="cMap_0e" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+<h3>Map_0f</h3>
+<!--img id="map_0f" src="../en/mapas/mapa_15_0f.png" /-->
+<canvas id="cMap_0f" width="1280" height="1024" style="border: 4px solid green;"></canvas>
+</div>
+
+
+<div class="maindiv" id="heroSprites" style="display:none;">
+<h1 style="color:red;">Hero Sprites</h1>
+<canvas id="canvasHeroSprites" width="64" height="352" style="border: 4px solid green;"></canvas>
+</div>
+
+
+<!-- cargo los hero projectiles -->
+<div class="maindiv" id="heroProjs" style="display:none;">
+<h1 style="color:red;">Hero Projectiles</h1>
+
+<table id="heroProjstable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>speedSleep</th>
+    <th>attack</th>
+    <th>vramSlot</th>
+    <th>nose0</th>
+    <th>nose1</th>
+    <th>nose2</th>
+    <th>offsetBank7</th>
+    <th>addrSortTiles</th>
+    <th>sprites</th>
+  </tr>
+</table>
+
+</div>
+
+
+<!-- cargo los npc -->
+<div class="maindiv" id="npc" style="display:none;">
+<h1 style="color:red;">Personajes</h1>
+
+<table id="npctable">
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Image</th>
+    <th>Script</th>
+    <th>Chest</th>
+  </tr>
+</table>
+
+</div>
+
+
+<!-- cargo los npc projectiles -->
+<div class="maindiv" id="npcProjs" style="display:none;">
+<h1 style="color:red;">Npc Projectiles</h1>
+
+<table id="npcProjstable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>speedSleep</th>
+    <th>cantDosTiles</th>
+    <th>offsetBank8</th>
+    <th>addrSortTiles</th>
+    <th>nroSortTiles</th>
+    <th>vramTileOffset</th>
+    <th>sprites</th>
+  </tr>
+</table>
+
+</div>
+
+
+
+<!-- cargo los spriteSheets -->
+<div class="maindiv" id="spriteSheets" style="display:none;">
+<h1 style="color:red;">SpriteSheets</h1>
+<h3>Sheet_00</h3>
+<!--img id="sheet_00" src="../en/spriteSheets/sheet_00.png" /-->
+<canvas id="cSheet_00" width="256" height="128" style="border: 4px solid green;"></canvas>
+<h3>Sheet_01</h3>
+<!--img id="sheet_01" src="../en/spriteSheets/sheet_01.png" /-->
+<canvas id="cSheet_01" width="256" height="128" style="border: 4px solid green;"></canvas>
+<h3>Sheet_02</h3>
+<!--img id="sheet_02" src="../en/spriteSheets/sheet_02.png" /-->
+<canvas id="cSheet_02" width="256" height="128" style="border: 4px solid green;"></canvas>
+<h3>Sheet_03</h3>
+<!--img id="sheet_03" src="../en/spriteSheets/sheet_03.png" /-->
+<canvas id="cSheet_03" width="256" height="128" style="border: 4px solid green;"></canvas>
+<h3>Sheet_04</h3>
+<!--img id="sheet_04" src="../en/spriteSheets/sheet_04.png" /-->
+<canvas id="cSheet_04" width="256" height="128" style="border: 4px solid green;"></canvas>
+</div>
+
+<!-- cargo los tilesets -->
+<div class="maindiv" id="tilesets" style="display:none;">
+<h1 style="color:red;">Tilesets</h1>
+
+<img id="imgTilesets" width="256" src="../en/tilesets/tilesets.png" />
+
+<h3>Water canvas</h3>
+<canvas id="canvasWaterfallDown" width="16" height="8" style="border: 4px solid green;"></canvas>
+<canvas id="canvasWaterfallUp" width="16" height="8" style="border: 4px solid green;"></canvas>
+<canvas id="canvasWaterSea1" width="16" height="8" style="border: 4px solid green;"></canvas>
+<canvas id="canvasWaterSea2" width="16" height="8" style="border: 4px solid green;"></canvas>
+<canvas id="canvasWater" width="8" height="8" style="border: 4px solid green;"></canvas>
+</div>
+
+
+
+<!-- cargo los scripts -->
+<div class="maindiv" id="scripts" style="display:none;">
+<h1 style="color:red;">Scripts</h1>
+
+<p>Open the javascript console (CTRL+SHIFT+i) and you can execute the script you want from there</p>
+
+
+<p>For example, try writing</p>
+<pre>script_0003();</pre>
+<p>then press enter (and don't expect too much, it just prints some text in the console 😊)</p>
+</div>
+
+<script src="jscriptsEngine.js"></script>
+<script>
+
+window.onscroll = function() {myFunction()};
+
+var navbar = document.getElementById("navbar");
+var sticky = navbar.offsetTop;
+
+function myFunction() {
+  if (window.pageYOffset >= sticky) {
+    navbar.classList.add("sticky")
+  } else {
+    navbar.classList.remove("sticky");
+  }
+}
+
+
+
+var basePath = './';
+//var basePath = '../en';
+
+//document.getElementById('sheet_00.js').src = basePath + '/spriteSheets/sheet_00.js';
+//document.getElementById('mapa_00_00.js').src = basePath + '/mapas/mapa_00_00.js';
+/*
+var script = document.createElement("script");
+script.src = basePath + '/spriteSheets/sheet_00.js';
+document.body.appendChild(script);
+*/
+
+document.write("<script type='text/javascript' src='"+ basePath + '/scripts/jscripts.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_00.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_01.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_02.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_03.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_04.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_00_00.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_01_01.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_02_02.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_03_03.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_04_04.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_05_05.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_06_06.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_07_07.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_08_08.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_09_09.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_10_0a.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_11_0b.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_12_0c.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_13_0d.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_14_0e.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_15_0f.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajes.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajeStats.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/personajes/grupos3Personajes.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajeAnims.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/heroProjs.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/npcProjs_noedit.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheetHero/heroSpritesTable.js' + "'><\/script>");
+
+
+// Get the canvas and context
+var canvas = document.getElementById("canvasScreen");
+var context = canvas.getContext("2d");
+
+// Timing and frames per second
+var lastframe = 0;
+var fpstime = 0;
+var framecount = 0;
+var fps = 0;
+var clock = 0;
+
+// el ciclo del agua (entre 0 y 7)
+var waterCycle = 0;
+var waterSeaCycle = 0;
+
+var canvasWaterfallDown = document.getElementById("canvasWaterfallDown");
+var contextWaterfallDown = canvasWaterfallDown.getContext("2d");
+
+var canvasWaterfallUp = document.getElementById("canvasWaterfallUp");
+var contextWaterfallUp = canvasWaterfallUp.getContext("2d");
+
+var canvasWaterSea1 = document.getElementById("canvasWaterSea1");
+var contextWaterSea1 = canvasWaterSea1.getContext("2d");
+var canvasWaterSea2 = document.getElementById("canvasWaterSea2");
+var contextWaterSea2 = canvasWaterSea2.getContext("2d");
+
+var canvasWater = document.getElementById("canvasWater");
+var contextWater = canvasWater.getContext("2d");
+
+var canvasHeroSprites = document.getElementById("canvasHeroSprites");
+var contextHeroSprites = canvasHeroSprites.getContext("2d");
+canvasHeroSprites.width = 64*2;
+canvasHeroSprites.height = 352*2;
+
+// para que dibuje pixelado (y no blurry)
+contextHeroSprites.imageSmoothingEnabled = false;
+// hago zoom al doble 
+contextHeroSprites.scale(2,2);
+
+
+
+var nroMapaActual = 0;
+//var bloqueX = 0;
+//var bloqueY = 0;
+var bloqueX = 8;
+var bloqueY = 7;
+
+
+var imgTilesets = document.getElementById("imgTilesets");
+
+//var imgTileset00 = document.getElementById("tileset_00");
+var canvasSheet00 = document.getElementById("cSheet_00");
+var contextSheet00 = canvasSheet00.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextSheet00.imageSmoothingEnabled = false;
+// hago zoom al doble 
+//contextSheet00.scale(4,4);
+
+
+//var imgTileset01 = document.getElementById("tileset_01");
+var canvasSheet01 = document.getElementById("cSheet_01");
+var contextSheet01 = canvasSheet01.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextSheet01.imageSmoothingEnabled = false;
+// hago zoom al doble 
+//contextSheet01.scale(4,4);
+
+//var imgTileset02 = document.getElementById("tileset_02");
+var canvasSheet02 = document.getElementById("cSheet_02");
+var contextSheet02 = canvasSheet02.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextSheet02.imageSmoothingEnabled = false;
+// hago zoom al doble 
+//contextSheet02.scale(4,4);
+
+//var imgTileset03 = document.getElementById("tileset_03");
+var canvasSheet03 = document.getElementById("cSheet_03");
+var contextSheet03 = canvasSheet03.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextSheet03.imageSmoothingEnabled = false;
+// hago zoom al doble 
+//contextSheet03.scale(4,4);
+
+//var imgTileset04 = document.getElementById("tileset_04");
+var canvasSheet04 = document.getElementById("cSheet_04");
+var contextSheet04 = canvasSheet04.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextSheet04.imageSmoothingEnabled = false;
+// hago zoom al doble 
+//contextSheet04.scale(4,4);
+
+
+
+//var imgMap00 = document.getElementById("map_00");
+var canvasMap00 = document.getElementById("cMap_00");
+var contextMap00 = canvasMap00.getContext("2d");
+
+var canvasMap01 = document.getElementById("cMap_01");
+var contextMap01 = canvasMap01.getContext("2d");
+
+var canvasMap02 = document.getElementById("cMap_02");
+var contextMap02 = canvasMap02.getContext("2d");
+
+var canvasMap03 = document.getElementById("cMap_03");
+var contextMap03 = canvasMap03.getContext("2d");
+
+var canvasMap04 = document.getElementById("cMap_04");
+var contextMap04 = canvasMap04.getContext("2d");
+
+var canvasMap05 = document.getElementById("cMap_05");
+var contextMap05 = canvasMap05.getContext("2d");
+
+var canvasMap06 = document.getElementById("cMap_06");
+var contextMap06 = canvasMap06.getContext("2d");
+
+var canvasMap07 = document.getElementById("cMap_07");
+var contextMap07 = canvasMap07.getContext("2d");
+
+var canvasMap08 = document.getElementById("cMap_08");
+var contextMap08 = canvasMap08.getContext("2d");
+
+var canvasMap09 = document.getElementById("cMap_09");
+var contextMap09 = canvasMap09.getContext("2d");
+
+var canvasMap0a = document.getElementById("cMap_0a");
+var contextMap0a = canvasMap0a.getContext("2d");
+
+var canvasMap0b = document.getElementById("cMap_0b");
+var contextMap0b = canvasMap0b.getContext("2d");
+
+var canvasMap0c = document.getElementById("cMap_0c");
+var contextMap0c = canvasMap0c.getContext("2d");
+
+var canvasMap0d = document.getElementById("cMap_0d");
+var contextMap0d = canvasMap0d.getContext("2d");
+
+var canvasMap0e = document.getElementById("cMap_0e");
+var contextMap0e = canvasMap0e.getContext("2d");
+
+var canvasMap0f = document.getElementById("cMap_0f");
+var contextMap0f = canvasMap0f.getContext("2d");
+
+
+// el mapa actual
+//  var mapaActual = mapas[nroMapaActual];
+//  var mapaActual = mapa0e;
+//  var bloqueActual = mapaActual.mapa[bloqueY][bloqueX];
+//  var bloqueActual = new Bloque(0x0000, [], txtBloqueTrucho, imgSpriteSheet2, spriteProps2);
+
+var selectedMenu = localStorage.getItem('selectedMenu');
+//console.log('selectedMenu: ' + selectedMenu);
+
+if(selectedMenu == 'mysticVM') {
+  selectMysticVM();
+} else if(selectedMenu == 'maps') {
+  selectMaps();
+} else if(selectedMenu == 'heroSprites') {
+  selectHeroSprites();
+} else if(selectedMenu == 'heroProjs') {
+  selectHeroProjs();
+} else if(selectedMenu == 'npc') {
+  selectNpc();
+} else if(selectedMenu == 'npcProjs') {
+  selectNpcProjs();
+} else if(selectedMenu == 'spriteSheets') {
+  selectSpriteSheets();
+} else if(selectedMenu == 'tilesets') {
+  selectTilesets();
+} else if(selectedMenu == 'scripts') {
+  selectScripts();
+} else {
+  // por default la VM
+  selectMysticVM();
+}
+
+
+function selectMenu(divId, menuId) {
+
+  // oculto paneles
+  const allDivs = document.body.getElementsByTagName('div');
+  for(const div of allDivs) {
+//    console.log('div: ' + div.id);
+    if(div.className == 'maindiv') div.style.display = "none";
+  }
+  // muestro solo el panel seleccionado
+  document.getElementById(divId).style.visibility = "visible";
+  document.getElementById(divId).style.display = "inline";
+
+  // guardo menú seleccionado
+  localStorage.setItem('selectedMenu', divId);
+}
+
+
+function selectMysticVM() {
+//  console.log('mysticVM');
+  selectMenu('mysticVM', 'menuMysticVM');
+}
+
+function selectMaps() {
+//  console.log('sheets');
+  selectMenu('maps', 'menuMaps');
+}
+
+function selectHeroSprites() {
+  selectMenu('heroSprites', 'menuHeroSprites');
+}
+
+function selectHeroProjs() {
+//  console.log('hero projectiles');
+  selectMenu('heroProjs', 'menuHeroProjs');
+}
+
+function selectNpc() {
+//  console.log('personajes');
+  selectMenu('npc', 'menuNpc');
+}
+
+function selectNpcProjs() {
+//  console.log('projectiles');
+  selectMenu('npcProjs', 'menuNpcProjs');
+}
+
+function selectSpriteSheets() {
+//  console.log('sheets');
+  selectMenu('spriteSheets', 'menuSpriteSheets');
+}
+
+function selectTilesets() {
+//  console.log('tiles');
+  selectMenu('tilesets', 'menuTilesets');
+}
+
+function selectScripts() {
+//  console.log('scripts');
+  selectMenu('scripts', 'menuScripts');
+}
+
+function fillSheet(sheet, contextSheet, nroTileset) {
+
+  var baseTiles = [0x1000,0x1100,0x1200,0x1300,0xC00];
+  var baseTile = baseTiles[nroTileset];
+
+  var x = 0;
+  var y = 0;
+
+  var dx = 0;
+  var dy = 0;
+
+  for(i=0; i<sheet.sprites.length; i++) {
+    sprite = sheet.sprites[i];
+//    console.log(sprite.tiles);
+
+    for(k=0; k<4; k++) {
+      if(k == 0) {
+        dx = 0;
+        dy = 0;
+      } else if(k == 1) {
+        dx = 8;
+        dy = 0;
+      } else if(k == 2) {
+        dx = 0;
+        dy = 8;
+      } else if(k == 3) {
+        dx = 8;
+        dy = 8;
+      }
+//      console.log('k,dx,dy = ' + k + ', '  + ddx + ', ' + ddy);
+
+      tile = baseTile + parseInt(sprite.tiles[k],16);
+
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+
+      contextSheet.drawImage(imgTilesets, tX*8, tY*8, 8, 8, x*16+dx, y*16+dy, 8, 8);
+
+
+    }
+    x = x+1;
+    if(x == 16) {
+      x = 0;
+      y += 1;
+    } 
+  }
+}
+
+
+/* animación del agua en las spriteSheet */
+function fillSheetWater(sheet, contextSheet, nroTileset) {
+
+  var baseTiles = [0x1000,0x1100,0x1200,0x1300,0xC00];
+  var baseTile = baseTiles[nroTileset];
+
+  var x = 0;
+  var y = 0;
+
+  var dx = 0;
+  var dy = 0;
+
+  for(i=0; i<sheet.sprites.length; i++) {
+    sprite = sheet.sprites[i];
+//    console.log(sprite.tiles);
+
+    for(k=0; k<4; k++) {
+      if(k == 0) {
+        dx = 0;
+        dy = 0;
+      } else if(k == 1) {
+        dx = 8;
+        dy = 0;
+      } else if(k == 2) {
+        dx = 0;
+        dy = 8;
+      } else if(k == 3) {
+        dx = 8;
+        dy = 8;
+      }
+//      console.log('k,dx,dy = ' + k + ', '  + ddx + ', ' + ddy);
+
+      tile = parseInt(sprite.tiles[k],16);
+      // if it is water
+      if(tile == 0x08) {
+        contextSheet.drawImage(canvasWaterfallDown, 0, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x09) {
+        contextSheet.drawImage(canvasWaterfallDown, 8, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0a) {
+        contextSheet.drawImage(canvasWaterfallUp, 0, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0b) {
+        contextSheet.drawImage(canvasWaterfallUp, 8, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0c) {
+        contextSheet.drawImage(canvasWaterSea1, 0, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0d) {
+        contextSheet.drawImage(canvasWaterSea1, 8, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0e) {
+        contextSheet.drawImage(canvasWaterSea2, 0, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x0f) {
+        contextSheet.drawImage(canvasWaterSea2, 8, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      } else if(tile == 0x10) {
+        contextSheet.drawImage(canvasWater, 0, 0, 8, 8, x*16+dx, y*16+dy, 8, 8);
+      }
+
+    }
+    x = x+1;
+    if(x == 16) {
+      x = 0;
+      y += 1;
+    } 
+  }
+}
+
+function fillMap(mapa, w,h, canvasSheet, contextMap) {
+
+  for(k=0; k<mapa.rooms.length; k++) {
+    var room = mapa.rooms[k];
+
+    var mX = k % w;
+    var mY = Math.floor(k/w);
+
+    for(j=0; j<8; j++) {
+      for(i=0; i<10; i++) {
+
+        var sprite = room.data[j][i];
+//        console.log('sprite: ' + sprite);
+        var spr = parseInt(sprite,16);
+        var tX = spr % 16;
+        var tY = Math.floor(spr/16);
+//        console.log('tx,ty: ' + tX + ', ' + tY);
+        contextMap.drawImage(canvasSheet, tX*16, tY*16, 16, 16, mX*160 + i*16, mY*128 + j*16, 16, 16);
+      }
+    }
+  }
+}
+
+
+
+// The function gets called when the window is fully loaded
+window.onload = function() {
+
+  // cargo los spriteSheets
+  fillSheet(sheet_00, contextSheet00, 0);
+  fillSheet(sheet_01, contextSheet01, 1);
+  fillSheet(sheet_02, contextSheet02, 2);
+  fillSheet(sheet_03, contextSheet03, 3);
+  fillSheet(sheet_04, contextSheet04, 4);
+
+  // y los mapas
+  fillMap(mapa_00, 16,16, canvasSheet00, contextMap00);
+  fillMap(mapa_01, 8,8, canvasSheet00, contextMap01);
+  fillMap(mapa_02, 8,8, canvasSheet02, contextMap02);
+  fillMap(mapa_03, 8,8, canvasSheet02, contextMap03);
+  fillMap(mapa_04, 8,8, canvasSheet02, contextMap04);
+  fillMap(mapa_05, 8,8, canvasSheet02, contextMap05);
+  fillMap(mapa_06, 8,8, canvasSheet02, contextMap06);
+  fillMap(mapa_07, 16,2, canvasSheet04, contextMap07);
+  fillMap(mapa_08, 7,8, canvasSheet03, contextMap08);
+  fillMap(mapa_09, 5,4, canvasSheet03, contextMap09);
+  fillMap(mapa_0a, 7,8, canvasSheet03, contextMap0a);
+  fillMap(mapa_0b, 8,8, canvasSheet03, contextMap0b);
+  fillMap(mapa_0c, 5,8, canvasSheet03, contextMap0c);
+  fillMap(mapa_0d, 8,8, canvasSheet03, contextMap0d);
+  fillMap(mapa_0e, 8,8, canvasSheet01, contextMap0e);
+  fillMap(mapa_0f, 8,8, canvasSheet01, contextMap0f);
+
+
+  var npctable = document.getElementById('npctable');
+
+  for(i=0; i<personajes.length; i++) {
+    p = personajes[i];
+//    console.log('p: ' + p);
+    nroPersonaje = parseInt(p['nroPersonaje'],16);
+    nombre = p['comments'];
+    nroScript = parseInt(p['nroScript'],16);
+    itemTesoro = parseInt(p['itemTesoro'],16);
+
+    var tr = document.createElement("tr");
+
+    var th = document.createElement("th");
+    th.innerHTML = p['nroPersonaje'];
+    tr.appendChild(th);
+
+    var th = document.createElement("th");
+    th.innerHTML = nombre;
+    tr.appendChild(th);
+
+    var th = document.createElement("th");
+    let cantDosTiles = parseInt(p['cantDosTiles'],16);
+    th.innerHTML = '<canvas id="canvasPersonaje' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
+
+    tr.appendChild(th);
+
+    var th = document.createElement("th");
+    th.innerHTML = p['nroScript'];
+    tr.appendChild(th);
+
+    var th = document.createElement("th");
+    th.innerHTML = p['itemTesoro'];
+    tr.appendChild(th);
+
+    npctable.appendChild(tr);
+  }
+
+  for (let k=0; k<personajes.length; k++) {
+//  for (let k=0; k<4; k++) {
+
+    p = personajes[k];
+
+    let cantDosTiles = parseInt(p['cantDosTiles'],16);
+//    let addr = 0x20000 + parseInt(p['offsetBank8'],16);
+//    let nroBank = Math.floor(addr / 0x4000);
+//    let offset = addr % 0x4000;
+    let offset = parseInt(p['offsetBank8'],16);
+    let tileBase = offset / 0x10;
+//    console.log('tileBase: 0x' + tileBase.toString(16) + ' = ' + tileBase);
+
+
+    let canvasPersonaje = document.getElementById('canvasPersonaje' + k);
+
+//    canvasPersonaje.width = 32;
+//    canvasPersonaje.height = 32;
+
+    let size = 2;
+    canvasPersonaje.width = 16*size*(cantDosTiles/2);
+    canvasPersonaje.height = 16*size;
+
+    let contextPersonaje = canvasPersonaje.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextPersonaje.imageSmoothingEnabled = false;
+
+    tile = tileBase;
+    for (let j=0; j<cantDosTiles; j++) {
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextPersonaje.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
+
+      tile += 2;
+
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextPersonaje.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
+
+      // si es par
+      if(j%2 == 0) {
+        // paso al lado derecho del sprite
+        tile -= 1;
+      // sino, es impar
+      } else {
+        // paso al sprite siguiente
+        tile += 1;
+      }
+    }
+  }
+
+//  console.log('heroSpritesTable: ' + heroSpritesTable);
+
+
+  // the addr where the hero tiles begin
+  var baseTile = 0x1a40/0x10;
+
+  j = 0;
+  for(let renglon of heroSpritesTable) {
+      i = 0;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 0*8, j*16, 8, 8);
+
+      i = 2;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 1*8, j*16, 8, 8);
+
+      i = 4;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 2*8, j*16, 8, 8);
+
+      i = 6;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 3*8, j*16, 8, 8);
+
+      i = 8;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 4*8, j*16, 8, 8);
+
+      i = 10;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 5*8, j*16, 8, 8);
+
+
+      i = 12;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 6*8, j*16, 8, 8);
+
+      i = 14;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 7*8, j*16, 8, 8);
+
+
+      i = 1;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 0*8, j*16+8, 8, 8);
+
+      i = 3;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 1*8, j*16+8, 8, 8);
+
+      i = 5;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 2*8, j*16+8, 8, 8);
+
+      i = 7;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 3*8, j*16+8, 8, 8);
+
+
+      i = 9;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 4*8, j*16+8, 8, 8);
+
+      i = 11;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 5*8, j*16+8, 8, 8);
+
+      i = 13;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 6*8, j*16+8, 8, 8);
+
+      i = 15;
+      strTile = renglon[i];
+      var tile = baseTile + parseInt(strTile,16);
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 7*8, j*16+8, 8, 8);
+
+    
+    j++;
+  }
+
+
+
+  var heroProjstable = document.getElementById('heroProjstable');
+
+  for(i=0; i<heroProjs['projectiles'].length; i++) {
+
+    proj = heroProjs['projectiles'][i];
+
+    var tr = document.createElement("tr");
+
+    nroProjectil = proj['nroProjectil'];
+    var th = document.createElement("th");
+    th.innerHTML = nroProjectil;
+    tr.appendChild(th);
+
+    comment = proj['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+
+    speedSleep = proj['speedSleep'];
+    var th = document.createElement("th");
+    th.innerHTML = speedSleep;
+    tr.appendChild(th);
+
+    attack = proj['attack'];
+    var th = document.createElement("th");
+    th.innerHTML = attack;
+    tr.appendChild(th);
+
+    vramSlot = proj['vramSlot'];
+    var th = document.createElement("th");
+    th.innerHTML = vramSlot;
+    tr.appendChild(th);
+
+    nose0 = proj['noseBytes'][0];
+    var th = document.createElement("th");
+    th.innerHTML = nose0;
+    tr.appendChild(th);
+
+    nose1 = proj['noseBytes'][1];
+    var th = document.createElement("th");
+    th.innerHTML = nose1;
+    tr.appendChild(th);
+
+    nose2 = proj['noseBytes'][2];
+    var th = document.createElement("th");
+    th.innerHTML = nose2;
+    tr.appendChild(th);
+
+    offsetBank7 = proj['offsetBank7'];
+    var th = document.createElement("th");
+    th.innerHTML = offsetBank7;
+    tr.appendChild(th);
+
+    addrSortTiles = proj['addrSortTiles'];
+    var th = document.createElement("th");
+    th.innerHTML = addrSortTiles;
+    tr.appendChild(th);
+
+
+    var th = document.createElement("th");
+    var cantDosTiles = 32;
+    th.innerHTML = '<canvas id="canvasHeroProj' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
+
+    heroProjstable.appendChild(tr);
+  }
+
+
+  // where the sort tiles start
+  var baseSortTiles = 0x28df;
+
+  for(i=0; i<heroProjs['projectiles'].length; i++) {
+    proj = heroProjs['projectiles'][i];
+
+    offsetBank7 = parseInt(proj['offsetBank7'],16);
+    addrSortTiles = parseInt(proj['addrSortTiles'],16);
+
+    let canvasHeroProj = document.getElementById('canvasHeroProj' + i);
+    let size = 2;
+    let cantDosTiles = 6;
+    canvasHeroProj.width = 16*size*(cantDosTiles/2);
+    canvasHeroProj.height = 16*size;
+
+    let contextHeroProj = canvasHeroProj.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextHeroProj.imageSmoothingEnabled = false;
+
+//    console.log('------ offsetBank7: ' + offsetBank7.toString(16));
+    for(j=0; j<cantDosTiles; j++) {
+      var tuli = addrSortTiles-0x4000-baseSortTiles + 2*j;
+      var tulix = tuli%12;
+      var tuliy = Math.floor(tuli/12);
+      sortTile = parseInt(heroProjs['sortTiles'][tuliy][tulix],16);
+
+      // si el tile no está anulado
+      if(sortTile != 0xff) {
+        // calculamos cual es
+        var tile = (offsetBank7 - 0x4000)/0x10 + sortTile;
+      // sino
+      } else {
+        // ponemos un tile en blanco
+        var tile = 416;
+      }
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
+
+
+      var tuli = addrSortTiles-0x4000-baseSortTiles + 2*j+1;
+      var tulix = tuli%12;
+      var tuliy = Math.floor(tuli/12);
+      sortTile = parseInt(heroProjs['sortTiles'][tuliy][tulix],16);
+
+      // si el tile no está anulado
+      if(sortTile != 0xff) {
+        // calculamos cual es
+        var tile = (offsetBank7 - 0x4000)/0x10 + sortTile;
+      // sino
+      } else {
+        // ponemos un tile en blanco
+        var tile = 416;
+      }
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextHeroProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
+
+
+    }
+
+  }
+
+
+  var npcProjstable = document.getElementById('npcProjstable');
+
+  for(i=0; i<npcProjs['projectiles'].length; i++) {
+
+    proj = npcProjs['projectiles'][i];
+
+    var tr = document.createElement("tr");
+
+    nroProjectil = proj['nroProjectil'];
+    var th = document.createElement("th");
+    th.innerHTML = nroProjectil;
+    tr.appendChild(th);
+
+    comment = proj['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+
+    speedSleep = proj['speedSleep'];
+    var th = document.createElement("th");
+    th.innerHTML = speedSleep;
+    tr.appendChild(th);
+
+    cantDosTiles = proj['cantDosTiles'];
+    var th = document.createElement("th");
+    th.innerHTML = cantDosTiles;
+    tr.appendChild(th);
+
+    offsetBank8 = proj['offsetBank8'];
+    var th = document.createElement("th");
+    th.innerHTML = offsetBank8;
+    tr.appendChild(th);
+
+    addrSortTiles = proj['addrSortTiles'];
+    var th = document.createElement("th");
+    th.innerHTML = addrSortTiles;
+    tr.appendChild(th);
+
+    nroSortTiles = proj['nroSortTiles'];
+    var th = document.createElement("th");
+    th.innerHTML = nroSortTiles;
+    tr.appendChild(th);
+
+    vramTileOffset = proj['vramTileOffset'];
+    var th = document.createElement("th");
+    th.innerHTML = vramTileOffset;
+    tr.appendChild(th);
+
+
+    var th = document.createElement("th");
+    var cantDosTiles = 32;
+    th.innerHTML = '<canvas id="canvasNpcProj' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
+
+
+    npcProjstable.appendChild(tr);
+
+  }
+
+
+
+  // where the sort tiles start
+//  var baseSortTiles = 0x28df;
+
+  for(i=0; i<npcProjs['projectiles'].length; i++) {
+    proj = npcProjs['projectiles'][i];
+
+    offsetBank8 = parseInt(proj['offsetBank8'],16);
+    addrSortTiles = parseInt(proj['addrSortTiles'],16);
+    nroSortTiles = parseInt(proj['nroSortTiles'],16);
+    cantDosTiles = parseInt(proj['cantDosTiles'],16);
+
+    let canvasNpcProj = document.getElementById('canvasNpcProj' + i);
+    let size = 2;
+    canvasNpcProj.width = 16*size*(cantDosTiles/2);
+    canvasNpcProj.height = 16*size;
+
+    let contextNpcProj = canvasNpcProj.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextNpcProj.imageSmoothingEnabled = false;
+
+
+    sortTiles = npcProjs['sortTiles'][nroSortTiles];
+//    console.log('sortTiles: ' + sortTiles);
+
+//    console.log('------ offsetBank7: ' + offsetBank7.toString(16));
+    for(j=0; j<cantDosTiles; j++) {
+      strSortTile = sortTiles['tiles'][2*j];
+      sortTile = parseInt(strSortTile,16);
+//      console.log('strSortTile: ' + strSortTile);
+      // calculamos cual es
+      var tile = (offsetBank8)/0x10 + sortTile;
+//      console.log('tile: ' + tile);
+
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextNpcProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
+
+
+      strSortTile = sortTiles['tiles'][2*j+1];
+      sortTile = parseInt(strSortTile,16);
+//      console.log('strSortTile: ' + strSortTile);
+      // calculamos cual es
+      var tile = (offsetBank8)/0x10 + sortTile;
+//      console.log('tile: ' + tile);
+
+      tX = tile % 16;
+      tY = Math.floor(tile/16);
+      contextNpcProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
+
+    }
+
+
+
+  }
+
+
+
+  init();
+
+
+}
+
+
+
+// Initialize the game
+function init() {
+  canvas.width = 640;
+  canvas.height = 512;
+
+//  canvas.width = window.innerWidth;
+//  canvas.height = window.innerHeight;
+  // cambio el tamaño del canvas para que ocupe toda la pantalla
+//  canvas.width = screen.width;
+//  canvas.height = screen.height;
+
+  // calculo los nuevos tamaños de sprites y tiles para adaptarse al canvas
+  sW = canvas.width/10;
+  sH = canvas.height/8;
+  tW = sW/2;
+  tH = sH/2;
+
+
+  // para que dibuje pixelado (y no blurry)
+  context.imageSmoothingEnabled = false;
+
+  // hago zoom al doble 
+//  context.scale(4,4);
+
+  // Enter main loop (se ajusta a 60fps)
+  main(0);
+}
+    
+// Main loop
+function main(tframe) {
+//  console.log(tframe);
+  // Request animation frames
+  window.requestAnimationFrame(main);
+  // Update and render the game
+  update(tframe);
+  render();
+}
+    
+// Update the game state
+function update(tframe) {
+
+  var dt = (tframe - lastframe) / 1000;
+  lastframe = tframe;
+        
+  // Update the fps counter
+  updateFps(dt);
+
+/*        
+        if (gamestate == gamestates.ready) {
+            // Game is ready for player input
+        } else if (gamestate == gamestates.shootbubble) {
+            // Bubble is moving
+            stateShootBubble(dt);
+        } else if (gamestate == gamestates.removecluster) {
+            // Remove cluster and drop tiles
+            stateRemoveCluster(dt);
+        }
+*/
+}
+
+function updateFps(dt) {
+  if (fpstime > 0.25) {
+    // Calculate fps
+    fps = Math.round(framecount / fpstime);
+            
+    // Reset time and framecount
+    fpstime = 0;
+    framecount = 0;
+  }
+        
+  // Increase time and framecount
+  fpstime += dt;
+  framecount++;
+}
+
+// Render the game
+function render() {
+
+  if(clock % 8 == 0) {
+    waterCycle += 1;
+    waterCycle = waterCycle % 8;
+
+    waterSeaCycle += 1;
+    waterSeaCycle = waterSeaCycle % 16;
+  }
+
+
+  var baseTiles = [0x1000,0x1100,0x1200,0x1300,0xC00];
+  var nroTileset = 0;
+  var baseTile = baseTiles[nroTileset];
+
+  tile = baseTile + 8;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextWaterfallDown.drawImage(imgTilesets, tX*8, tY*8, 16, 8, 0, waterCycle-0, 16, 8);
+  contextWaterfallDown.drawImage(imgTilesets, tX*8, tY*8, 16, 8, 0, waterCycle-8, 16, 8);
+
+  tile = baseTile + 10;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextWaterfallUp.drawImage(imgTilesets, tX*8, tY*8, 16, 8, 0, 0-waterCycle, 16, 8);
+  contextWaterfallUp.drawImage(imgTilesets, tX*8, tY*8, 16, 8, 0, 8-waterCycle, 16, 8);
+
+  tile = baseTile + 12;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextWaterSea1.drawImage(imgTilesets, tX*8, tY*8, 16, 8, waterSeaCycle, 0, 16, 8);
+  contextWaterSea1.drawImage(imgTilesets, tX*8, tY*8, 16, 8, waterSeaCycle-16, 0, 16, 8);
+
+  tile = baseTile + 14;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextWaterSea2.drawImage(imgTilesets, tX*8, tY*8, 16, 8, waterSeaCycle, 0, 16, 8);
+  contextWaterSea2.drawImage(imgTilesets, tX*8, tY*8, 16, 8, waterSeaCycle-16, 0, 16, 8);
+
+  tile = baseTile + 16;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextWater.drawImage(imgTilesets, tX*8, tY*8, 8, 8, waterCycle, 0, 8, 8);
+  contextWater.drawImage(imgTilesets, tX*8, tY*8, 8, 8, waterCycle-8, 0, 8, 8);
+
+  fillSheetWater(sheet_00, contextSheet00, 0);
+  fillSheetWater(sheet_01, contextSheet01, 1);
+  fillSheetWater(sheet_02, contextSheet02, 2);
+  fillSheetWater(sheet_03, contextSheet03, 3);
+
+
+
+  // proceso el bloque (dibujo el fondo)
+  for (var j=0; j<8; j++) {
+    for (var i=0; i<10; i++) {
+
+//      nroSprite = mapaActual.mapa[bloqueY][bloqueX].bloque[j][i];
+      nroSprite = parseInt(mapa_0e.rooms[0].data[j][i],16);
+//      console.log('nroSprite: ' + nroSprite);
+
+      // busco las coordenadas del sprite en el spriteSheet
+      spriteX = nroSprite % 16;
+      spriteY = Math.floor(nroSprite / 16);
+
+      // y lo dibujo en pantalla
+//      context.drawImage(imgSpriteSheet1, 16*spriteX, 16*spriteY, 16, 16, 16*i, 16*j, 16, 16);
+
+
+      context.drawImage(canvasSheet01, 16*spriteX, 16*spriteY, 16, 16, sW*i, sH*j, sW, sH);
+    }
+  }
+
+
+
+
+  context.fillStyle = 'rgba(255,255,255,0.5)';
+  context.fillRect(0,0,4*sW,1*sH);
+  context.fillStyle = 'rgba(0,0,0,1)';
+  context.font = "15px Verdana";
+
+  context.fillText('fps: ' + fps, 0, sH/4*3);
+
+  clock += 1;
+  clock = clock % 1000;
+}
+</script>
+
+
+</body>
+</html>
+
+
+

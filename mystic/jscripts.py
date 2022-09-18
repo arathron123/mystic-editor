@@ -1021,7 +1021,7 @@ class Comando:
 
         arg = self.array[1]
         # turn extra1 into extra9 (extraspecial)
-        self.strCode = strCmd + '({:02x});\n'.format(arg)
+        self.strCode = strCmd + '(0x{:02x});\n'.format(arg)
         self.size = 2
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1144,7 +1144,7 @@ class Comando:
 
       # cambia el sprite de fondo por el indicado en NN, en las coordenadas XX,YY del bloque actual
 #      self.strCode = 'SPRITE (NN,XX,YY) = (' + strNn + ',' + strXx + ',' + strYy + ')\n'
-      self.strCode = 'sprite(nn=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(nn,xx,yy)
+      self.strCode = 'drawSprite(nn=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(nn,xx,yy)
       self.size = 4
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -2105,7 +2105,7 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('sprite(')):
+    elif(line.startswith('drawSprite(')):
 
       idx0 = line.index('nn=0x')
       strNn = line[idx0+5:idx0+7]

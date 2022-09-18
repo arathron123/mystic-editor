@@ -261,6 +261,24 @@ class Tileset:
         tile.tileData = tileData
         self.tiles.append(tile)
 
+  def exportTiledXml(self, filepath):
+    import xml.etree.cElementTree as ET
+
+    paths = filepath.split('/')
+    name = paths[len(paths)-1]
+    name = name[:len(name)-4]
+
+    tilecount = len(self.tiles)
+    w = 0x10
+    h = len(self.tiles) // 0x10
+
+    root = ET.Element("tileset", version='1.9', tiledversion="1.9.0", name=name, tilewidth="8", tileheight="8", tilecount=str(tilecount), columns="16")
+    img = ET.SubElement(root, "image", source=name+".png", width=str(w*8), height=str(h*8))
+
+    tree = ET.ElementTree(root)
+    ET.indent(root, space=" ", level=0)
+    tree.write(filepath, xml_declaration=True, encoding='utf-8')
+
 
 ##########################################################
 class DosTiles:
