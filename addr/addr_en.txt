@@ -9,6 +9,8 @@ addrWindows = 02:1baa
 # listado de magia en el bank02
 addrMagic = 02:1dda
 
+addrInitialWeapons = 02:2f10
+
 addrLoadStateStrangeBytes = 02:3aed
 
 # la intro en el bank02

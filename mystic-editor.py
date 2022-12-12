@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.9'
+VERSION = '0.95.10'
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -67,6 +67,8 @@ def exportREADME():
   lines.append('**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en_romexpand.txt --romexpand -e**')
   lines.append('')
   lines.append('Optional argument when encoding: --fix-checksum (it fixes the header and global checksums of the rom)')
+  lines.append('')
+  lines.append('Also optional: --ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)')
   lines.append('')
   lines.append('Feel free to join our discord server')
   lines.append('https://discord.gg/mdTDMKh5FR')
@@ -392,6 +394,9 @@ def testPlayground():
 #  mystic.romSplitter.exportWindows()
 #  mystic.romSplitter.burnWindows('./en/items/windows.txt')
 
+  mystic.romSplitter.exportWindowsTextLabels()
+  mystic.romSplitter.burnWindowsTextLabels('./en/items/windowsTextLabels.js')
+
 
 #  mystic.romSplitter.exportExpTable()
 #  mystic.romSplitter.burnExpTable('./en_uk/exp.txt')
@@ -452,27 +457,31 @@ def testPlayground():
   # cargo el banco 16 con las canciones
 #  bank = mystic.romSplitter.banks[0x0F]
 
-#  melody2 = Melody(29)
-#  melody2 = Melody(nroChannel=2, addr=0x4d05, repeatTermina=False)
+#  melody2 = mystic.music.Melody(29)
+#  melody2 = mystic.music.Melody(nroChannel=2, addr=0x4d05, repeatTermina=False)
 #  melody2.decodeRom(bank)
 
 #  print('melody2: ' + str(melody2))
 #  string = melody2.encodeTxt()
 #  print('string: ' + '\n'.join(string))
 
+#  array = melody2.encodeRom()
+#  print('array: ' + mystic.util.strHexa(array))
+
 
 
   # trata de mantener compatibilidad binaria con la rom original
-#  mystic.romSplitter.burnSongs(filepath='./game/audio/songs.txt')
+#  mystic.romSplitter.burnSongs(filepath='./en/audio/songs.txt', exportLilypond=True)
   # concatena todas las canciones, default para roms nuevas (no compatible con la original)
-#  mystic.romSplitter.burnSongs(filepath='./de/audio/songs.txt', ignoreAddrs=True)
+#  mystic.romSplitter.burnSongs(filepath='./en/audio/songs.txt', ignoreAddrs=True, exportLilypond=True)
   # compatible con la original (agrega los headers misteriosos sin uso)
-#  mystic.romSplitter.burnSongsHeaders(filepath='./de/audio/songs.txt')
+#  mystic.romSplitter.burnSongsHeaders(filepath='./en/audio/songs.txt', exportLilypond=True)
 
 
   # exporto las estadísticas del rom
 #  mystic.romStats.exportPng()
 
+#  mystic.romSplitter.exportGbsRom('./en/audio.gb')
 #  mystic.romSplitter.exportGbsRom('./de/gbs.gb')
 #  mystic.romSplitter.exportGbsRom('./game/gbs.gb')
 
@@ -525,9 +534,9 @@ def testPlayground():
   pathStock = './stockRoms/en.gb'
   pathNew = './en/newRom.gb'
 
-#  print('comparando ' + pathStock + ' con ' + pathNew)
-#  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-#  print('roms iguales = ' + str(iguales))
+  print('comparando ' + pathStock + ' con ' + pathNew)
+  iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
+  print('roms iguales = ' + str(iguales))
 
 
 
@@ -548,7 +557,8 @@ def testPlayground():
 #  mystic.romSplitter.testRom('/home/arathron/newRom.gb', 'vba-m')
 
 
-#  iguales = mystic.util.compareFiles('./roms/gbs.gb', './game/banks/bank_15/bank_15.bin', 0x4000, 0x40000)
+#  iguales = mystic.util.compareFiles('./en/audio.gb', './stockRoms/gbs_en2.gb', 0x4000, 0x40000)
+#  iguales = mystic.util.compareFiles('./en/audio.gb', './stockRoms/gbs_en.gb', 0x00, 0x8000)
 #  iguales = mystic.util.compareFiles('./en/banks/bank_15/bank_15.bin','./fr/banks/bank_15/bank_15.bin', 0x0000, 0x4000)
 #  print('los gbs iguales = ' + str(iguales))
 
@@ -565,6 +575,82 @@ def main(argv):
 
   # hago copia de seguridad de las roms stock que encuentre en el directorio actual, y asumo que quiere la rom que encuentre
   romPath = mystic.language.protectStockRoms()
+
+  # if it want to extract FFL music data
+  if('--ffl2' in argv):
+    print('FFL2 extractor')
+
+    idx = argv.index('--ffl2')
+    # agarro el romPath
+    romPath = argv[idx+1]
+
+    basePath = './ffl2_en'
+    # si el directorio no existía
+    if not os.path.exists(basePath):
+      # lo creo
+      os.makedirs(basePath)
+
+    # read the rom
+    romArray = mystic.util.fileToArray(romPath)
+
+    # read the gbs bank 0
+    gbsBank0 = mystic.util.fileToArray('gbsBank00.bin')
+
+    # ffl2 gbs header
+    gbsHeader = '47 42 53 01 13 01 df 3f df 3f 00 40 00 cf 00 00 46 69 6e 61 6c 20 46 61 6e 74 61 73 79 20 4c 65 67 65 6e 64 20 49 49 00 00 00 00 00 00 00 00 00 4e 6f 62 75 6f 20 55 65 6d 61 74 73 75 2c 20 4b 65 6e 6a 69 20 49 74 6f 00 00 00 00 00 00 00 00 31 39 39 31 20 53 71 75 61 72 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 21 ed 3f 85 6f 7e f5 cd 03 40 f1 e0 b1 c9 05 01 02 03 04 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13'
+
+    header = mystic.util.hexaStr(gbsHeader)
+    start = 0x3f64
+    # replace the ffa gbs header with the ff2 gbs header
+    for i in range(0,len(header)):
+      gbsBank0[start+i] = header[i]    
+
+    # load into banks
+    banks = []
+    subArray = romArray
+    while(True):
+      banco = subArray[:0x4000]
+#      print('len banco: ' + str(len(banco)))
+      if(len(banco) == 0):
+        break
+      # lo agrego a la lista de bancos
+      banks.append(banco)
+      subArray = subArray[0x4000:]
+
+    # aca comienza el addr de música  (0a12 en mystic)
+    addrMusic = 0x09f5
+    musicBank = 14
+
+    bank = banks[musicBank]
+
+    canciones = mystic.music.Canciones()
+    canciones.decodeRom(bank,addrMusic)
+
+    lines = canciones.encodeTxt()
+    strCanciones = '\n'.join(lines)
+    f = open(basePath + '/songs.txt', 'w', encoding="utf-8")
+    f.write(strCanciones)
+    f.close()
+
+    for i in range(0,19):
+      cancion = canciones.canciones[i]
+
+      lines = cancion.encodeTxt()
+      strCancion = '\n'.join(lines)
+      f = open(basePath + '/song_{:02}.txt'.format(i), 'w', encoding="utf-8")
+      f.write(strCancion)
+      f.close()
+
+      lines = cancion.encodeLilypond()
+      strCancion = '\n'.join(lines)
+      f = open(basePath + '/song_{:02}_lily.txt'.format(i), 'w', encoding="utf-8")
+      f.write(strCancion)
+      f.close()
+      
+
+    # termino el script
+    sys.exit(0)
+
 
   # si especifica la rom
   if('--rom' in argv):
@@ -602,17 +688,20 @@ def main(argv):
 #    lang = mystic.language.detectRomLanguage(romPath)
     lang = mystic.address.language
     strLang = mystic.language.stockRomsLang[lang]
-    configAddrPath = './addr/addr_' + strLang + '.txt'
+#    configAddrPath = './addr/addr_' + strLang + '.txt'
+    configAddrPath = './addr/addr_' + strLang + '.js'
 
   idx0 = configAddrPath.index('addr_')
   configAddrFile = configAddrPath[idx0:]
 #  print('configAddrFile: ' + configAddrFile)
 
   print('using configAddrPath: ' + configAddrPath)
-  f = open(configAddrPath, 'r', encoding="utf-8")
-  lines = f.readlines()
-  f.close()
-  mystic.address.decodeTxt(lines)
+
+#  f = open(configAddrPath, 'r', encoding="utf-8")
+#  lines = f.readlines()
+#  f.close()
+#  mystic.address.decodeTxt(lines)
+  mystic.address.decodeJs(configAddrPath)
 
 
   mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
@@ -693,7 +782,8 @@ def main(argv):
     mystic.romSplitter.exportWindows()
 
     # exporto intro.txt
-    mystic.romSplitter.exportIntro()
+#    mystic.romSplitter.exportIntro()
+    mystic.romSplitter.exportWindowsTextLabels()
     # exporto la magia, items y weapons
     mystic.romSplitter.exportItems()
 
@@ -704,15 +794,15 @@ def main(argv):
 
     print('exportando mapas...')
     # exporto todos los mapas
-    mystic.romSplitter.exportMapas(exportPngFile=True)
-#    mystic.romSplitter.exportMapas(exportPngFile=False)
+#    mystic.romSplitter.exportMapas(exportPngFile=True)
+    mystic.romSplitter.exportMapas(exportPngFile=False)
 
     # exporto la música
 #    mystic.romSplitter.exportSongs(exportLilypond=False)
     mystic.romSplitter.exportSongs(exportLilypond=True)
 
     # exporto las estadísticas del rom
-#    mystic.romStats.exportPng()
+    mystic.romStats.exportPng()
 
     # termino el script
     sys.exit(0)
@@ -736,7 +826,9 @@ def main(argv):
     mystic.romSplitter.burnWindows(basePath+'/items/windows.txt')
 
     # quemo la intro
-    mystic.romSplitter.burnIntro()
+#    mystic.romSplitter.burnIntro()
+    mystic.romSplitter.burnWindowsTextLabels(basePath+'/items/windowsTextLabels.js')
+
 
     nroBank, vaPorAddr = mystic.address.addrMagic
     # quemando la magia
@@ -815,11 +907,12 @@ def main(argv):
 
     print('quemando songs...')
     # trata de mantener compatibilidad binaria con la rom original
-#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=False)
+    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt')
+#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=False, exportLilypond=True)
     # concatena todas las canciones, default para roms nuevas (no compatible con la original)
-#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=True)
+#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=True, exportLilypond=True)
     # compatible con la original (agrega los headers misteriosos sin uso)
-    mystic.romSplitter.burnSongsHeaders(filepath=basePath+'/audio/songs.txt')
+#    mystic.romSplitter.burnSongsHeaders(filepath=basePath+'/audio/songs.txt', exportLilypond=True)
 
     # exporto la gbs rom con música
     mystic.romSplitter.exportGbsRom(basePath+'/audio.gb')
@@ -860,7 +953,7 @@ def main(argv):
 
 
   # si quiero testear algo
-  testPlayground()
+#  testPlayground()
 
 
 if __name__ == "__main__":

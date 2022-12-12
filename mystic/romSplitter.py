@@ -678,6 +678,289 @@ def exportWindows():
 
   f.close()
 
+def exportWindowsTextLabels():
+  """ exporta los textos que son opciones en las ventanas """
+#  print('--- 2:3cf6')
+
+  basePath = mystic.address.basePath
+  path = basePath + '/items'
+
+#  bank = mystic.romSplitter.banks[2]
+#  vaPorAddr = 0x3cf6
+  bank,vaPorAddr = mystic.address.addrWindowsLabels
+
+  data = {}
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,5)
+  data['items'] = labels
+
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,5)
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,6)
+  data['select'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,7)
+  data['status_upgrade'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,5)
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,5)
+  data['yes_no'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,17)
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,17)
+  data['level'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,7)
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,7)
+  data['bought'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,16)
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,16)
+  data['hello'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,15)
+  data['not_enough'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,4)
+  data['sell'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,4)
+  data['buy'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,2)
+  data['gp'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,6)
+  data['upgrade'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,9)
+  data['hp'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,6)
+  data['mp'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,35)
+  data['level_up'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 5,4)
+  data['status'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,4)
+  data['boy'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,4)
+  data['girl'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 9,9)
+  data['letters'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,8)
+  data['cont'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,21)
+  data['license'] = labels
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 36,19)
+  data['intro'] = labels
+
+  import json
+#  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+#  print('strPers: \n' + strJson)
+
+#  f = open(filepath, 'w', encoding="utf-8")
+#  f.write(strJson)
+#  f.close()
+
+  strJson = json.dumps(data, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/windowsTextLabels.js', 'w', encoding="utf-8")
+  f.write('windowsTextLabels = \n' + strJson)
+  f.close()
+
+
+def burnWindowsTextLabels(filepath):
+
+  array = []
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+  import json
+  textLabels = json.loads(data)
+#  print('labels: ' + str(labels))
+
+  # codigo para un '\n'
+  enterCode = 0x1a
+
+  labels = textLabels['items']
+  subArray = _encodeWindowText(labels, enterCode)
+  # y lo agrego al array
+  array.extend(subArray)
+
+  labels = textLabels['select']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['status_upgrade']
+  subArray = _encodeWindowText(labels, enterCode)
+#  print('subarray: ' + mystic.util.strHexa(subArray))
+  array.extend(subArray)
+
+  labels = textLabels['yes_no']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['level']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['bought']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['hello']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['not_enough']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['sell']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['buy']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['gp']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['upgrade']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['hp']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['mp']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['level_up']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['status']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['boy']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['girl']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['letters']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['cont']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  labels = textLabels['license']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+
+  lang = mystic.address.language
+  if(lang in [mystic.language.ENGLISH, mystic.language.ENGLISH_UK, mystic.language.JAPAN]):
+    enterCode = 0x00
+  else: 
+    enterCode = 0x1a
+
+  labels = textLabels['intro']
+  subArray = _encodeWindowText(labels, enterCode)
+  array.extend(subArray)
+
+  # agrego el byte de cierre
+  array.append(0x01)
+
+
+#  print('array: ' + mystic.util.strHexa(array))
+
+#  nroBank,addr = 2, 0x3cf6
+  nroBank,addr = mystic.address.addrWindowsLabels
+  mystic.romSplitter.burnBank(nroBank, addr, array)
+
+
+def _encodeWindowText(labels, enterCode):
+  """ codifica lista de labels para ventana, el enterCode es el codigo de un \n """
+  subArray = []
+
+  for label in labels:
+
+    label = label.replace('<00>', '@')
+
+    for char in label:
+      if(char == '@'):
+        code = 0x00
+      # lo codifico con el byte correspondiente
+      elif(char == '\n'):
+        code = enterCode
+      elif(char == ' '):
+        code = 0xff
+      else:
+        code = mystic.dictionary.encodeChars(char)
+
+      # y lo agrego al array
+      subArray.append(code)
+
+  return subArray
+
+
+
+def _decodeWindowText(addr, rows, labelWidth):
+
+  bank = mystic.romSplitter.banks[2]
+  vaPorAddr = addr
+
+  labels = []
+
+  for i in range(0,rows):
+    label = ''
+    for j in range(0,labelWidth):
+      hexy = bank[vaPorAddr]
+      vaPorAddr += 1
+#      print('data: {:02x}'.format(hexy))
+      if(hexy == 0x00):
+        chars = '<00>'
+      elif(hexy == 0x1a):
+        chars = '\n'
+      else: 
+        chars = mystic.dictionary.decodeByte(hexy)
+#      print('chars: ' + chars)
+      label += chars
+      if(hexy in [0x00, 0x1a]):
+#      if(hexy in [0x00]):
+        break
+#    print('label: ' + label)
+    labels.append(label)
+  return labels, vaPorAddr
+
+
+
+
 def burnWindows(filepath):
   """ quema las ventanas en la rom """
 
@@ -989,7 +1272,6 @@ def exportHeroProjectiles():
   """ exporta database de las armas y magia que usa el heroe """
 
 #  print('--- 1:1dcd')
-#  print('--- 1:20ff')
 
   basePath = mystic.address.basePath
   path = basePath + '/projectiles'
@@ -1005,6 +1287,9 @@ def exportHeroProjectiles():
 
   weaponAnims = []
   addrWeaponAnims = 0x1dcd
+  vaPorAddr = addrWeaponAnims
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
   for i in range(0,16):
     weaponAnim = {}
     data = bank[addrWeaponAnims+i]
@@ -1013,9 +1298,12 @@ def exportHeroProjectiles():
     weaponAnim['stageType'] = '{:02x}'.format(data)
     weaponAnims.append(weaponAnim)
 
+  vaPorAddr += 16
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
 
   magicItemsAnims = []
-  addrMagicItemsAnims = 0x1ddd
+#  addrMagicItemsAnims = 0x1ddd
+  addrMagicItemsAnims = vaPorAddr
   for i in range(0,8*8):
     magicItemAnim = {}
     data = bank[addrMagicItemsAnims+i]
@@ -1028,9 +1316,14 @@ def exportHeroProjectiles():
     magicItemAnim['stageType'] = '{:02x}'.format(data)
     magicItemsAnims.append(magicItemAnim)
 
+
+  vaPorAddr += 8*8
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
   tmpTableTypes = []
 
-  addrTableTypes = 0x1e1d
+#  addrTableTypes = 0x1e1d
+  addrTableTypes = vaPorAddr
   for j in range(0,6):
 #    print('----')
     row = []
@@ -1041,10 +1334,82 @@ def exportHeroProjectiles():
       row.append(strAddr)
     tmpTableTypes.append(row)
 
+  vaPorAddr += 16*6*2
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrFireIncrements = 0x1edd
+  addrFireIncrements = vaPorAddr
+
+  fireListAddr = []
+  for i in range(0,16):
+    addr = bank[addrFireIncrements + 2*i+1]*0x100 + bank[addrFireIncrements + 2*i]
+    strAddr = '{:04x}'.format(addr)
+    fireListAddr.append(strAddr)
+#    print('addr: ' + strAddr )
+ 
+  vaPorAddr += 16*2
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrFireList = 0x1efd
+  addrFireList = vaPorAddr
+
+
+  fireList = []
+  cant = 0
+  while(cant < 16):
+    dxdy = 0xffff
+#    print('----')
+    fireDxdy = {}
+    fireDxdy['label'] = 'fire_{:02x}'.format(cant)
+    fireDxdy['vaPorAddr'] = '{:02x}'.format(vaPorAddr)
+    fireDxdy['incrementsDxdy'] = []
+    while(dxdy != 0x0000):
+
+
+      dx = bank[vaPorAddr + 0]
+      dy = bank[vaPorAddr + 1]
+      fireDxdy['incrementsDxdy'].append(['{:02x}'.format(dx), '{:02x}'.format(dy)])
+      dxdy = dx*0x100+dy
+
+      strDxdy = '{:02x} {:02x}'.format(dx,dy)
+#      print('dxdy: ' + strDxdy)
+      vaPorAddr += 2
+
+    fireList.append(fireDxdy)
+    cant += 1
+    
+
+  fireListLabels = []
+  for fireAddr in fireListAddr:
+    addr = int(fireAddr,16)-0x4000
+#    print('fireAddr: {:04x}'.format(addr))
+
+    for fireDxdy in fireList:
+      if(addr == int(fireDxdy['vaPorAddr'],16)):
+        label = fireDxdy['label']
+#        print('label: ' + label)
+        fireListLabels.append(label)
+
+
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  projsAddr = 0x20ff
+  projsAddr = vaPorAddr
+#  print('projsAddr: {:04x}'.format(projsAddr))
+
+  vaPorAddr += 48*(6 + 2*2 + 4*4*2)
+
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  sortTilesAddr = 0x28df
+  sortTilesAddr = vaPorAddr
+#  print('sortTilesAddr: {:04x}'.format(sortTilesAddr))
+
+  vaPorAddr += 16*12
+
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  startAddr = 0x299f
+  startAddr = vaPorAddr
+#  print('startAddr: {:04x}'.format(startAddr))
 
   behavs = []
   cmds = []
-  startAddr = 0x299f
   i = 0
   behav = None
   nroBehav = 0
@@ -1076,8 +1441,6 @@ def exportHeroProjectiles():
 
       nroBehav += 1
 
-
-
     else:
 
       if(turnoHero and not thrownAxe):
@@ -1102,11 +1465,9 @@ def exportHeroProjectiles():
       # sino, es el turno del proyectil
       else:
         projSprite = val
-
         turnoHero = True
 
         if(projSprite != 0x00):
-
           i += 1
           yy = bank[startAddr+i]
 
@@ -1127,21 +1488,23 @@ def exportHeroProjectiles():
   # agrego el último behaviour
   behavs.append(behav)
 
+  lastAddr = startAddr+i
+#  print('lastAddr: {:04x}'.format(lastAddr))
 
 
   projs = []
-
+#  projsAddr = 0x20ff
   for i in range(0,48):
 
     heroProj = {}
-    subArray = bank[0x20ff+42*i:0x20ff+42*(i+1)]
+    subArray = bank[projsAddr+42*i:projsAddr+42*(i+1)]
 
     heroProj['nroProjectil'] = '{:02x}'.format(i)
     heroProj['comment'] = mystic.variables.hero_projectiles[i]
-    heroProj['vaPorAddr'] = '{:04x}'.format(0x20ff+42*i)
+    heroProj['vaPorAddr'] = '{:04x}'.format(projsAddr+42*i)
 
     heroProj['speedSleep'] = '{:02x}'.format(subArray[0])
-    heroProj['attack'] = '{:02x}'.format(subArray[1])
+    heroProj['collisionFlags'] = '{:02x}'.format(subArray[1])
     heroProj['vramSlot'] = '{:02x}'.format(subArray[2])
 
     heroProj['noseBytes'] = ['{:02x}'.format(nro) for nro in subArray[3:6]]
@@ -1207,16 +1570,14 @@ def exportHeroProjectiles():
 #    sort = bank[0x28df + i]
 #    heroProjsSortTiles.append(sort)
 
+#  sortTilesAddr = 0x28df
   heroProjsSortTiles = []
   for i in range(0,16):
     heroProjsSortTile = []
     for j in range(0,12):
-      sort = '{:02x}'.format(bank[0x28df + i*12+j])
+      sort = '{:02x}'.format(bank[sortTilesAddr + i*12+j])
       heroProjsSortTile.append(sort)
     heroProjsSortTiles.append(heroProjsSortTile)
-
-
-
 
 
   table_stage_types = []
@@ -1246,10 +1607,21 @@ def exportHeroProjectiles():
     table_stage_types.append(row)
 
 
+  import random
+  rr = random.randint(0,0xff)
+  gg = random.randint(0,0xff)
+  bb = random.randint(0,0xff)
+  # agrego info al stats
+  mystic.romStats.appendDato(0x01, addrWeaponAnims, lastAddr , (rr, gg, bb), 'hero projectiles databases')
+
 
   heroProjs['weaponAnims'] = weaponAnims
   heroProjs['magicItemsAnims'] = magicItemsAnims
   heroProjs['table_stage_types'] = table_stage_types
+
+  heroProjs['fire_list_labels'] = fireListLabels
+  heroProjs['fire_list'] = fireList
+
   heroProjs['projectiles'] = projs
   heroProjs['sortTiles'] = heroProjsSortTiles
   heroProjs['behavs'] = behavs
@@ -1290,11 +1662,21 @@ def burnHeroProjectiles(filepath):
 
   array = []
 
+  addrWeaponAnims = 0x1dcd
+  vaPorAddr = addrWeaponAnims
+
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
 
   arrayWeaponAnims = []
   for weaponAnim in jsonHeroProjs['weaponAnims']:
     stageType = int(weaponAnim['stageType'],16)
     arrayWeaponAnims.append(stageType)
+
+  vaPorAddr += len(arrayWeaponAnims)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrMagicItemsAnims = 0x1ddd
+  addrMagicItemsAnims = vaPorAddr
+ 
 
   magicItemsAnims = []
   for magicItemsAnim in jsonHeroProjs['magicItemsAnims']:
@@ -1302,7 +1684,10 @@ def burnHeroProjectiles(filepath):
     magicItemsAnims.append(stageType)
 
 
-
+  vaPorAddr += len(magicItemsAnims)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrProj = 0x1e1d
+  addrProj = vaPorAddr
 
   arrayProj = []
   projectiles = jsonHeroProjs['projectiles']
@@ -1311,8 +1696,8 @@ def burnHeroProjectiles(filepath):
     speedSleep = int(heroProj['speedSleep'],16)
     arrayProj.append(speedSleep)
 
-    attack = int(heroProj['attack'],16)
-    arrayProj.append(attack)
+    collisionFlags = int(heroProj['collisionFlags'],16)
+    arrayProj.append(collisionFlags)
  
     vramSlot = int(heroProj['vramSlot'],16)
     arrayProj.append(vramSlot) 
@@ -1448,24 +1833,64 @@ def burnHeroProjectiles(filepath):
 #          print('lo encontramos tipo: ' + )
 
 
-  array1 = []
+  vaPorAddr += len(arrayMatrix)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrFireIncrements = 0x1edd
+  addrFireIncrements = vaPorAddr
+
+  vaPorAddr += 16*2
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+#  addrFireList = 0x1efd
+  addrFireList = vaPorAddr
+
+  arrayFireIncrement = []
+  for fireIncrement in jsonHeroProjs['fire_list']:
+    fireIncrement['vaPorAddr'] = '{:04x}'.format(vaPorAddr)
+#    print('---- vaPorAddr: {:04x}'.format(vaPorAddr))
+
+    subArray = []
+    for inc in fireIncrement['incrementsDxdy']:
+      dx = int(inc[0],16)
+      dy = int(inc[1],16)
+#      print('dxdy: ' + dx + ', ' + dy)
+      subArray.extend([dx,dy])
+
+    vaPorAddr += len(subArray)
+    arrayFireIncrement.extend(subArray)
+
+
+  arrayFireAddrs = []
+  for fireList in jsonHeroProjs['fire_list_labels']:
+#    print('fireList: ' + fireList)
+
+    for fireIncrement in jsonHeroProjs['fire_list']:
+      label = fireIncrement['label']
+#      print('label: ' + label)
+      if(fireList == label):
+        strAddr = fireIncrement['vaPorAddr']
+#        print('lo encontró: ' + strAddr)
+        addr = int(strAddr,16)+0x4000
+
+        addr1 = addr%0x100
+        addr2 = addr//0x100
+
+        arrayFireAddrs.extend([addr1,addr2])
+        
+
+
+
   # creo el array completo
-  array1.extend(arrayWeaponAnims)
-  array1.extend(magicItemsAnims)
-  array1.extend(arrayMatrix)
-  mystic.romSplitter.burnBank(0x1, 0x1dcd, array1)
-
-#  mystic.romSplitter.burnBank(0x1, 0x1dcd, arrayWeaponAnims)
-#  mystic.romSplitter.burnBank(0x1, 0x1ddd, magicItemsAnims)
-#  mystic.romSplitter.burnBank(0x1, 0x1e1d, arrayMatrix)
-
-
+  array.extend(arrayWeaponAnims)
+  array.extend(magicItemsAnims)
+  array.extend(arrayMatrix)
+  array.extend(arrayFireAddrs)
+  array.extend(arrayFireIncrement)
   array.extend(arrayProj)
   array.extend(arraySort)
   array.extend(arrayBehavs)
-
 #  print('array: ' + mystic.util.strHexa(array))
-  mystic.romSplitter.burnBank(0x1, 0x20ff, array)
+  mystic.romSplitter.burnBank(0x1, 0x1dcd, array)
+
 
 
 
@@ -1496,7 +1921,7 @@ def exportProjectilesJs():
     proj = {}
     proj['nroProjectil'] = '{:02x}'.format(i)
     proj['comment'] = mystic.variables.projectiles[i]
-    proj['nose1'] = '{:02x}'.format(subArray[0])
+    proj['collisionFlags'] = '{:02x}'.format(subArray[0])
     proj['speedSleep'] = '{:02x}'.format(subArray[1])
     proj['nose3'] = '{:02x}'.format(subArray[2])
     proj['nose4'] = '{:02x}'.format(subArray[3])
@@ -2076,12 +2501,12 @@ def exportSongs(exportLilypond=False):
     # lo creo
     os.makedirs(path)
 
-  nroBank,address = mystic.address.addrMusic
+  nroBank,addrMusic = mystic.address.addrMusic
   # cargo el banco 16 con las canciones
   bank = mystic.romSplitter.banks[nroBank]
 
   canciones = mystic.music.Canciones()
-  canciones.decodeRom(bank)
+  canciones.decodeRom(bank,addrMusic)
 
   lines = canciones.encodeTxt()
   strCanciones = '\n'.join(lines)
@@ -2122,8 +2547,57 @@ def exportSongs(exportLilypond=False):
       # exporto lilypond!
       cancion.exportLilypond()
 
+def burnSongs(filepath):
+  """ this is @xenophile version of burnSongs """
 
-def burnSongs(filepath, ignoreAddrs=False):
+  canciones = mystic.music.Canciones()
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  canciones.decodeTxt(lines)
+
+  # sorted by the order the data appears, which is sometimes different than the order in the table (nro)
+  canciones = sorted(canciones.canciones, key=lambda x: x.order)
+
+  # address of the pointer table
+  nroBank,address = mystic.address.addrMusic
+
+  # current data pointer
+  addrData = address + 0x4000 + 6 * len(canciones)
+
+  # for each song
+  for cancion in canciones:
+#    print('cancy: ' + str(cancion))
+
+    # headers are useless, but preserved to ensure no unnecessary changes
+    if cancion.header is not None:
+      mystic.romSplitter.burnBank(nroBank, addrData - 0x4000, cancion.header)
+      addrData += len(cancion.header)
+
+    # encode the three channels
+    melodyRom = []
+    melodyRom.append(cancion.melody2.encodeRom())
+    melodyRom.append(cancion.melody1.encodeRom())
+    melodyRom.append(cancion.melody3.encodeRom())
+
+    # calculate the pointer address based on the song number, not the song order
+    punteroAddr = address +  6*cancion.nro
+
+    # for each channel
+    for melody in melodyRom:
+      # write the channel pointer
+      addr = [addrData&0xff, addrData//0x100]
+      mystic.romSplitter.burnBank(nroBank, punteroAddr, addr)
+      punteroAddr += 2
+
+      # write the channel data
+      mystic.romSplitter.burnBank(nroBank, addrData - 0x4000, melody)
+      addrData += len(melody)
+
+
+
+def burnSongsOld(filepath, ignoreAddrs=False, exportLilypond=False):
   """ quema las canciones en el banco 0f real.  Si ignoreAddrs=True calcula addrs nuevas concatenando channels """
 
   canciones = mystic.music.Canciones()
@@ -2136,6 +2610,10 @@ def burnSongs(filepath, ignoreAddrs=False):
 #  vaPorAddr = canciones.canciones[0].addrCh2
   # empezamos por la dirección donde debe comenzar el primer canal de la primera canción
   vaPorAddr = 0x4ac9
+
+#  cancion = canciones.canciones[1]
+#  melody2Rom = cancion.melody2.encodeRom()
+#  print('melody2Rom: ' + mystic.util.strHexa(melody2Rom))
 
   for cancion in canciones.canciones:
 #    print('cancy: ' + str(cancion))
@@ -2212,8 +2690,14 @@ def burnSongs(filepath, ignoreAddrs=False):
       mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
       vaPorAddr += len(melody3Rom)#+0x10
 
+    # si quiere que compile lilypond
+    if(exportLilypond):
+      # exporto lilypond!
+      cancion.exportLilypond()
 
-def burnSongsHeaders(filepath):
+
+
+def burnSongsHeaders(filepath, exportLilypond=False):
   """ quema las canciones en el banco 0f real.  Agrega los headers misteriosos """
 
   canciones = mystic.music.Canciones()
@@ -2306,6 +2790,8 @@ def burnSongsHeaders(filepath):
     melody1Rom = cancion.melody1.encodeRom()
     melody3Rom = cancion.melody3.encodeRom()
 
+
+
     if(True):
       # quemo el puntero al addr del channel 2
       punteroAddr = 0x0a12 + 6*cancion.nro + 0
@@ -2336,6 +2822,11 @@ def burnSongsHeaders(filepath):
       mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
       array.extend(melody3Rom)
       vaPorAddr += len(melody3Rom)
+
+    # si quiere que compile lilypond
+    if(exportLilypond):
+      # exporto lilypond!
+      cancion.exportLilypond()
 
 #  print(mystic.util.strHexa(array))
 #  print('len: ' + str(len(array)))
@@ -3555,7 +4046,7 @@ def burnBank(bank, idx0, hexs):
 def exportExpTable():
   """ exporta la tabla de experiencia para subir de nivel """
 
-  nroBank, addr = mystic.address.expTable
+  nroBank, addr = mystic.address.addrExpTable
   bank = mystic.romSplitter.banks[nroBank]
   array = bank[addr:]
 
@@ -3607,7 +4098,7 @@ def burnExpTable(filepath):
 
 #    print('exp: {:06x}: {:02x} {:02x} {:02x}'.format(exp, byte1, byte2, byte3))
 
-  nroBank,addr = mystic.address.expTable
+  nroBank,addr = mystic.address.addrExpTable
 #  print('current addr: {:04x}'.format(addr))
 
   strArray = mystic.util.strHexa(array)

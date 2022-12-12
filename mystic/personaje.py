@@ -93,7 +93,7 @@ class Personajes:
 #      print('p: ' + str(p))
       pers = mystic.personaje.Personaje(i)
       pers.nroPersonaje = int(p['nroPersonaje'],16)
-      pers.amistad = int(p['amistad'],16)
+      pers.collisionFlags = int(p['collisionFlags'],16)
       pers.stats = int(p['stats'],16)
       pers.vramTileOffset = int(p['vramTileOffset'],16)
       pers.cantDosTiles = int(p['cantDosTiles'],16)
@@ -134,7 +134,7 @@ class Personajes:
       subData['comments'] = mystic.variables.personajes[p.nroPersonaje]
 
       subData['nroPersonaje'] = '{:02x}'.format(p.nroPersonaje)
-      subData['amistad'] = '{:02x}'.format(p.amistad)
+      subData['collisionFlags'] = '{:02x}'.format(p.collisionFlags)
 
       subData['stats'] = '{:02x}'.format(p.stats)
       subData['vramTileOffset'] = '{:02x}'.format(p.vramTileOffset)
@@ -308,7 +308,7 @@ class Personaje:
     # 0x95 = se cuelga todo?
     # 0xa9 = muñeco (si lo tocás lo empujás)
     # 0xd9 = transparente (si lo tocás lo atravezás)
-    self.amistad = 0x00
+    self.collisionFlags = 0x00
 
     # indice en la tabla de estadísticas del personaje (velocidad de caminar, tipos de ataque, fuerza, etc)
     self.stats = 0x00
@@ -368,7 +368,7 @@ class Personaje:
 
   def decodeRom(self, subArray):
 
-    self.amistad   = subArray[0] # 0x81
+    self.collisionFlags = subArray[0] # 0x81
     self.stats     = subArray[1] # 0x0b
     self.vramTileOffset = subArray[2] # 0x40   
 
@@ -404,7 +404,7 @@ class Personaje:
   def encodeRom(self):
     array = []
 
-    array.append(self.amistad)
+    array.append(self.collisionFlags)
     array.append(self.stats)
     array.append(self.vramTileOffset)
 
@@ -442,7 +442,7 @@ class Personaje:
 
     lines.append('\n------------ personaje: ' + mystic.variables.personajes[self.nroPersonaje] )
     lines.append('nroPersonaje:               {:02x}'.format(self.nroPersonaje))
-    lines.append('amistad:                    {:02x}'.format(self.amistad))
+    lines.append('collisionFlags:             {:02x}'.format(self.collisionFlags))
 
     lines.append('stats:                      {:02x}'.format(self.stats))
     lines.append('vramTileOffset:             {:02x}'.format(self.vramTileOffset))
@@ -476,9 +476,9 @@ class Personaje:
       if(line.startswith('nroPersonaje:')):
         strNroPersonaje = line[len('nroPersonaje:'):].strip()
         self.nroPersonaje = int(strNroPersonaje,16)
-      elif(line.startswith('amistad:')):
-        strAmistad = line[len('amistad:'):].strip()
-        self.amistad = int(strAmistad,16)
+      elif(line.startswith('collisionFlags:')):
+        strCollision = line[len('collisionFlags:'):].strip()
+        self.collisionFlags = int(strCollision,16)
       elif(line.startswith('stats:')):
         strStats = line[len('stats:'):].strip()
         self.stats = int(strStats,16)
@@ -536,7 +536,7 @@ class Personaje:
 
   def __str__(self):
 
-    string = 'amist={:02x} stats={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.amistad, self.stats, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.behaviourOnHeroWalk1, self.behaviourOnHeroWalk2, self.behaviourOnVerticalSight, self.behaviourOnHorizontalSight, self.nroScript, self.itemTesoro)
+    string = 'amist={:02x} stats={:02x} vramTileOffset={:02x} cantTiles={:02x} offsetBank8={:04x} {:04x} addrDosTiles={:04x} patas={:02x},{:02x} {:02x} {:02x} {:02x} {:02x}  {:02x} {:02x} {:02x} {:02x}  script={:04x} item={:04x}'.format(self.collisionFlags, self.stats, self.vramTileOffset, self.cantDosTiles, self.offsetBank8, self.addrRaro, self.addrDosTiles, self.patasSepa, self.muevePatas, self.nose7, self.nose8, self.nose9, self.nose10, self.behaviourOnHeroWalk1, self.behaviourOnHeroWalk2, self.behaviourOnVerticalSight, self.behaviourOnHorizontalSight, self.nroScript, self.itemTesoro)
 
     return string
 

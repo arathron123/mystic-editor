@@ -1,6 +1,6 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.9
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.10
 
 Tutorial video here: 
 https://www.youtube.com/watch?v=XKPYtgKAiQw
@@ -28,6 +28,8 @@ If you want to expand the rom to 32 banks add the --romexpand argument before en
 **python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en_romexpand.txt --romexpand -e**
 
 Optional argument when encoding: --fix-checksum (it fixes the header and global checksums of the rom)
+
+Also optional: --ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)
 
 Feel free to join our discord server
 https://discord.gg/mdTDMKh5FR

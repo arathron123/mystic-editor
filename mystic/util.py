@@ -98,10 +98,11 @@ def compareFiles(filepath1, filepath2, idx0, cantBytes):
   iguales = True
 
   f = open(filepath1, 'rb')
-  g = open(filepath2, 'rb')
   array1 = f.read()
-  array2 = g.read()
   f.close()
+
+  g = open(filepath2, 'rb')
+  array2 = g.read()
   g.close()
 
   for i in range(0, cantBytes):

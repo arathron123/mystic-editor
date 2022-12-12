@@ -9,20 +9,57 @@ class Canciones:
   def __init__(self):
     self.canciones = []
 
-  def decodeRom(self, bank):
+  def decodeRom(self, bank, addrMusic):
     self.canciones = []
 
-    # para cada canción
-    for i in range(0,30):
+    # initial value can be anything sufficiently large
+    lowestSongAddress = 0x8000
+    # assume song data follows the song address table (almost) directly
+    # and use that to determine how many songs there are
+    i = 0
+    while (addrMusic + 0x4000 + 6 * (i+1) <= lowestSongAddress):
 
       cancion = Cancion(i)
+
+#      base = 0x0a12 + 6*i
+      base = addrMusic + 6*i
+      addrCh2 = bank[base + 1]*0x100 + bank[base + 0]
+      addrCh1 = bank[base + 3]*0x100 + bank[base + 2]
+      addrCh3 = bank[base + 5]*0x100 + bank[base + 4]
+
       # la decodifico
-      cancion.decodeRom(bank)
+      cancion.decodeRom(bank, addrCh2, addrCh1, addrCh3)
 
       print('--- ' + str(i) + ' i: {:02x} | cancion: '.format(i) + str(cancion))
 
       # y la agrego a la lista
       self.canciones.append(cancion)
+
+      # this lets us figure out how many songs there are
+      if (cancion.addrCh2 < lowestSongAddress):
+        lowestSongAddress = cancion.addrCh2
+
+      i += 1
+
+    # the order of the songs in the pointer table does not always match the order their data is stored
+    ordering = []
+    for cancion in self.canciones:
+      length = len(cancion.melody2.encodeRom())
+      length += len(cancion.melody1.encodeRom())
+      length += len(cancion.melody3.encodeRom())
+      ordering.append((cancion.nro, cancion.addrCh2, length))
+    ordering.sort(key=lambda x: x[1])
+    for i in range(0, len(self.canciones)):
+      self.canciones[ordering[i][0]].order = i
+
+    # now that all song ranges are known headers (unused bytes between songs) can be extracted
+    ordering.insert(0, (-1, addrMusic + 0x4000, 6 * len(self.canciones)))
+    for i in range(len(self.canciones)):
+      nro = ordering[i+1][0]
+      start = ordering[i][1] + ordering[i][2] - 0x4000
+      end = ordering[i+1][1] - 0x4000
+      if start != end:
+        self.canciones[nro].header = bank[start:end]
 
   def encodeTxt(self):
 
@@ -32,10 +69,9 @@ class Canciones:
     path = basePath + '/audio'
 
     # para cada canción
-    for i in range(0,30):
+    for cancion in self.canciones:
 
       # agarro la canción
-      cancion = self.canciones[i]
       subLines = cancion.encodeTxt()
       lines.extend(subLines)
 
@@ -87,10 +123,13 @@ class Cancion:
 
   def __init__(self, nro):
     self.nro = nro
+    self.order = nro
 
     # si la canción puede terminar en repeat en lugar de loop
     # solo la cancion 2, que se le permite terminar en repeat por un bug en la rom
     self.repeatTermina = (nro == 2)
+
+    self.header = None
 
     self.addrCh2 = None
     self.addrCh1 = None
@@ -100,16 +139,13 @@ class Cancion:
     self.melody1 = None
     self.melody3 = None
 
-  def decodeRom(self, bank):
+  def decodeRom(self, bank, addrCh2, addrCh1, addrCh3):
     """ decodifica una cancion """
 
-    nroBank,address = mystic.address.addrMusic
-#    base = 0x0a12 + 6*self.nro
-    base = address + 6*self.nro
+    self.addrCh2 = addrCh2
+    self.addrCh1 = addrCh1
+    self.addrCh3 = addrCh3
 
-    self.addrCh2 = bank[base + 1]*0x100 + bank[base + 0]
-    self.addrCh1 = bank[base + 3]*0x100 + bank[base + 2]
-    self.addrCh3 = bank[base + 5]*0x100 + bank[base + 4]
 
     melody2 = Melody(nroChannel=2, addr=self.addrCh2, repeatTermina=self.repeatTermina)
     melody2.decodeRom(bank)
@@ -125,6 +161,16 @@ class Cancion:
     lines = []
 
     lines.append('\n--------- song {:02} ---------'.format(self.nro))
+
+    if self.order != self.nro:
+      lines.append('\nORDER {}'.format(self.order))
+
+    if self.header is not None:
+      header = '\nHEADER'
+      for i in self.header:
+        header += ' {:x}'.format(i)
+      lines.append(header)
+
     lines.extend(self.melody2.encodeTxt())
     lines.extend(self.melody1.encodeTxt())
     lines.extend(self.melody3.encodeTxt())
@@ -142,8 +188,14 @@ class Cancion:
     # por cada renglón
     for line in lines:
 
+      if('ORDER' in line):
+        self.order = int(line.split()[1])
+      elif('HEADER' in line):
+        self.header = []
+        for n in line.split()[1:]:
+          self.header.append(int(n, base=16))
       # si es un nuevo channel
-      if('CHANNEL' in line):
+      elif('CHANNEL' in line):
         # y es el primero
         if(i==0): 
           # vamos agregando renglones
@@ -452,7 +504,7 @@ class Melody:
 
 #      print('notaa: ' + str(nota))
       # si es un comando (salvo subir o bajar escala)
-      if(nota.cmd1 in [0xd, 0xe] and nota.cmd not in [0xd8, 0xdc]):
+      if(nota.cmd1 == 0xe):
         # si estaba imprimiendo notas musicales
         if(anteriorFueNota):
           # dejo un enter
@@ -525,7 +577,7 @@ class Melody:
           currentLabels = []
 #          print('nota: ' + str(nota))
 
-        elif('INSTR_e4' in line):
+        elif('VIBRATO' in line):
  
 #          print('line: ' + line)
           args = line.split()
@@ -537,7 +589,7 @@ class Melody:
           currentLabels = []
 #          print('nota: ' + str(nota))
 
-        elif('INSTR_e8' in line):
+        elif('WAVETABLE' in line):
  
 #          print('line: ' + line)
           args = line.split()
@@ -549,7 +601,7 @@ class Melody:
           currentLabels = []
 #          print('nota: ' + str(nota))
 
-        elif('INSTR_e0' in line):
+        elif('VOLUME' in line):
  
 #          print('line: ' + line)
           cantBytes = 3
@@ -565,11 +617,11 @@ class Melody:
           currentLabels = []
 #          print('nota: ' + str(nota))
 
-        elif('INSTR_e5' in line):
+        elif('DUTYCYCLE' in line):
  
 #          print('line: ' + line)
           args = line.split()
-          e5Arg = int(args[1],16)
+          e5Arg = int(args[1],16) * 64
           nota = NotaMusical(vaPorAddr, 2, 0xe5, e5Arg)
           nota.labels = currentLabels
           self.notas.append(nota)
@@ -577,7 +629,7 @@ class Melody:
           currentLabels = []
 #          print('nota: ' + str(nota))
 
-        elif('INSTR_e6' in line):
+        elif('STEREO' in line):
  
 #          print('line: ' + line)
           args = line.split()
@@ -670,7 +722,8 @@ class Melody:
           strNotas = line[idx0:]
 
           # diccionario para armar el cmd2 (la segunda parte del byte nota musical)
-          valCmd2 = { 'c':0x0, 'd':0x2, 'e':0x4, 'f':0x5, 'g':0x7, 'a':0x9, 'b':0xb, 'r':0xf}
+#          valCmd2 = { 'c':0x0, 'd':0x2, 'e':0x4, 'f':0x5, 'g':0x7, 'a':0x9, 'b':0xb, 'r':0xf}
+          valCmd2 = { 'c':0x0, 'd':0x2, 'e':0x4, 'f':0x5, 'g':0x7, 'a':0x9, 'b':0xb, 'w':0xe, 'r':0xf, 'o':0xd0}
 
           cmd = 0
           currentNote = ''
@@ -678,20 +731,43 @@ class Melody:
           currentTilde = ''
           currentLength = ''
 
+          strNotas = strNotas.replace('<<<<', '(')
+          strNotas = strNotas.replace('<<<', '[')
+          strNotas = strNotas.replace('<<', '{')
+          strNotas = strNotas.replace('>>>>', ')')
+          strNotas = strNotas.replace('>>>', ']')
+          strNotas = strNotas.replace('>>', '}')
+#          print('strNotas: ' + strNotas)
+
           # por cada caracter del string con todas las notas
           for chara in strNotas:
 
             # si es una nota musical
-            if(chara in ['c','d','e','f','g','a','b','r','<','>']):
+#            if(chara in ['c','d','e','f','g','a','b','r','<','>']):
+            if(chara in ['c','d','e','f','g','a','b','w','r','o','>','}',']',')','<','{','[','(']):
 
               # si hay una nota anterior
               if(currentNote != ''):
 
                 # la nota anterior está terminada
-                if(currentNote == '<'):
-                  cmd = 0xdc
+                if(currentNote == 'o'):
+                  continue
                 elif(currentNote == '>'):
                   cmd = 0xd8
+                elif(currentNote == '}'):
+                  cmd = 0xd9
+                elif(currentNote == ']'):
+                  cmd = 0xda
+                elif(currentNote == ')'):
+                  cmd = 0xdb
+                elif(currentNote == '<'):
+                  cmd = 0xdc
+                elif(currentNote == '{'):
+                  cmd = 0xdd
+                elif(currentNote == '['):
+                  cmd = 0xde
+                elif(currentNote == '('):
+                  cmd = 0xdf
                 else:
                   cmd2 = valCmd2[currentNote]
                   if(currentTilde == "'"):
@@ -730,12 +806,39 @@ class Melody:
 
             elif(chara in ['0','1','2','3','4','5','6','7','8','9']):
               currentLength += chara
+              if(currentNote == 'o'):
+                if int(currentLength) > 7:
+                  print("Octave {} out of range.".format(chara))
+                  print(line)
+                  traceback()
+                  exit()
+                cmd = 0xd0 + int(currentLength)
+                nota = NotaMusical(vaPorAddr, 1, cmd, None)
+                nota.labels = currentLabels
+                self.notas.append(nota)
+                vaPorAddr += nota.length
+                currentLabels = []
+                currentNote = ''
 
           # la nota anterior está terminada
-          if(currentNote == '<'):
-            cmd = 0xdc
+          if(currentNote == ''):
+            pass
           elif(currentNote == '>'):
             cmd = 0xd8
+          elif(currentNote == '}'):
+            cmd = 0xd9
+          elif(currentNote == ']'):
+            cmd = 0xda
+          elif(currentNote == ')'):
+            cmd = 0xdb
+          elif(currentNote == '<'):
+            cmd = 0xdc
+          elif(currentNote == '{'):
+            cmd = 0xdd
+          elif(currentNote == '['):
+            cmd = 0xde
+          elif(currentNote == '('):
+            cmd = 0xdf
           else:
             cmd2 = valCmd2[currentNote]
             if(currentTilde == "'"):
@@ -751,12 +854,13 @@ class Melody:
 
             cmd = cmd1*0x10 + cmd2
           # la creo
-          nota = NotaMusical(vaPorAddr, 1, cmd, None)
-          nota.labels = currentLabels
-          # y agrego al listado de notas
-          self.notas.append(nota)
-          vaPorAddr += nota.length
-          currentLabels = []
+          if(currentNote != ''):
+            nota = NotaMusical(vaPorAddr, 1, cmd, None)
+            nota.labels = currentLabels
+            # y agrego al listado de notas
+            self.notas.append(nota)
+            vaPorAddr += nota.length
+            currentLabels = []
 
     # calculo los addr de los labels !!!
     self.refreshLabels()
@@ -835,7 +939,8 @@ class Melody:
                  0xb : 'b',
                  0xc : 'c',
                  0xd : 'cis',
-                 0xe : 'd',
+#                 0xe : 'd',
+                 0xe : '~',
                  0xf : 'r'
                }
 
@@ -900,16 +1005,26 @@ class Melody:
         mano = nota.cmd2
 #        print('mano: {:x} '.format(mano))
 
-        # eligo la octava default actual
-#        if(mano in [0x3, 0x8]):
-        if(mano in [0x3]):
-          octava = 1
-        elif(mano in [0x2]):
-          octava = 1
+        # d0 to d7 sets current octave globally
+        if(mano <= 0x7):
+          octava = mano-1
+        # d8 to df sets current octave relatively
         elif(mano in [0x8]):
           octava += 1
+        elif(mano in [0x9]):
+          octava += 2
+        elif(mano in [0xa]):
+          octava += 3
+        elif(mano in [0xb]):
+          octava += 4
         elif(mano in [0xc]):
           octava -= 1
+        elif(mano in [0xd]):
+          octava -= 2
+        elif(mano in [0xe]):
+          octava -= 3
+        elif(mano in [0xf]):
+          octava -= 4
 
 #      print('comando: {:x}'.format(nota.cmd))
 
@@ -942,7 +1057,7 @@ class Melody:
         # si es la nota de longitud rara
         if(nota.cmd1 == 0xb):
           string += '\\tuplet 3/2 {' + lilyNota
-          if(lilyNota != 'r'):
+          if(lilyNota not in ['~', 'r']):
             string += '\''*(octava + saltaOctava)
           string += '16}'
 
@@ -950,7 +1065,7 @@ class Melody:
         else:
           string += lilyNota
 
-          if(lilyNota != 'r'):
+          if(lilyNota not in ['~', 'r']):
             string += '\''*(octava + saltaOctava)
 
           if(nota.cmd1 in dicLong):
@@ -1015,7 +1130,8 @@ class NotaMusical:
                  0xb : "b",
                  0xc : "c'",
                  0xd : "c'#",
-                 0xe : "d'",
+#                 0xe : "d'",
+                 0xe : "w",
                  0xf : "r"
                }
 
@@ -1088,18 +1204,30 @@ class NotaMusical:
     # si es un comando de octava
     if(self.cmd1 == 0xd):
       if(self.cmd2 == 0x8):
-        string += '>' 
+        string += '>'    # > 
+      elif(self.cmd2 == 0x9):
+        string += '>>'   # }
+      elif(self.cmd2 == 0xa):
+        string += '>>>'  # ] 
+      elif(self.cmd2 == 0xb):
+        string += '>>>>' # )
       elif(self.cmd2 == 0xc):
-        string += '<'
+        string += '<'    # <
+      elif(self.cmd2 == 0xd):
+        string += '<<'   # {
+      elif(self.cmd2 == 0xe):
+        string += '<<<'  # [
+      elif(self.cmd2 == 0xf):
+        string += '<<<<' # (
       else:
-        string += 'OCTAVE_{:02x}'.format(self.cmd)
+        string += 'o{:01x}'.format(self.cmd2)
 
     # sino, si es un comando general
     elif(self.cmd1 == 0xe):
 
-      # instr e0
+      # volume
       if(self.cmd2 == 0x0):
-        string += 'INSTR_e0 {:x}'.format(self.arg)
+        string += 'VOLUME {:x}'.format(self.arg)
       # jump
       elif(self.cmd2 == 0x1):
         string += 'JUMP ' + self.jumpLabel
@@ -1111,19 +1239,28 @@ class NotaMusical:
         string += 'COUNTER {:x}'.format(self.arg)
       # instr e4
       elif(self.cmd2 == 0x4):
-        string += 'INSTR_e4 {:x}'.format(self.arg)
+        string += 'VIBRATO {:x}'.format(self.arg)
       # instrumento?
       elif(self.cmd2 == 0x5):
-        string += 'INSTR_e5 {:x}'.format(self.arg)
-      # instr e6
+        string += 'DUTYCYCLE {:x}'.format(self.arg // 64)
+      # stereo panning
       elif(self.cmd2 == 0x6):
-        string += 'INSTR_e6 {:x}'.format(self.arg)
+        if True:
+          string += 'STEREO {}'.format(self.arg)
+        elif self.arg == 0:
+          string += 'pS' # Silent
+        elif self.arg == 1:
+          string += 'pR' # Right only
+        elif self.arg == 2:
+          string += 'pL' # Left only
+        elif self.arg == 3:
+          string += 'pC' # Center (both left and right)
       # tempo
       elif(self.cmd2 == 0x7):
         string += 'TEMPO {:x}'.format(self.arg)
       # instr e8
       elif(self.cmd2 == 0x8):
-        string += 'INSTR_e8 {:x}'.format(self.arg)
+        string += 'WAVETABLE {:x}'.format(self.arg)
       # jumpif
       elif(self.cmd2 == 0xb):
         string += 'JUMPIF {:x} '.format(self.arg) + self.jumpLabel
