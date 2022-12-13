@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.10'
+VERSION = '0.95.11'
 
 def printHelp():
   print('------------------------------------------------------------')

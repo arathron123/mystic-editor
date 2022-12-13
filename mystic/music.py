@@ -115,6 +115,63 @@ class Canciones:
     songLines = []
     songLines.append(line)
 
+  def encodeRom(self, addrMusic):
+    array = []
+
+    # current data pointer
+#    addrData = addrMusic + 0x4000 + 6 * len(self.canciones)
+#    print('addrData: {:04x}'.format(addrData))
+
+    # sorted by the order the data appears, which is sometimes different than the order in the table (nro)
+    songs = sorted(self.canciones, key=lambda x: x.order)
+
+    # el addr de la primer canción
+    addrCancion = addrMusic + 0x4000 + 6 * len(songs)
+
+    arrayAddresses = []
+    arrayData = []
+
+#    for i in range(0,30):
+    for song in songs:
+#      song = songs[i]
+#      print('song nro: ' + str(song.nro))
+
+      # codifico la canción (eso actualiza sus addrChx)
+      arrayCancion = song.encodeRom(addrCancion)
+      arrayData.extend(arrayCancion)
+      addrCancion += len(arrayCancion)
+
+#      if(song.nro == 0):
+#        print('addrCh2: {:04x}'.format(song.addrCh2))
+#        print('addrCh1: {:04x}'.format(song.addrCh1))
+#        print('addrCh3: {:04x}'.format(song.addrCh3))
+
+#        print('arrayCancion: ' + mystic.util.strHexa(arrayCancion))
+
+#      print('cancion: ' + mystic.util.strHexa(arrayCancion))
+#      print('addrCh2: {:04x}'.format(song.addrCh2))
+#      print('addrCh1: {:04x}'.format(song.addrCh1))
+#      print('addrCh3: {:04x}'.format(song.addrCh3))
+
+#      arrayAddresses.extend([song.addrCh2&0xff, song.addrCh2//0x100])
+#      arrayAddresses.extend([song.addrCh1&0xff, song.addrCh1//0x100])
+#      arrayAddresses.extend([song.addrCh3&0xff, song.addrCh3//0x100])
+
+    # los addresses van en el orden de canción (no el orden en que se queman)
+    for song in self.canciones:
+      arrayAddresses.extend([song.addrCh2&0xff, song.addrCh2//0x100])
+      arrayAddresses.extend([song.addrCh1&0xff, song.addrCh1//0x100])
+      arrayAddresses.extend([song.addrCh3&0xff, song.addrCh3//0x100])
+
+    # agrego el array de addresses
+    array.extend(arrayAddresses)
+    # y el array de data de melodias
+    array.extend(arrayData)
+
+#    print('arrayAddresses: ' + mystic.util.strHexa(arrayAddresses))
+#    print('arrayData: ' + mystic.util.strHexa(arrayData))
+
+    return array
 
 
 ##########################################################
@@ -129,7 +186,8 @@ class Cancion:
     # solo la cancion 2, que se le permite terminar en repeat por un bug en la rom
     self.repeatTermina = (nro == 2)
 
-    self.header = None
+    # optional (not very useful) data header
+    self.header = []
 
     self.addrCh2 = None
     self.addrCh1 = None
@@ -156,6 +214,54 @@ class Cancion:
     melody3 = Melody(nroChannel=3, addr=self.addrCh3, repeatTermina=self.repeatTermina)
     melody3.decodeRom(bank)
     self.melody3 = melody3
+
+  def encodeRom(self, addrCancion):
+    array = []
+
+    # headers are useless, but preserved to ensure no unnecessary changes
+    array.extend(self.header)
+
+    vaPorAddr = addrCancion + len(self.header)
+    self.addrCh2 = vaPorAddr
+    self.melody2.addr = vaPorAddr
+    self.melody2.refreshLabels()
+#    print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+#    print('melody2 addr: {:04x}'.format(self.melody2.addr))
+    melody2Rom = self.melody2.encodeRom()
+    array.extend(melody2Rom)
+#    print('melody2: ' + mystic.util.strHexa(melody2Rom))
+
+    vaPorAddr += len(melody2Rom)
+    self.addrCh1 = vaPorAddr
+    self.melody1.addr = vaPorAddr
+    self.melody1.refreshLabels()
+#    print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+#    melody1Addr = self.melody1.addr
+#    print('melody1 addr: {:04x}'.format(melody1Addr))
+    # update the addr where the next channel starts
+    self.melody1.addr = vaPorAddr
+    melody1Rom = self.melody1.encodeRom()
+    array.extend(melody1Rom)
+#    print('melody1: ' + mystic.util.strHexa(melody1Rom))
+
+    vaPorAddr += len(melody1Rom)
+    self.addrCh3 = vaPorAddr
+    self.melody3.addr = vaPorAddr
+    self.melody3.refreshLabels()
+#    print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+#    melody3Addr = self.melody3.addr
+#    print('melody3 addr: {:04x}'.format(melody3Addr))
+    # update the addr where the next channel starts
+    self.melody3.addr = vaPorAddr
+    melody3Rom = self.melody3.encodeRom()
+    array.extend(melody3Rom)
+#    print('melody3: ' + mystic.util.strHexa(melody3Rom))
+
+    return array
+
 
   def encodeTxt(self):
     lines = []

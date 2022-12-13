@@ -2548,7 +2548,7 @@ def exportSongs(exportLilypond=False):
       cancion.exportLilypond()
 
 def burnSongs(filepath):
-  """ this is @xenophile version of burnSongs """
+  """ burn the songs into the rom """
 
   canciones = mystic.music.Canciones()
 
@@ -2557,44 +2557,12 @@ def burnSongs(filepath):
   f.close()
   canciones.decodeTxt(lines)
 
-  # sorted by the order the data appears, which is sometimes different than the order in the table (nro)
-  canciones = sorted(canciones.canciones, key=lambda x: x.order)
 
   # address of the pointer table
-  nroBank,address = mystic.address.addrMusic
+  nroBank,addrMusic = mystic.address.addrMusic
+  arrayMusic = canciones.encodeRom(addrMusic)
 
-  # current data pointer
-  addrData = address + 0x4000 + 6 * len(canciones)
-
-  # for each song
-  for cancion in canciones:
-#    print('cancy: ' + str(cancion))
-
-    # headers are useless, but preserved to ensure no unnecessary changes
-    if cancion.header is not None:
-      mystic.romSplitter.burnBank(nroBank, addrData - 0x4000, cancion.header)
-      addrData += len(cancion.header)
-
-    # encode the three channels
-    melodyRom = []
-    melodyRom.append(cancion.melody2.encodeRom())
-    melodyRom.append(cancion.melody1.encodeRom())
-    melodyRom.append(cancion.melody3.encodeRom())
-
-    # calculate the pointer address based on the song number, not the song order
-    punteroAddr = address +  6*cancion.nro
-
-    # for each channel
-    for melody in melodyRom:
-      # write the channel pointer
-      addr = [addrData&0xff, addrData//0x100]
-      mystic.romSplitter.burnBank(nroBank, punteroAddr, addr)
-      punteroAddr += 2
-
-      # write the channel data
-      mystic.romSplitter.burnBank(nroBank, addrData - 0x4000, melody)
-      addrData += len(melody)
-
+  mystic.romSplitter.burnBank(0xf, addrMusic, arrayMusic)
 
 
 def burnSongsOld(filepath, ignoreAddrs=False, exportLilypond=False):
