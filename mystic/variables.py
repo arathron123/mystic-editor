@@ -28,6 +28,83 @@ projectiles = {}
 for i in range(0,40):
   projectiles[i] = 'proj_{:02x}'.format(i)
 
+
+# diccionario de canciones
+songs = {}
+songs[0x00] = 'song_MUTE'             # 0
+songs[0x01] = 'song_RISING_SUN'       # 1
+songs[0x02] = 'song_IN_SORROW'        # 2
+songs[0x03] = 'song_MANA_MISION'      # 3
+songs[0x04] = 'song_VILLAGE'          # 4
+songs[0x05] = 'song_CHOCOBOS_BIRTH'   # 5
+songs[0x06] = 'song_CHOCOBOS_THEME'   # 6
+songs[0x07] = 'song_DUNGEON_1'        # 7
+songs[0x08] = 'song_DUNGEON_2'        # 8
+songs[0x09] = 'song_DANGER'           # 9
+songs[0x0a] = 'song_JULIUS_AMBITION'  # 10
+songs[0x0b] = 'song_ROYAL_PALACE'     # 11
+songs[0x0c] = 'song_DUNGEON_3'        # 12
+songs[0x0d] = 'song_LET_THOUGHTS_RIDE_ON_KNOWLEDGE' #13
+songs[0x0e] = 'song_GLANCE_DUKEDOM'   # 14
+songs[0x0f] = 'song_FIGHT_1'          # 15
+songs[0x10] = 'song_FINAL_BATTLE'     # 16
+songs[0x11] = 'song_JINGLE'           # 17
+songs[0x12] = 'song_MOOGLES'          # 18
+songs[0x13] = 'song_FIGHT_2'          # 19
+songs[0x14] = 'song_OVERWORLD_1'      # 20
+songs[0x15] = 'song_SUNSET'           # 21
+songs[0x16] = 'song_MANA_PALACE'      # 22
+songs[0x17] = 'song_REQUIEM'          # 23
+songs[0x18] = 'song_DWARVES_THEME'    # 24
+songs[0x19] = 'song_OVERWORLD_2'      # 25
+songs[0x1a] = 'song_FIGHTING_ARENA'   # 26
+songs[0x1b] = 'song_GEMMAS_REALIZATION' # 27
+songs[0x1c] = 'song_LEVEL_UP'         # 28
+songs[0x1d] = 'song_TENSION'          # 29
+songs[0x1e] = 'song_ILL'              # 30
+
+
+# diccionario de efectos de sonido sfx
+sounds = {}
+sounds[0x00] = 'sfx_MUTE'
+sounds[0x01] = 'sfx_SWORD_SLIDE'
+sounds[0x02] = 'sfx_SWORD_STRAIGHT'
+sounds[0x03] = 'sfx_FIRE'
+sounds[0x04] = 'sfx_BREAK_WALL_IDK'
+sounds[0x05] = 'sfx_CURE'
+sounds[0x06] = 'sfx_LESTER_CURED'
+sounds[0x07] = 'sfx_CUACK'
+sounds[0x08] = 'sfx_KAMEHAMEHA'
+sounds[0x09] = 'sfx_STRANGE_FALL_IDK'
+sounds[0x0a] = 'sfx_BLING'
+sounds[0x0b] = 'sfx_ENEMY_DEFEATED'
+sounds[0x0c] = 'sfx_FALLING'
+sounds[0x0d] = 'sfx_ENEMY_HIT'
+sounds[0x0e] = 'sfx_WRONG_PHONE'
+sounds[0x0f] = 'sfx_OPEN_CHEST'
+sounds[0x10] = 'sfx_CLOSE_DOOR'
+sounds[0x11] = 'sfx_HUGE_EXPLOSION'
+sounds[0x12] = 'sfx_ITEM_SELECT'
+sounds[0x13] = 'sfx_MAGIC_BLEEP'
+sounds[0x14] = 'sfx_SPLASH'
+sounds[0x15] = 'sfx_SHIELD_BLOCKING'
+sounds[0x16] = 'sfx_METAL_CLASHING'
+sounds[0x17] = 'sfx_NEVERENDING_STEAM_ENGINE'
+sounds[0x18] = 'sfx_PASSAGE_FOUND'
+sounds[0x19] = 'sfx_SMALL_EXPLOSION'
+sounds[0x1a] = 'sfx_MEDIUM_EXPLOSION'
+sounds[0x1b] = 'sfx_NEVERENDING_HELICOPTER'
+sounds[0x1c] = 'sfx_CHAIN_IDK'
+sounds[0x1d] = 'sfx_CHAIN2_IDK'
+sounds[0x1e] = 'sfx_SICKLE'
+sounds[0x1f] = 'sfx_MORNING_STAR'
+sounds[0x20] = 'sfx_DEFEATED'
+sounds[0x21] = 'sfx_SWORD_SPECIAL'
+sounds[0x22] = 'sfx_NOSOUND'
+sounds[0x23] = 'sfx_BEEP'
+sounds[0x24] = 'sfx_BOOP'
+sounds[0x25] = 'sfx_FIRE_ATTACKED'
+
 # diccionario de proyectiles del heroe
 hero_projectiles = {}
 hero_projectiles[0] = 'hero_SWORD'
@@ -595,7 +672,7 @@ if(nombresOriginales):
     neg = val >= 0x80
     if(neg):
       val -= 0x80
-    strNeg = '' if not neg else '!'
+    strNeg = '' if not neg else '~'
 #    strVar = 'var[{:02x}] '.format(cond)
     strVar = flags[val]
     label = strNeg + strVar
@@ -607,7 +684,7 @@ if(nombresOriginales):
 
     neg = False
     # si esta negada
-    if(label.startswith('!')):
+    if(label.startswith('~')):
       # lo indico
       neg = True
       # y quito el '!' del label 
@@ -638,6 +715,34 @@ if(nombresOriginales):
     for val in bosses.keys():
       # me fijo el label
       lbl = bosses[val]
+      # si lo encontré
+      if(lbl == label):
+        retVal = val
+        break
+    return retVal
+
+  def getLabelSong(val):
+    label = songs[val]
+    return label
+  def getValSong(label):
+    # por cada song
+    for val in songs.keys():
+      # me fijo el label
+      lbl = songs[val]
+      # si lo encontré
+      if(lbl == label):
+        retVal = val
+        break
+    return retVal
+
+  def getLabelSFX(val):
+    label = sounds[val]
+    return label
+  def getValSFX(label):
+    # por cada sfx
+    for val in sounds.keys():
+      # me fijo el label
+      lbl = sounds[val]
       # si lo encontré
       if(lbl == label):
         retVal = val

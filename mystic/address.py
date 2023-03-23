@@ -30,8 +30,14 @@ addrInitialWeapons = (0x02, 0x2f10)
 addrLoadStateStrangeBytes = (0x02, 0x3aed)
 
 addrWindowsLabels = (0x02, 0x3cf6)
+#addrWindowsLabels2 = (0x02, 0x1dc5)
+
 # la intro en el bank02
 addrIntro = (0x02, 0x3e8a)
+
+# los bosses del bank04
+addrBosses = (0x04, 0x0739)
+cantBosses = 21
 
 addrMaps = (0x05, 0x0000)
 
@@ -39,6 +45,11 @@ addrMaps = (0x05, 0x0000)
 spriteSheetsAddr = [(0x08,0x00b0), (0x08,0x03b0), (0x08,0x06b0), (0x08,0x0938), (0x08,0x0c1a)]
 # cantidad de sprites de cada spriteSheet
 cantSpritesInSheet = [0x80, 0x80, 0x6c, 0x7b, 0x4c]
+
+tilesetsOffsetsBank8 = [0x10000, 0x11000, 0x12000, 0x13000, 0xC000]
+# the base tile of each tileset is the offsetBank8/16
+baseSubtile = [off//0x10 for off in tilesetsOffsetsBank8]
+
 
 addrExpTable = (0x08, 0x0dd6)
 
@@ -69,6 +80,25 @@ def setRomPath(romPath):
   # y lo seteo
   mystic.address.language = lang
 
+
+def _addrToInt(strAddr):
+  """ converts a string 'bb:aaaa' into the tuple (bb,aaaa) """
+
+  strBb = strAddr[0:2]
+  strAaaa = strAddr[3:7]
+  bb = int(strBb,16)
+  aaaa = int(strAaaa,16)
+  addr = (bb,aaaa)
+
+  return addr
+
+def _intToAddr(addr):
+  """ converts the tuple (bb,aaaa) into the string 'bb:aaaa' """
+
+  strAddr = '{:02x}:{:04x}'.format(addr[0], addr[1])
+  return strAddr
+
+
 def decodeJs(filepath):
 
   f = open(filepath, 'r', encoding="utf-8")
@@ -82,69 +112,75 @@ def decodeJs(filepath):
   address = json.loads(data)
 #  print('address: ' + str(address))
 
-  mystic.address.addrDictionary = (int(address['addr_dictionary'][0:2],16), int(address['addr_dictionary'][3:7],16))
+  mystic.address.addrDictionary = _addrToInt(address['addr_dictionary'])
   mystic.address.cantDictionary = int(address['cant_dictionary'])
 
-  mystic.address.addrWindows = (int(address['addr_windows'][0:2],16), int(address['addr_windows'][3:7],16))
+  mystic.address.addrWindows = _addrToInt(address['addr_windows'])
 
-  mystic.address.addrMagic = (int(address['addr_magic'][0:2],16), int(address['addr_magic'][3:7],16))
+  mystic.address.addrMagic = _addrToInt(address['addr_magic'])
 
-  mystic.address.addrInitialWeapons = (int(address['addr_initial_weapons'][0:2],16), int(address['addr_initial_weapons'][3:7],16))
+  mystic.address.addrInitialWeapons = _addrToInt(address['addr_initial_weapons'])
 
-  mystic.address.addrLoadStateStrangeBytes = (int(address['addr_loadstate_strangebytes'][0:2],16), int(address['addr_loadstate_strangebytes'][3:7],16))
+  mystic.address.addrLoadStateStrangeBytes = _addrToInt(address['addr_loadstate_strangebytes'])
 
-  mystic.address.addrWindowsLabels = (int(address['addr_windows_labels'][0:2],16), int(address['addr_windows_labels'][3:7],16))
-  mystic.address.addrIntro = (int(address['addr_intro'][0:2],16), int(address['addr_intro'][3:7],16))
+  mystic.address.addrWindowsLabels = _addrToInt(address['addr_windows_labels'])
+#  mystic.address.addrWindowsLabels2 = _addrToInt(address['addr_windows_labels2'])
 
-  mystic.address.addrMaps = (int(address['addr_maps'][0:2],16), int(address['addr_maps'][3:7],16))
+  mystic.address.addrIntro = _addrToInt(address['addr_intro'])
+
+  mystic.address.addrBosses = _addrToInt(address['addr_bosses'])
+
+  mystic.address.addrMaps = _addrToInt(address['addr_maps'])
 
   mystic.address.spriteSheetsAddr = []
   for strAddr in address['addr_sheet']:
-    addrSheet = (int(strAddr[0:2],16), int(strAddr[3:7],16))
+    addrSheet = _addrToInt(strAddr)
     mystic.address.spriteSheetsAddr.append(addrSheet)
 
   mystic.address.cantSpritesInSheet = address['cant_sprites_in_sheet']
    
-  mystic.address.addrExpTable = (int(address['addr_exp_table'][0:2],16), int(address['addr_exp_table'][3:7],16))
+  mystic.address.addrExpTable = _addrToInt(address['addr_exp_table'])
 
-  mystic.address.addrScriptAddrDic = (int(address['addr_script_addr_dic'][0:2],16), int(address['addr_script_addr_dic'][3:7],16))
+  mystic.address.addrScriptAddrDic = _addrToInt(address['addr_script_addr_dic'])
   mystic.address.cantScripts = address['cant_scripts']
 
-  mystic.address.addrMusic = (int(address['addr_music'][0:2],16), int(address['addr_music'][3:7],16))
+  mystic.address.addrMusic = _addrToInt(address['addr_music'])
 
 
 def encodeJs(filepath):
 
   address = {}
 
-  address['addr_dictionary'] = '{:02x}:{:04x}'.format(addrDictionary[0], addrDictionary[1])
+  address['addr_dictionary'] = _intToAddr(addrDictionary)
   address['cant_dictionary'] = cantDictionary
 
-  address['addr_windows'] = '{:02x}:{:04x}'.format(addrWindows[0], addrWindows[1])
+  address['addr_windows'] = _intToAddr(addrWindows)
 
-  address['addr_magic'] = '{:02x}:{:04x}'.format(addrMagic[0], addrMagic[1])
-  address['addr_initial_weapons'] = '{:02x}:{:04x}'.format(addrInitialWeapons[0], addrInitialWeapons[1])
+  address['addr_magic'] = _intToAddr(addrMagic)
+  address['addr_initial_weapons'] = _intToAddr(addrInitialWeapons)
 
-  address['addr_loadstate_strangebytes'] = '{:02x}:{:04x}'.format(addrLoadStateStrangeBytes[0], addrLoadStateStrangeBytes[1])
+  address['addr_loadstate_strangebytes'] = _intToAddr(addrLoadStateStrangeBytes)
 
-  address['addr_windows_labels'] = '{:02x}:{:04x}'.format(addrWindowsLabels[0], addrWindowsLabels[1])
-  address['addr_intro'] = '{:02x}:{:04x}'.format(addrIntro[0], addrIntro[1])
+  address['addr_windows_labels'] = _intToAddr(addrWindowsLabels)
+#  address['addr_windows_labels2'] = _intToAddr(addrWindowsLabels2)
+  address['addr_intro'] = _intToAddr(addrIntro)
+  address['addr_bosses'] = _intToAddr(addrBosses)
 
-  address['addr_maps'] = '{:02x}:{:04x}'.format(addrMaps[0], addrMaps[1])
+  address['addr_maps'] = _intToAddr(addrMaps)
 
   address['addr_sheet'] = []
   for addrSheet in spriteSheetsAddr:
-    strAddr = '{:02x}:{:04x}'.format(addrSheet[0], addrSheet[1])
+    strAddr = _intToAddr(addrSheet)
     address['addr_sheet'].append(strAddr)
 
   address['cant_sprites_in_sheet'] = cantSpritesInSheet
 
-  address['addr_exp_table'] = '{:02x}:{:04x}'.format(addrExpTable[0], addrExpTable[1])
+  address['addr_exp_table'] = _intToAddr(addrExpTable)
 
-  address['addr_script_addr_dic'] = '{:02x}:{:04x}'.format(addrScriptAddrDic[0], addrScriptAddrDic[1])
+  address['addr_script_addr_dic'] = _intToAddr(addrScriptAddrDic)
   address['cant_scripts'] = cantScripts
 
-  address['addr_music'] = '{:02x}:{:04x}'.format(addrMusic[0], addrMusic[1])
+  address['addr_music'] = _intToAddr(addrMusic)
 
 
   import json

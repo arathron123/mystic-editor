@@ -6,8 +6,9 @@ addrs =
   "addr_magic": "02:1de4",
   "addr_initial_weapons": "02:2f1a",
   "addr_loadstate_strangebytes": "02:3aff",
-  "addr_windows_labels": "02:3cf6",
+  "addr_windows_labels": "02:3d08",
   "addr_intro": "02:3ed8",
+  "addr_bosses": "04:0739",
   "addr_maps": "05:0000",
   "addr_sheet": [
     "08:00b0",

@@ -14,6 +14,8 @@ import mystic.mscripts
 import mystic.jscripts
 import mystic.maps
 import mystic.music
+import mystic.audio
+import mystic.sounds
 import mystic.ippy
 
 # la rom
@@ -27,10 +29,6 @@ tilesets = None
 spriteSheets = []
 # los mapas
 #mapas = None
-
-tilesetsOffsetsBank8 = [0x10000, 0x11000, 0x12000, 0x13000, 0xC000]
-# the base tile of each tileset is the offsetBank8/16
-baseTiles = [off//0x10 for off in tilesetsOffsetsBank8]
 
 
 def getVal(bank, offset):
@@ -204,7 +202,7 @@ def gameGenieHacks():
   bank2[0x396c] = 0x94
 
 
-def exportGbsRom(filepath):
+def exportSongsRom(filepath):
   """ exporta a una rom musical gbs """
 
   # cargo el gbs rom
@@ -218,6 +216,55 @@ def exportGbsRom(filepath):
   gbsRom.extend(bank0f)
   # creo la rom gbs de salida
   mystic.util.arrayToFile(gbsRom, filepath)
+
+
+def exportSoundsRom(filepath):
+  """ exporta a una rom con efectos de sonido """
+
+  # cargo el gbs rom
+#  gbsRom = mystic.util.fileToArray('./roms/audio.gb')
+  # me quedo con el bank00
+#  gbsRom = gbsRom[0:0x4000]
+  gbsRom = mystic.util.fileToArray('./gbsBank00.bin')
+
+#  titulo = 'Final Fantasy Adventure'
+  titulo = 'Mystic Sounds'
+  listTitulo = list(titulo.encode())
+  listTitulo.extend([0x00 for i in range(0, 32-len(listTitulo))])
+
+#  autor = 'Kenji Ito'
+  autor = ''
+  listAutor = list(autor.encode())
+  listAutor.extend([0x00 for i in range(0, 32-len(listAutor))])
+
+#  date = '1991 Square'
+  date = ''
+  listDate = list(date.encode())
+  listDate.extend([0x00 for i in range(0, 32-len(listDate))])
+
+  for i in range(0, 32):
+    gbsRom[0x3F74 + i] = listTitulo[i]
+    gbsRom[0x3F94 + i] = listAutor[i]
+    gbsRom[0x3FB4 + i] = listDate[i]
+
+  cantSounds = 37
+  # seteo los números de efectos
+  for i in range(0,cantSounds):
+    gbsRom[0x3F00+i] = i+1
+  # cambio 1E por 25 para setear la cantidad de efectos de sonido
+  gbsRom[0x3F68] = 0x25
+  # cambio E2 por 00 para que los números de efectos los busque a partir del 3F00
+  gbsRom[0x3FD5] = 0x00
+  # cambio 90 por 92 para cambiar música por efectos de sonido
+  gbsRom[0x3FE0] = 0x92
+
+  # agarro el bank0f
+  bank0f = mystic.romSplitter.banks[0x0f]
+  # los concateno
+  gbsRom.extend(bank0f)
+  # creo la rom gbs de salida
+  mystic.util.arrayToFile(gbsRom, filepath)
+
 
 
 def testRom(filepath, emulator):
@@ -497,7 +544,7 @@ def exportTilesetsOld():
 
     mystic.romSplitter.tilesets.append(tileset)
 
- 
+
 def exportTilesets():
   """ exporta el tilesets.png """
 
@@ -524,6 +571,69 @@ def exportTilesets():
 
   # set the tilesets on the romSplitter
   mystic.romSplitter.tilesets = tileset
+
+  for i in range(0, len(mystic.address.baseSubtile)):
+    subtilesetOffset = mystic.address.baseSubtile[i]+1
+    filename = 'sub_tileset_{:02x}'.format(i)
+    # exports the subtileset...
+    _exportSubTileset(path, filename, subtilesetOffset)
+
+
+def _exportSubTileset(path, filename, vaPorTile):
+  """ exports a sub-tileset """
+#  print('exporting sub-tileset')
+
+  width = 16
+  height = 16
+  # el id a ir incrementando
+  iidd = 1
+
+  import xml.etree.cElementTree as ET
+
+  root = ET.Element("map", version='1.9', tiledversion="1.9.2", orientation="orthogonal", renderorder="right-down", width=str(width), height=str(height), tilewidth="8", tileheight="8", infinite="0", nextlayerid="3", nextobjectid="14")
+
+#  tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tileset_{:02x}.tsx'.format(self.nroTileset))
+  tileset = ET.SubElement(root, "tileset", firstgid="1", source='tilesets.tsx')
+
+  layer1 = ET.SubElement(root, "layer", id=str(iidd), name="Tile Layer 1", width=str(width), height=str(height))
+  iidd += 1
+  data = ET.SubElement(layer1, "data", encoding="csv")
+
+  renglones = []
+  renglones.append("")
+  for j in range(0,height):
+    renglon = ''
+    for i in range(0,width):
+#      renglon += '0'
+      renglon += str(vaPorTile)
+      vaPorTile += 1
+
+      if(i != width-1 or j != height-1):
+        renglon += ','
+    renglones.append(renglon)
+
+  renglones.append("")
+  textData = '\n'.join(renglones)
+  data.text = textData
+
+  tree = ET.ElementTree(root)
+#  printed_xml = tree.tostring(root, encoding='UTF-8', xml_declaration=True, pretty_print=True)
+  ET.indent(root, space=" ", level=0)
+  tree.write(path + '/' + filename + '.tmx', xml_declaration=True, encoding='utf-8')
+#  print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
+
+  # y ahora exporto el .tsx para utilizarlo como subtileset de los spriteSheets
+#  root = ET.Element("tileset", version='1.9', tiledversion="1.9.2", self.name, tilewidth="8", tileheight="8", tilecount=str(16*16), columns="16")
+  root = ET.Element("tileset", version='1.9', tiledversion="1.9.2", name=filename, tilewidth="8", tileheight="8", tilecount=str(16*16), columns="16")
+
+  img = ET.SubElement(root, "image", source=filename + '.tmx', width="128", height="128")
+
+  tree = ET.ElementTree(root)
+  ET.indent(root, space=" ", level=0)
+  tree.write(path + '/' + filename + '.tsx', xml_declaration=True, encoding='utf-8')
+#  print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
 
 
 def burnTilesets():
@@ -643,6 +753,8 @@ def exportSpriteSheets():
     sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}'.format(nroSpriteSheet))
     sheet.exportJs(basePath + '/spriteSheets/sheet_{:02}.js'.format(nroSpriteSheet))
 
+#    sheet.exportPyxelEdit(basePath + '/spriteSheets/sheet_{:02}.pyxel'.format(nroSpriteSheet))
+
 
 def exportWindows():
   """ exporta las ventanas """
@@ -691,58 +803,134 @@ def exportWindowsTextLabels():
 
   data = {}
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,5)
+  # el idioma de la rom
+  lang = mystic.address.language
+
+
+  labelWidth = 5
+  if(lang in [mystic.language.JAPAN]):
+    labelWidth = 4
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,labelWidth)
   data['items'] = labels
 
-#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,5)
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,6)
+
+#  if(lang in [mystic.language.ENGLISH, mystic.language.ENGLISH_UK, mystic.language.JAPAN]):
+
+  labelWidth = 6
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN, mystic.language.JAPAN]):
+    labelWidth = 5
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,labelWidth)
   data['select'] = labels
 
   labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,7)
   data['status_upgrade'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,5)
+
+  cantLabels = 2
+  if(lang in [mystic.language.FRENCH]):
+    cantLabels = 3
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,5)
 #  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,5)
   data['yes_no'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,17)
+  cantLabels = 2
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN]):
+    cantLabels = 3
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,17)
 #  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,17)
   data['level'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,7)
+  cantLabels = 1
+  labelWidth = 7
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN]):
+    cantLabels = 2
+  if(lang in [mystic.language.GERMAN]):
+    labelWidth = 19
+  if(lang in [mystic.language.JAPAN]):
+    labelWidth = 10
+
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,labelWidth)
 #  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,7)
   data['bought'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,16)
+  cantLabels = 4
+  labelWidth = 16
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN]):
+    cantLabels = 3
+  if(lang in [mystic.language.JAPAN]):
+    labelWidth = 17
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,labelWidth)
 #  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,16)
   data['hello'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,15)
+
+  cantLabels = 2
+  labelWidth = 15
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN, mystic.language.JAPAN]):
+    cantLabels = 3
+    labelWidth = 18
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,labelWidth)
   data['not_enough'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,4)
+  cantLabels = 2
+  if(lang in [mystic.language.JAPAN]):
+    cantLabels = 4
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,4)
   data['sell'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,4)
+  labelWidth = 4
+  if(lang in [mystic.language.JAPAN]):
+    labelWidth = 2
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 3,labelWidth)
   data['buy'] = labels
 
   labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,2)
   data['gp'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 4,6)
+  cantLabels = 4
+  if(lang in [mystic.language.FRENCH]):
+    cantLabels = 5
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,6)
   data['upgrade'] = labels
 
   labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,9)
   data['hp'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,6)
+  labelWidth = 7
+  if(lang in [mystic.language.FRENCH, mystic.language.GERMAN, mystic.language.JAPAN]):
+    labelWidth = 6
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,labelWidth)
   data['mp'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,35)
+
+  cantLabels = 2
+  if(lang in [mystic.language.GERMAN]):
+    cantLabels = 1
+
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,35)
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,18)
   data['level_up'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 5,4)
+  cantLabels = 5
+  if(lang in [mystic.language.JAPAN]):
+    cantLabels = 21
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,4)
   data['status'] = labels
+
+  # siguientes labels
+#  bank,vaPorAddr = mystic.address.addrWindowsLabels2
 
   labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,4)
   data['boy'] = labels
@@ -750,16 +938,42 @@ def exportWindowsTextLabels():
   labels, vaPorAddr = _decodeWindowText(vaPorAddr, 1,4)
   data['girl'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 9,9)
+  cantLabels = 9
+  if(lang in [mystic.language.JAPAN]):
+    cantLabels = 20
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,9)
   data['letters'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,8)
+  labelWidth = 8
+  if(lang in [mystic.language.GERMAN]):
+    labelWidth = 14
+  if(lang in [mystic.language.JAPAN]):
+    labelWidth = 7
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,labelWidth)
   data['cont'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 2,21)
+  cantLabels = 2
+  if(lang in [mystic.language.JAPAN]):
+    cantLabels = 1
+
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,21)
   data['license'] = labels
 
-  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 36,19)
+  # intro
+  bank,vaPorAddr = mystic.address.addrIntro
+
+  cantLabels = 36
+  if(lang in [mystic.language.FRENCH]):
+    cantLabels = 31
+  if(lang in [mystic.language.GERMAN]):
+    cantLabels = 33
+  if(lang in [mystic.language.JAPAN]):
+    cantLabels = 29
+
+#  labels, vaPorAddr = _decodeWindowText(vaPorAddr, 36,19)
+  labels, vaPorAddr = _decodeWindowText(vaPorAddr, cantLabels,19)
   data['intro'] = labels
 
   import json
@@ -771,7 +985,8 @@ def exportWindowsTextLabels():
 #  f.write(strJson)
 #  f.close()
 
-  strJson = json.dumps(data, indent=2)
+  # for allowing kana characters in json ensure_ascii=False
+  strJson = json.dumps(data, indent=2, ensure_ascii=False)
 #  strJson = json.dumps(data)
   f = open(path + '/windowsTextLabels.js', 'w', encoding="utf-8")
   f.write('windowsTextLabels = \n' + strJson)
@@ -882,6 +1097,13 @@ def burnWindowsTextLabels(filepath):
   subArray = _encodeWindowText(labels, enterCode)
   array.extend(subArray)
 
+#  nroBank,addr = 2, 0x3cf6
+  nroBank,addr = mystic.address.addrWindowsLabels
+  mystic.romSplitter.burnBank(nroBank, addr, array)
+
+
+  # intro
+  array = []
 
   lang = mystic.address.language
   if(lang in [mystic.language.ENGLISH, mystic.language.ENGLISH_UK, mystic.language.JAPAN]):
@@ -896,12 +1118,14 @@ def burnWindowsTextLabels(filepath):
   # agrego el byte de cierre
   array.append(0x01)
 
+  nroBank,addr = mystic.address.addrIntro
+  mystic.romSplitter.burnBank(nroBank, addr, array)
+
+
+
+
 
 #  print('array: ' + mystic.util.strHexa(array))
-
-#  nroBank,addr = 2, 0x3cf6
-  nroBank,addr = mystic.address.addrWindowsLabels
-  mystic.romSplitter.burnBank(nroBank, addr, array)
 
 
 def _encodeWindowText(labels, enterCode):
@@ -911,10 +1135,19 @@ def _encodeWindowText(labels, enterCode):
   for label in labels:
 
     label = label.replace('<00>', '@')
+    label = label.replace('<01>', 'Σ')
+    label = label.replace('<02>', 'Ω')
+    label = label.replace('<CARRY>', 'Φ')
 
     for char in label:
       if(char == '@'):
         code = 0x00
+      elif(char == 'Σ'):
+        code = 0x01
+      elif(char == 'Ω'):
+        code = 0x02
+      elif(char == 'Φ'):
+        code = 0x1f
       # lo codifico con el byte correspondiente
       elif(char == '\n'):
         code = enterCode
@@ -951,7 +1184,8 @@ def _decodeWindowText(addr, rows, labelWidth):
         chars = mystic.dictionary.decodeByte(hexy)
 #      print('chars: ' + chars)
       label += chars
-      if(hexy in [0x00, 0x1a]):
+#      if(hexy in [0x00, 0x1a, 0x1f]):
+      if(hexy <= 0x1f):
 #      if(hexy in [0x00]):
         break
 #    print('label: ' + label)
@@ -1211,17 +1445,66 @@ def exportBosses():
 
 #  print('--- 4:0739')
 
-  bank = mystic.romSplitter.banks[0x04]
+  basePath = mystic.address.basePath
+  path = basePath + '/bosses'
+
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  nroBank,addrBosses = mystic.address.addrBosses
+  bank = mystic.romSplitter.banks[nroBank]
+  cantBosses = mystic.address.cantBosses
+
   bosses = mystic.bosses.Bosses()
-  bosses.decodeRom(bank)
+  bosses.decodeRom(bank, addrBosses, cantBosses)
 
-  return bosses.bosses
+  import json
+  # for allowing kana characters in json ensure_ascii=False
+  strJson = json.dumps(bosses.jsonBosses, indent=2, ensure_ascii=False)
+#  strJson = json.dumps(data)
+  f = open(path + '/bosses.js', 'w', encoding="utf-8")
+  f.write('bosses = \n' + strJson)
+  f.close()
+
+def burnBosses(filepath):
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+#  print('data: ' + data)
+
+  import json
+  jsonBosses = json.loads(data)
+#  print('jsonBosses: ' + str(jsonBosses))
+
+  bosses = mystic.bosses.Bosses()
+  bosses.jsonBosses = jsonBosses
+
+  nroBank,addrBosses = mystic.address.addrBosses
+  array = bosses.encodeRom(addrBosses)
+
+  mystic.romSplitter.burnBank(nroBank, addrBosses, array)
 
 
-def burnBosses(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMiniActions, pathPositions, pathSortTiles, pathAnimations):
+# @deprecated: can/should be deleted
+def exportBossesOld():
+  """ exporta los monstruos grandes """
+  basePath = mystic.address.basePath
+  path = basePath + '/bosses'
+
+  bosses = mystic.bosses.BossesOld()
+  bosses.decodeRom()
+
+# @deprecated: can/should be deleted
+def burnBossesOld(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMiniActions, pathPositions, pathSortTiles, pathAnimations):
   """ quema los monstruos grandes en la rom """
-
-  bosses = mystic.bosses.Bosses()
+  bosses = mystic.bosses.BossesOld()
 
   f = open(pathBosses, 'r', encoding="utf-8")
   lines = f.readlines()
@@ -1262,7 +1545,6 @@ def burnBosses(pathBosses, pathBossesDamage, pathBehaviour, pathActions, pathMin
   lines = f.readlines()
   f.close()
   bosses.decodeAnimationsTxt(lines)
-
 
   array = bosses.encodeRom()
   mystic.romSplitter.burnBank(0x4, 0x0739, array)
@@ -2491,6 +2773,92 @@ def exportMonstruoGrandeDosTiles():
     array = array[3:]
 
 
+def exportAudioJson():
+  """ exporta el audio en formato json """
+
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  nroBank,addrMusic = mystic.address.addrMusic
+  # cargo el banco 16 con las canciones
+  bank = mystic.romSplitter.banks[nroBank]
+
+  canciones = mystic.music.Canciones()
+  canciones.decodeRom(bank,addrMusic)
+
+  songsData = {}
+
+  for i in range(0,30):
+    cancion = canciones.canciones[i]
+
+    lines = cancion.encodeTxt()
+    strCancion = '\n'.join(lines)
+#    print('strCancion: ' + strCancion)
+
+#    songsData[i] = lines
+
+    songsData[i+1] = {}
+
+    subLines = cancion.melody2.encodeTxt()
+    songsData[i+1][2] = subLines[2:] # (salteo header)
+    subLines = cancion.melody1.encodeTxt()
+    songsData[i+1][1] = subLines[2:]
+    subLines = cancion.melody3.encodeTxt()
+    songsData[i+1][3] = subLines[2:]
+
+
+
+  import json
+  # exporto a json
+  strJson = json.dumps(songsData, indent=2)
+#  strJson = json.dumps(data)
+  f = open(path + '/audio_noedit.js', 'w', encoding="utf-8")
+  f.write('audio = \n' + strJson)
+  f.close()
+
+def exportSongsXml():
+  """ exporta las canciones en formato xml """
+
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+  nroBank,addrMusic = mystic.address.addrMusic
+  # cargo el banco 16 con las canciones
+  bank = mystic.romSplitter.banks[nroBank]
+
+  canciones = mystic.music.Canciones()
+  canciones.decodeRom(bank,addrMusic)
+
+
+  import xml.etree.cElementTree as ET
+  root = ET.Element("songs")
+
+  for i in range(0,30):
+    cancion = canciones.canciones[i]
+
+    lines = cancion.encodeTxt()
+    strCancion = '\n'.join(lines)
+#    print('strCancion: ' + strCancion)
+
+    song = ET.SubElement(root, "song")
+    song.text = strCancion
+
+  tree = ET.ElementTree(root)
+#  printed_xml = tree.tostring(root, encoding='UTF-8', xml_declaration=True, pretty_print=True)
+  ET.indent(root, space=" ", level=0)
+  tree.write('./en/audio/songs.xml', xml_declaration=True, encoding='utf-8')
+#  print('ET: ' + str(ET.tostring(root, encoding='UTF-8')))
+
+
+
 def exportSongs(exportLilypond=False):
   """ exporta las canciones """
 
@@ -2510,7 +2878,7 @@ def exportSongs(exportLilypond=False):
 
   lines = canciones.encodeTxt()
   strCanciones = '\n'.join(lines)
-  f = open(path + '/songs.txt', 'w', encoding="utf-8")
+  f = open(path + '/01_songs.txt', 'w', encoding="utf-8")
   f.write(strCanciones)
   f.close()
 
@@ -2547,7 +2915,7 @@ def exportSongs(exportLilypond=False):
       # exporto lilypond!
       cancion.exportLilypond()
 
-def burnSongs(filepath):
+def burnSongs(filepath, nroBank, addrMusic):
   """ burn the songs into the rom """
 
   canciones = mystic.music.Canciones()
@@ -2555,251 +2923,197 @@ def burnSongs(filepath):
   f = open(filepath, 'r', encoding="utf-8")
   lines = f.readlines()
   f.close()
+  # decode the songs from the txt
   canciones.decodeTxt(lines)
 
+  # export to lilypond
+  canciones.exportLilypond()
 
   # address of the pointer table
-  nroBank,addrMusic = mystic.address.addrMusic
+#  nroBank,addrMusic = mystic.address.addrMusic
   arrayMusic = canciones.encodeRom(addrMusic)
-
+  # burn into the rom
   mystic.romSplitter.burnBank(0xf, addrMusic, arrayMusic)
 
+  vaPorAddr = addrMusic + len(arrayMusic)
+  return vaPorAddr
 
-def burnSongsOld(filepath, ignoreAddrs=False, exportLilypond=False):
-  """ quema las canciones en el banco 0f real.  Si ignoreAddrs=True calcula addrs nuevas concatenando channels """
+def exportAudio():
+  """ exports audio settings """
 
-  canciones = mystic.music.Canciones()
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
 
-  f = open(filepath, 'r', encoding="utf-8")
-  lines = f.readlines()
+#  nroBank,addrAudio = mystic.address.addrAudio
+  nroBank,addrAudio = 0x0f, 0x3a4f
+  # cargo el banco 16 con los sonidos
+  bank = mystic.romSplitter.banks[nroBank]
+  vaPorAddr = addrAudio
+
+  vibratos = mystic.audio.Vibratos()
+  vibratos.decodeRom(bank, addrAudio)
+
+  lines = vibratos.encodeTxt()
+#  lines.append('')
+#  lines.append('')
+
+  strVibrato = '\n'.join(lines)
+  f = open(path + '/02_vibrato.txt', 'w', encoding="utf-8")
+  f.write(strVibrato)
   f.close()
-  canciones.decodeTxt(lines)
 
-#  vaPorAddr = canciones.canciones[0].addrCh2
-  # empezamos por la dirección donde debe comenzar el primer canal de la primera canción
-  vaPorAddr = 0x4ac9
+  array = vibratos.encodeRom(vaPorAddr)
+  vaPorAddr += len(array)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
 
-#  cancion = canciones.canciones[1]
-#  melody2Rom = cancion.melody2.encodeRom()
-#  print('melody2Rom: ' + mystic.util.strHexa(melody2Rom))
+  volumes = mystic.audio.Volumes()
+  volumes.decodeRom(bank, vaPorAddr)
+  lines = volumes.encodeTxt()
 
-  for cancion in canciones.canciones:
-#    print('cancy: ' + str(cancion))
+  strVolume = '\n'.join(lines)
+  f = open(path + '/03_volume.txt', 'w', encoding="utf-8")
+  f.write(strVolume)
+  f.close()
 
-    melody2Rom = cancion.melody2.encodeRom()
-    melody1Rom = cancion.melody1.encodeRom()
-    melody3Rom = cancion.melody3.encodeRom()
+  array = volumes.encodeRom(vaPorAddr)
+  vaPorAddr += len(array)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
 
-    # si no ignoramos los addrs
-    if(not ignoreAddrs):
-        
-      # quemo el puntero al addr del channel 2
-      punteroAddr = 0x0a12 + 6*cancion.nro + 0
-      strHexAddr = '{:02x} {:02x}'.format(cancion.addrCh2%0x100, cancion.addrCh2//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 2
-      mystic.romSplitter.burnBank(0xf, cancion.addrCh2 - 0x4000, melody2Rom)
+  waves = mystic.audio.Waves()
+  waves.decodeRom(bank, vaPorAddr)
+  lines = waves.encodeTxt()
 
-      # quemo el puntero al addr del channel 1
-      punteroAddr = 0x0a12 + 6*cancion.nro + 2
-      strHexAddr = '{:02x} {:02x}'.format(cancion.addrCh1%0x100, cancion.addrCh1//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 1
-      mystic.romSplitter.burnBank(0xf, cancion.addrCh1 - 0x4000, melody1Rom)
+  strWaves = '\n'.join(lines)
+  f = open(path + '/04_waves.txt', 'w', encoding="utf-8")
+  f.write(strWaves)
+  f.close()
 
-      # quemo el puntero al addr del channel 3
-      punteroAddr = 0x0a12 + 6*cancion.nro + 4
-      strHexAddr = '{:02x} {:02x}'.format(cancion.addrCh3%0x100, cancion.addrCh3//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 3
-      mystic.romSplitter.burnBank(0xf, cancion.addrCh3 - 0x4000, melody3Rom)
-
-    else:
-
-      # quemo el puntero al addr del channel 2
-      punteroAddr = 0x0a12 + 6*cancion.nro + 0
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # recodifico la melody con su nuevo addr
-      cancion.melody2.addr = vaPorAddr
-      cancion.melody2.refreshLabels()
-      melody2Rom = cancion.melody2.encodeRom()
-      # y quemo el channel 2
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody2Rom)
-      vaPorAddr += len(melody2Rom)#+0x10
-
-      # quemo el puntero al addr del channel 1
-      punteroAddr = 0x0a12 + 6*cancion.nro + 2
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # recodifico la melody con su nuevo addr
-      cancion.melody1.addr = vaPorAddr
-      cancion.melody1.refreshLabels()
-      melody1Rom = cancion.melody1.encodeRom()
-      # y quemo el channel 1
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody1Rom)
-      vaPorAddr += len(melody1Rom)#+0x10
-
-      # quemo el puntero al addr del channel 3
-      punteroAddr = 0x0a12 + 6*cancion.nro + 4
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # recodifico la melody con su nuevo addr
-      cancion.melody3.addr = vaPorAddr
-      cancion.melody3.refreshLabels()
-      melody3Rom = cancion.melody3.encodeRom()
-      # y quemo el channel 3
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
-      vaPorAddr += len(melody3Rom)#+0x10
-
-    # si quiere que compile lilypond
-    if(exportLilypond):
-      # exporto lilypond!
-      cancion.exportLilypond()
+#  array = waves.encodeRom(vaPorAddr)
+#  vaPorAddr += len(array)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
 
 
 
-def burnSongsHeaders(filepath, exportLilypond=False):
-  """ quema las canciones en el banco 0f real.  Agrega los headers misteriosos """
+def burnAudio(pathVibrato, pathVolume, pathWaves):
+  """ burn the audio settings """
 
-  canciones = mystic.music.Canciones()
-
-  # el array con las canciones a quemar
   array = []
 
-  # los tipos de headers misteriosos
-  header1 = [0xe7, 0x14]
-  header2 = []
-  header3 = [0xD0, 0x63, 0xA3, 0x64, 0x67, 0x66]
-  header4 = [0x19, 0x68, 0xBD, 0x68, 0xFF, 0x69]
-  header5 = [0x57, 0x6B, 0x83, 0x6C, 0xA9, 0x6D]
-  header6 = [0x8A, 0x6E, 0x5E, 0x6F, 0x31, 0x70]
-  header7 = [0x70, 0x70, 0x9F, 0x70, 0xF9, 0x70]
-  header8 = [0x18, 0x71, 0xAA, 0x71, 0x63, 0x72]
-  header9 = [0x49, 0x73, 0x1C, 0x74, 0x6F, 0x75]
-  header10 = [0xD3, 0x76, 0x1C, 0x77, 0x62, 0x77]
-  header11 = [0xA8, 0x77, 0x11, 0x78, 0xA3, 0x78]
-  header12 = [0xFA, 0x78, 0x24, 0x79, 0x48, 0x79]
-  header13 = [0x6B, 0x79, 0x84, 0x79, 0x9A, 0x79]
-  header14 = [0xB6, 0x79, 0xEA, 0x79, 0x1D, 0x7A]
+  vibratos = mystic.audio.Vibratos()
+
+  f = open(pathVibrato, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # decode the audio from the txt
+  vibratos.decodeTxt(lines)
+
+#  lines = vibratos.encodeTxt()
+#  strVibratos = '\n'.join(lines)
+#  print('strVibratos: ' + strVibratos)
+
+  # address of the pointer table
+#  nroBank,addrAudio = mystic.address.addrAudio
+  nroBank,addrAudio = 0x0f, 0x3a4f
+  vaPorAddr = addrAudio
+
+  arrayVibrato = vibratos.encodeRom(vaPorAddr)
+  array.extend(arrayVibrato)
+  vaPorAddr += len(arrayVibrato)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+
+
+  volumes = mystic.audio.Volumes()
+
+  f = open(pathVolume, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # decode the audio from the txt
+  volumes.decodeTxt(lines)
+
+  arrayVolume = volumes.encodeRom(vaPorAddr)
+#  print('arrayVolume: ' + mystic.util.strHexa(arrayVolume))
+  array.extend(arrayVolume)
+  vaPorAddr += len(arrayVolume)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+
+
+  waves = mystic.audio.Waves()
+
+  f = open(pathWaves, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # decode the audio from the txt
+  waves.decodeTxt(lines)
+
+  arrayWaves = waves.encodeRom(vaPorAddr)
+#  print('arrayWaves: ' + mystic.util.strHexa(arrayWaves))
+  array.extend(arrayWaves)
+  vaPorAddr += len(arrayWaves)
+#  print('vaPorAddr: {:04x}'.format(vaPorAddr))
+
+  # burn into the rom
+  mystic.romSplitter.burnBank(0xf, addrAudio, array)
+
+
+
+def exportSounds():
+  """ exports the sound effects """
+
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
+#  nroBank,addrSounds = mystic.address.addrSounds
+  nroBank,addrSounds = 0x0f, 0x3b3c
+  # cargo el banco 16 con los sonidos
+  bank = mystic.romSplitter.banks[nroBank]
+
+  sounds = mystic.sounds.Sounds()
+  sounds.decodeRom(bank,addrSounds)
+
+  lines = sounds.encodeTxt()
+#  lines.append('')
+#  lines.append('')
+
+  strSFX = '\n'.join(lines)
+  f = open(path + '/05_sounds.txt', 'w', encoding="utf-8")
+  f.write(strSFX)
+  f.close()
+
+def burnSounds(filepath):
+  """ burn the SFX into the rom """
+
+  sounds = mystic.sounds.Sounds()
 
   f = open(filepath, 'r', encoding="utf-8")
   lines = f.readlines()
   f.close()
-  canciones.decodeTxt(lines)
+  # decode the songs from the txt
+  sounds.decodeTxt(lines)
 
-  vaPorAddr = canciones.canciones[0].addrCh2
+#  lines = sounds.encodeTxt()
+#  strSFX = '\n'.join(lines)
+#  print('strSFX: ' + strSFX)
 
-  for i in range(0,30):
-#    print('cancy: ' + str(cancion))
+  # address of the pointer table
+#  nroBank,addrMusic = mystic.address.addrSounds
+  nroBank,addrSounds = 0x0f, 0x3b3c
+  arraySounds = sounds.encodeRom(addrSounds)
 
-    localNro = i
-    if(localNro == 16):
-      localNro = 17
-    elif(localNro == 17):
-      localNro = 16
+#  print('arraySounds: ' + mystic.util.strHexa(arraySounds))
+  # burn into the rom
+  mystic.romSplitter.burnBank(0xf, addrSounds, arraySounds)
+#  mystic.romSplitter.burnBank(0xf, 0x3bd0, arraySounds)
 
-    if(i <= 12):
-      array.extend(header1)
-      pass
-    elif(i == 13):
-      array.extend(header2)
-      pass
-    elif(i == 14):
-      array.extend(header1)
-    elif(i >= 15 and i <= 17):
-      array.extend(header2)
-      pass
-    elif(i == 18):
-      array.extend(header3)
-      pass
-    elif(i == 19):
-      array.extend(header4)
-      pass
-    elif(i == 20):
-      array.extend(header5)
-      pass
-    elif(i == 21):
-      array.extend(header6)
-      pass
-    elif(i == 22):
-      array.extend(header7)
-      pass
-    elif(i == 23):
-      array.extend(header8)
-      pass
-    elif(i == 24):
-      array.extend(header9)
-      pass
-    elif(i == 25):
-      array.extend(header10)
-      pass
-    elif(i == 26):
-      array.extend(header11)
-      pass
-    elif(i == 27):
-      array.extend(header12)
-      pass
-    elif(i == 28):
-      array.extend(header13)
-      pass
-    elif(i == 29):
-      array.extend(header14)
-      pass
-
-    cancion = canciones.canciones[localNro]
-    melody2Rom = cancion.melody2.encodeRom()
-    melody1Rom = cancion.melody1.encodeRom()
-    melody3Rom = cancion.melody3.encodeRom()
-
-
-
-    if(True):
-      # quemo el puntero al addr del channel 2
-      punteroAddr = 0x0a12 + 6*cancion.nro + 0
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-#      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 2
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody2Rom)
-      array.extend(melody2Rom)
-      vaPorAddr += len(melody2Rom)
-       
-      # quemo el puntero al addr del channel 1
-      punteroAddr = 0x0a12 + 6*cancion.nro + 2
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-#      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 1
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody1Rom)
-      array.extend(melody1Rom)
-      vaPorAddr += len(melody1Rom)
-
-      # quemo el puntero al addr del channel 3
-      punteroAddr = 0x0a12 + 6*cancion.nro + 4
-      strHexAddr = '{:02x} {:02x}'.format(vaPorAddr%0x100, vaPorAddr//0x100)
-      addrArray = mystic.util.hexaStr(strHexAddr)
-#      mystic.romSplitter.burnBank(0xf, punteroAddr, addrArray)
-      # y quemo el channel 3
-      mystic.romSplitter.burnBank(0xf, vaPorAddr - 0x4000, melody3Rom)
-      array.extend(melody3Rom)
-      vaPorAddr += len(melody3Rom)
-
-    # si quiere que compile lilypond
-    if(exportLilypond):
-      # exporto lilypond!
-      cancion.exportLilypond()
-
-#  print(mystic.util.strHexa(array))
-#  print('len: ' + str(len(array)))
-
-  mystic.romSplitter.burnBank(0xf, 0x4AC7 - 0x4000, array)
 
 
 def exportSpriteSheetHero():
@@ -3867,6 +4181,7 @@ def exportJScripts():
 
   shutil.copyfile('./mystic/__index.html', basePath + '/index.html')
   shutil.copyfile('./mystic/jscriptsEngine.js', basePath + '/jscriptsEngine.js')
+  shutil.copyfile('./mystic/sound-engine.js', basePath + '/sound-engine.js')
 
 
 def burnMScripts(filepath):
@@ -4045,8 +4360,6 @@ def exportExpTable():
 
 def burnExpTable(filepath):
   """ quema el exp.txt en la rom """
-
-  print('quemando la tabla de experiencia')
 
   f = open(filepath, 'r', encoding="utf-8")
   lines = f.readlines()

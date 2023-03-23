@@ -118,7 +118,7 @@ def compareFiles(filepath1, filepath2, idx0, cantBytes):
 
       print('byte1, byte2 = {:02x}, {:02x}'.format(byte1,byte2))
 
-      print('diferencia en addr: {:04x}'.format(idx0 + i))
+      print('diferencia en addr: 0x{:04x}'.format(idx0 + i))
       break
 
   return iguales

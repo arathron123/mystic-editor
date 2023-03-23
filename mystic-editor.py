@@ -19,7 +19,21 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.11'
+VERSION = '0.95.12'
+
+#
+# dictionary of the mystic spanglish nomenclature
+# -----------------------------------------------
+#
+# * tile = 8x8 pixel picture.
+# * sprite = 16x16 pixel picture.  Can be both for background (maps) or foreground (personajes).  Even bosses have many sprites.
+# * personaje = Npc (non-player-character).  Can be friendly or an enemy.
+#
+# in the code, if a variable name starts with:
+# * cant = quantity (from the spanish "cantidad")
+# * nro = id (from the spanish "número")
+# * nose = IDK (I don't know) (from the spanish "no se")
+#
 
 def printHelp():
   print('------------------------------------------------------------')
@@ -94,8 +108,6 @@ def testPlayground():
 
   # decodifico el diccionario (compress)
 #  Dictionary.instance().decodeRom()
-
-
 
   # exporto los tilesets
 #  mystic.romSplitter.exportTilesets()
@@ -372,7 +384,10 @@ def testPlayground():
 
 
 #  bosses = mystic.romSplitter.exportBosses()
-#  mystic.romSplitter.burnBosses('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
+#  mystic.romSplitter.burnBosses('./en/bosses/bosses.js')
+
+#  bosses = mystic.romSplitter.exportBossesOld()
+#  mystic.romSplitter.burnBossesOld('./en/bosses/01_bosses.txt', './en/bosses/02_bossesDamage.txt', './en/bosses/03_bossesBehaviour.txt', './en/bosses/04_bossesAction.txt', './en/bosses/05_bossesMiniAction.txt', './en/bosses/06_bossesSpritesPos.txt', './en/bosses/07_bossesSortTiles.txt', './en/bosses/08_bossesAnimations.txt')
 #  mystic.romSplitter.exportBossesBehaviour(bosses)
 
 #  mystic.romSplitter.exportProjectiles()
@@ -452,7 +467,20 @@ def testPlayground():
   # exporto la música
 #  mystic.romSplitter.exportSongs(exportLilypond=False)
 #  mystic.romSplitter.exportSongs(exportLilypond=True)
+#  mystic.romSplitter.exportSongsXml()
+#  mystic.romSplitter.exportAudioJson()
 
+#  nroBank, vaPorAddr = mystic.address.addrMusic
+#  vaPorAddr = mystic.romSplitter.burnSongs('./en/audio/01_songs.txt', nroBank, vaPorAddr)
+
+#  mystic.romSplitter.exportAudio()
+#  mystic.romSplitter.burnAudio('./en/audio/02_vibrato.txt')
+#  mystic.romSplitter.burnAudio('./en/audio/02_vibrato.txt', './en/audio/03_volume.txt', './en/audio/04_waves.txt')
+
+  # exporto efectos de sonido
+#  mystic.romSplitter.exportSounds()
+
+#  mystic.romSplitter.burnSounds('./en/audio/05_sounds.txt')
 
   # cargo el banco 16 con las canciones
 #  bank = mystic.romSplitter.banks[0x0F]
@@ -469,21 +497,16 @@ def testPlayground():
 #  print('array: ' + mystic.util.strHexa(array))
 
 
-
-  # trata de mantener compatibilidad binaria con la rom original
-#  mystic.romSplitter.burnSongs(filepath='./en/audio/songs.txt', exportLilypond=True)
-  # concatena todas las canciones, default para roms nuevas (no compatible con la original)
-#  mystic.romSplitter.burnSongs(filepath='./en/audio/songs.txt', ignoreAddrs=True, exportLilypond=True)
-  # compatible con la original (agrega los headers misteriosos sin uso)
-#  mystic.romSplitter.burnSongsHeaders(filepath='./en/audio/songs.txt', exportLilypond=True)
-
-
   # exporto las estadísticas del rom
 #  mystic.romStats.exportPng()
 
-#  mystic.romSplitter.exportGbsRom('./en/audio.gb')
-#  mystic.romSplitter.exportGbsRom('./de/gbs.gb')
-#  mystic.romSplitter.exportGbsRom('./game/gbs.gb')
+#  mystic.romSplitter.exportSongsRom('./en/songs.gb')
+#  mystic.romSplitter.exportSongsRom('./de/songs.gb')
+#  mystic.romSplitter.exportSongsRom('./game/songs.gb')
+
+
+#  mystic.romSplitter.exportSoundsRom('./en/sounds.gb')
+
 
 
 #  nroTileset = 0
@@ -529,15 +552,14 @@ def testPlayground():
 
   basePath = './en'
   # exporto nueva rom
-#  mystic.romSplitter.exportRom(basePath + '/newRom.gb')
+  mystic.romSplitter.exportRom(basePath + '/newRom.gb')
 
   pathStock = './stockRoms/en.gb'
   pathNew = './en/newRom.gb'
 
-  print('comparando ' + pathStock + ' con ' + pathNew)
+  print('comparing ' + pathStock + ' with ' + pathNew)
   iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-  print('roms iguales = ' + str(iguales))
-
+  print('roms coincide = ' + str(iguales))
 
 
 
@@ -557,8 +579,8 @@ def testPlayground():
 #  mystic.romSplitter.testRom('/home/arathron/newRom.gb', 'vba-m')
 
 
-#  iguales = mystic.util.compareFiles('./en/audio.gb', './stockRoms/gbs_en2.gb', 0x4000, 0x40000)
-#  iguales = mystic.util.compareFiles('./en/audio.gb', './stockRoms/gbs_en.gb', 0x00, 0x8000)
+#  iguales = mystic.util.compareFiles('./en/songs.gb', './stockRoms/gbs_en2.gb', 0x4000, 0x40000)
+#  iguales = mystic.util.compareFiles('./en/songs.gb', './stockRoms/gbs_en.gb', 0x00, 0x8000)
 #  iguales = mystic.util.compareFiles('./en/banks/bank_15/bank_15.bin','./fr/banks/bank_15/bank_15.bin', 0x0000, 0x4000)
 #  print('los gbs iguales = ' + str(iguales))
 
@@ -628,7 +650,7 @@ def main(argv):
 
     lines = canciones.encodeTxt()
     strCanciones = '\n'.join(lines)
-    f = open(basePath + '/songs.txt', 'w', encoding="utf-8")
+    f = open(basePath + '/01_songs.txt', 'w', encoding="utf-8")
     f.write(strCanciones)
     f.close()
 
@@ -735,7 +757,7 @@ def main(argv):
     # exporto lo gráficos (cada .bin en cuatro .png)
 #    mystic.romSplitter.exportGfx()
 
-    print('exportando tilesets')
+    print('exporting tilesets')
     # exporto los tilesets
     mystic.romSplitter.exportTilesets()
     # y la tabla de experiencia
@@ -746,13 +768,13 @@ def main(argv):
     mystic.romSplitter.exportSpriteSheets()
     # exporto los spriteSheet de personajes
 #    mystic.romSplitter.exportSpriteSheetPersonajes()
-    print('exportando sprite sheet del heroe')
+    print('exporting the hero spritesheet')
     mystic.romSplitter.exportSpriteSheetHero()
     # TODO: Esto no está terminado
 #    print('exportando spriteSheet de bosses')
 #    mystic.romSplitter.exportSpriteSheetMonster()
 
-    print('exportando personajes')
+    print('exporting npcs')
     # exporto los personajes
     personajes = mystic.romSplitter.exportPersonajes()
     # exporto grupos de aparición de personajes
@@ -765,13 +787,13 @@ def main(argv):
     mystic.romSplitter.exportPersonajesAnimations()
     mystic.romSplitter.exportPersonajesAnimationsJs()
 
-    print('exportando proyectiles')
+    print('exporting projectiles')
     # exporto los proyectiles
     mystic.romSplitter.exportProjectiles()
     mystic.romSplitter.exportProjectilesJs()
     mystic.romSplitter.exportHeroProjectiles()
 
-    print('exportando bosses')
+    print('exporting bosses')
     # exporto los monstruos grandes
     mystic.romSplitter.exportBosses()
 
@@ -789,17 +811,25 @@ def main(argv):
 
 #    print('exportando mscripts...')
 #    mystic.romSplitter.exportMScripts()
-    print('exportando jscripts...')
+    print('exporting jscripts...')
     mystic.romSplitter.exportJScripts()
 
-    print('exportando mapas...')
+    print('exporting maps...')
     # exporto todos los mapas
 #    mystic.romSplitter.exportMapas(exportPngFile=True)
     mystic.romSplitter.exportMapas(exportPngFile=False)
 
+    print('exporting songs...')
     # exporto la música
 #    mystic.romSplitter.exportSongs(exportLilypond=False)
     mystic.romSplitter.exportSongs(exportLilypond=True)
+
+    # exporto todo el audio en formato json
+    mystic.romSplitter.exportAudioJson()
+
+    print('exporting sounds...')
+    # exporto los efectos de sonido sfx
+    mystic.romSplitter.exportSounds()
 
     # exporto las estadísticas del rom
     mystic.romStats.exportPng()
@@ -856,7 +886,7 @@ def main(argv):
     # y tabla de experiencia
     mystic.romSplitter.burnExpTable(basePath+'/exp.txt')
 
-    print('quemando spriteSheets...')
+    print('burning spriteSheets...')
     mystic.romSplitter.burnSpriteSheets()
     mystic.romSplitter.burnSpriteSheetHero()
 
@@ -864,7 +894,7 @@ def main(argv):
 
 #    mystic.romSplitter.burnSpriteSheetPersonajes()
 
-    print('quemando personajes...')
+    print('burning npcs...')
     # quemo las animaciones para los personajes
     mystic.romSplitter.burnPersonajesAnimations(basePath + '/personajes/personajesAnimations.txt')
     # quemo los personajes en la rom
@@ -877,45 +907,47 @@ def main(argv):
 #    mystic.romSplitter.burnPersonajeStats(basePath + '/personajes/personajeStats.txt')
     mystic.romSplitter.burnPersonajeStatsJs(basePath + '/personajes/personajeStats.js')
 
+    print('burning projectiles...')
     # exporto los proyectiles
     mystic.romSplitter.burnProjectiles(basePath + '/projectiles/01_projectiles.txt')
     mystic.romSplitter.burnHeroProjectiles(basePath + '/projectiles/heroProjs.js')
 
 
 
-
-
-
-
-
-    print('quemando bosses...')
+    print('burning bosses...')
     # quemo los monstruos grandes
-    mystic.romSplitter.burnBosses(basePath + '/bosses/01_bosses.txt', basePath + '/bosses/02_bossesDamage.txt', basePath + '/bosses/03_bossesBehaviour.txt', basePath + '/bosses/04_bossesAction.txt', basePath + '/bosses/05_bossesMiniAction.txt', basePath + '/bosses/06_bossesSpritesPos.txt', basePath + '/bosses/07_bossesSortTiles.txt', basePath + '/bosses/08_bossesAnimations.txt')
+    mystic.romSplitter.burnBosses(basePath + '/bosses/bosses.js')
 
-
-    print('quemando mapas...')
+    print('burning maps...')
 #    mystic.romSplitter.burnMapas(basePath + '/mapas/mapas.txt')
 #    mystic.romSplitter.burnMapasTiled()
     mystic.romSplitter.burnMapasTiledXml()
 #    mystic.romSplitter.burnMapasJs()
 
-#    print('quemando mscripts...')
+#    print('burning mscripts...')
 #    mystic.romSplitter.burnMScripts(basePath + '/scripts/mscripts.txt')
-    print('quemando jscripts...')
+    print('burning jscripts...')
     mystic.romSplitter.burnJScripts(basePath + '/scripts/jscripts.js')
 
 
-    print('quemando songs...')
+    print('burning songs...')
+    nroBank, vaPorAddr = mystic.address.addrMusic
+#    print('addrMusic {:04x}'.format(vaPorAddr))
+
     # trata de mantener compatibilidad binaria con la rom original
-    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt')
-#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=False, exportLilypond=True)
-    # concatena todas las canciones, default para roms nuevas (no compatible con la original)
-#    mystic.romSplitter.burnSongs(filepath=basePath+'/audio/songs.txt', ignoreAddrs=True, exportLilypond=True)
-    # compatible con la original (agrega los headers misteriosos sin uso)
-#    mystic.romSplitter.burnSongsHeaders(filepath=basePath+'/audio/songs.txt', exportLilypond=True)
+    vaPorAddr = mystic.romSplitter.burnSongs(basePath+'/audio/01_songs.txt', nroBank, vaPorAddr)
+#    print('vaPorAddr {:04x}'.format(vaPorAddr))
+
+    print('burning sounds...')
+    # quemo los efectos de sonido sfx
+    mystic.romSplitter.burnSounds(filepath=basePath+'/audio/05_sounds.txt')
+
 
     # exporto la gbs rom con música
-    mystic.romSplitter.exportGbsRom(basePath+'/audio.gb')
+    mystic.romSplitter.exportSongsRom(basePath+'/songs.gb')
+    # exporto la gbs rom con efectos de sonido
+    mystic.romSplitter.exportSoundsRom(basePath+'/sounds.gb')
+
 
     if('--fix-checksums' in argv):
       mystic.romSplitter.fixChecksums()
@@ -933,9 +965,9 @@ def main(argv):
     # exporto el .ips
     mystic.romSplitter.exportIps(pathStock, pathNew, basePath + '/newRom.ips')
 
-    print('comparando ' + pathStock + ' con ' + pathNew)
+    print('comparing ' + pathStock + ' with ' + pathNew)
     iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-    print('roms iguales = ' + str(iguales))
+    print('roms coincide = ' + str(iguales))
 
     # la juego
 #    mystic.romSplitter.testRom(basePath + '/newRom.gb', 'vba')

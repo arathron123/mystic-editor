@@ -1,6 +1,17 @@
 # pip3 install pypng
 import png
 
+
+colorPaletteGrayscale = [ (0x00, 0x00, 0x00),(0x55, 0x55, 0x55),(0xaa, 0xaa, 0xaa),(0xff, 0xff, 0xff) ]
+colorPalettePyxel = [ (0, 0, 0),(79, 79, 79),(179, 179, 179),(255, 255, 255) ]
+colorPaletteYellow = [ (0x0f, 0x38, 0x0f),(0x30, 0x62, 0x30),(0x8b, 0xac, 0x0f),(0x9b, 0xbc, 0x0f) ]
+colorPaletteGreen = [ (0x3e, 0x49, 0x43),(0x55, 0x5a, 0x56),(0x5e, 0x78, 0x5d),(0x84, 0xd0, 0x7d) ]
+#colorPalette = colorPaletteGrayscale
+colorPalette = colorPalettePyxel
+#colorPalette = colorPaletteYellow
+#colorPalette = colorPaletteGreen
+
+
 ##########################################################
 class Tile:
   """ representa un tile de 8x8 """
@@ -120,22 +131,41 @@ class Tile:
   def exportPngFile(self, filepath):
     """ exporta a un archivo .png de 8x8 pixels """
 
-#    w = png.Writer(8, 8, greyscale=True, bitdepth=2)
-    w = png.Writer(8, 8)
     tileData = self.encodePng()
 
     # creo el array
     s = []
+
     for j in range(8):
       row = []
       for i in range(8):
-        color = 255 - tileData[i+8*j]*255//3
+#        color = 255 - tileData[i+8*j]*255//3
+        color = 3 - tileData[i+8*j]
+#        print('color: ' + str(color))
         row.append(color)
       s.append(row)
 
+
+    # convierto la imagen en RGB
+    fullS = []
+    for row in s:
+      for color in row:
+
+        fullCol = colorPalette[color]
+#        fullCol = [color, color, color]
+#        fullCol = [color, 0,0]
+#        fullCol = [0, color,0]
+        fullS.extend(fullCol)
+
+#    w = png.Writer(8, 8, greyscale=True, bitdepth=2)
+    w = png.Writer(8, 8, greyscale=False)
+#    w = png.Writer(8, 8)
     f = open(filepath, 'wb')
-    w.write(f, s)
+#    w.write(f, s)
+    w.write_array(f, fullS)
     f.close()
+
+
 
   def importPngFile(self, filepath):
     """ importa de un archivo .png de 8x8 pixels """
@@ -204,7 +234,8 @@ class Tileset:
           b0 = val % 2
           b1 = val // 2
 
-          color = 255 - (2*b1 + b0)*255//3
+#          color = 255 - (2*b1 + b0)*255//3
+          color = 3 - (2*b1 + b0)
 
 #          print('(i,j) = ' + str(i) + ', ' + str(j))
 #          print('color = ' + str(color))
@@ -214,10 +245,25 @@ class Tileset:
 
       k += 1
 
+
+    # convierto la imagen en RGB
+    fullS = []
+    for row in s:
+      for color in row:
+
+        fullCol = colorPalette[color]
+#        fullCol = [color, color, color]
+#        fullCol = [color, 0,0]
+#        fullCol = [0, color,0]
+        fullS.extend(fullCol)
+
+
     f = open(filepath, 'wb')
 #    w = png.Writer(8*self.w, 8*self.h, greyscale=True, bitdepth=2)
-    w = png.Writer(8*self.w, 8*self.h)
-    w.write(f, s)
+    w = png.Writer(8*self.w, 8*self.h, greyscale=False)
+#    w = png.Writer(8*self.w, 8*self.h)
+#    w.write(f, s)
+    w.write_array(f, fullS)
     f.close()
 
   def importPngFile(self, filepath):
@@ -236,12 +282,19 @@ class Tileset:
     w,h,rows,info = r.read()
     i,j = 0,0
     for row in rows:
+      k = 0
       for val in row:
-        s[j][i] = val
-        i += 1
+        # if it is the green info of RGB
+        if( (k%3) == 1):
+          # set the grayscale value to it
+          s[j][i] = val
+          i += 1
+        k += 1
       j += 1
       i = 0
 
+    # I use green to detect the grayscale level
+    greens = [val[1] for val in colorPalette]
 
     for v in range(0, self.h):
       for u in range(0, self.w):
@@ -252,8 +305,11 @@ class Tileset:
           # para cada bit (columna)
           for i in range(0,8):
 
-            val = (255 - s[8*v+j][8*u+i])*3//255
+            val = 3 - greens.index(s[8*v+j][8*u+i])
+#            print('val1: ' + str(val))
+#            val = (255 - s[8*v+j][8*u+i])*3//255
 #            print('val {:02x}'.format(val))
+
             tileData.append(val)
 #          print('\n')
 

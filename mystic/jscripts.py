@@ -12,7 +12,6 @@ class JScripts:
   def __init__(self):
     self.scripts = []
 
-
   def getAddr(self, nroScript):
     """ retorna el addr del script indicado """
 
@@ -31,7 +30,6 @@ class JScripts:
         return script
     # si llegó acá no está el script del addr indicado
     return None
-
 
   def decodeRom(self):
     self.scripts = []
@@ -96,28 +94,28 @@ class JScripts:
   def encodeTxt(self):
     newLines = []
 
-    newLines.append('');
-    newLines.append('/******************************************************************************/');
-    newLines.append('/*                                                                            */');
-    newLines.append('/*                 Welcome to the mystic-jscript-language                     */');
-    newLines.append('/*                                                                            */');
-    newLines.append('/* Some observations to take care off, while jscript has a                    */');
-    newLines.append('/*    javascript-like syntax, it is far less flexible, for example:           */');
-    newLines.append('/*                                                                            */');
-    newLines.append('/* 1. Multiline comments are not supported (only within the same line).       */');
-    newLines.append('/* 2. It is heavily tab dependent, like python.                               */');
-    newLines.append('/* 3. One space can break anything                                            */');
-    newLines.append('/*     ( "} else {" is valid but "}else{" is not )                            */');
-    newLines.append('/* 4. The ending block comments are mandatory, for the time being.            */');
-    newLines.append('/*     ( "}//END_FUNCTION" is valid but "}" is not )                          */');
-    newLines.append('/* 5. All script names must have the format script_HHHH                       */');
-    newLines.append('/*     where HHHH is it\'s hex number                                         */');
-    newLines.append('/* 6. Flags constants must start with "flag_" and boss constants with "boss_" */');
-    newLines.append('/* 7. All integers must be written in hexadecimal format.                     */');
-    newLines.append('/* 8. Enjoy!                                                                  */');
-    newLines.append('/*                                                                            */');
-    newLines.append('/******************************************************************************/');
-    newLines.append('');
+    newLines.append("");
+    newLines.append("/******************************************************************************/");
+    newLines.append("/*                                                                            */");
+    newLines.append("/*                 Welcome to the mystic-jscript-language                     */");
+    newLines.append("/*                                                                            */");
+    newLines.append("/* Some observations to take care off, while jscript has a                    */");
+    newLines.append("/*    javascript-like syntax, it is far less flexible, for example:           */");
+    newLines.append("/*                                                                            */");
+    newLines.append("/* 1. Multiline comments are not supported (only within the same line).       */");
+    newLines.append("/* 2. It is heavily tab dependent, like python.                               */");
+    newLines.append("/* 3. One space can break anything                                            */");
+    newLines.append("/*     ( '} else {' is valid but '}else{' is not )                            */");
+    newLines.append("/* 4. The ending block comments are mandatory, for the time being.            */");
+    newLines.append("/*     ( '}//END_FUNCTION' is valid but '}' is not )                          */");
+    newLines.append("/* 5. All script names must have the format script_HHHH                       */");
+    newLines.append("/*     where HHHH is it's hex number                                          */");
+    newLines.append("/* 6. Flags constants must start with 'flag_' and boss constants with 'boss_' */");
+    newLines.append("/* 7. All integers must be written in hexadecimal format.                     */");
+    newLines.append("/* 8. Enjoy!                                                                  */");
+    newLines.append("/*                                                                            */");
+    newLines.append("/******************************************************************************/");
+    newLines.append("");
 
     newLines.append('/* flags */');
     for val in mystic.variables.flags.keys():
@@ -131,6 +129,23 @@ class JScripts:
       var = mystic.variables.bosses[val]
 #      print('key: ' + labelVar + ' value: ' + str(nroVar))
       newLines.append('const ' + var + ' = 0x{:02x};'.format(val))
+
+
+    newLines.append('');
+    newLines.append('/* songs */');
+    for val in mystic.variables.songs.keys():
+      var = mystic.variables.songs[val]
+#      print('key: ' + labelVar + ' value: ' + str(nroVar))
+      newLines.append('const ' + var + ' = 0x{:02x};'.format(val))
+
+
+    newLines.append('');
+    newLines.append('/* sfx */');
+    for val in mystic.variables.sounds.keys():
+      var = mystic.variables.sounds[val]
+#      print('key: ' + labelVar + ' value: ' + str(nroVar))
+      newLines.append('const ' + var + ' = 0x{:02x};'.format(val))
+
 
 
     txt = ''
@@ -159,7 +174,7 @@ class JScripts:
     for line in lines:
       # si no tiene CALL
 #      if('CALL' not in line):
-      if(not line.strip().startswith('script')):
+      if(not line.strip().startswith('await script')):
         # lo deja como está
         newLines.append(line)
       # sino, el renglón tiene un CALL
@@ -213,7 +228,7 @@ class JScripts:
 
     for line in lines:
       # comienza un nuevo script
-      if('function script_' in line):
+      if('async function script_' in line):
 
         # si había un script anterior
         if(script != None):
@@ -229,7 +244,7 @@ class JScripts:
 #        nroScript = int(lineSplit[2],16)
 #        addr = int(lineSplit[4],16)
 #        print('nroScript: {:04x} addr: {:04x}'.format(nroScript, addr))
-        nroScript = int(line[16:16+4],16)
+        nroScript = int(line[22:22+4],16)
 #        print('nroScript: {:04x}'.format(nroScript))
         addr = 0x0000
 
@@ -266,6 +281,33 @@ class JScripts:
           val = int(strVal,16)
 #          print('boss: ' + var + ' --- val: {:02x}'.format(val))
           mystic.variables.bosses[val] = var
+
+        elif(line.strip().startswith('const song')):
+          line = line.strip()
+          subLine = line[len('const'):].strip()
+          idx0 = subLine.index('=')
+          var = subLine[:idx0].strip()
+          strVal = subLine[idx0+1:].strip()
+          idx1 = strVal.index('x')
+          idx2 = strVal.index(';')
+          strVal = strVal[idx1+1:idx2].strip()
+          val = int(strVal,16)
+#          print('song: ' + var + ' --- val: {:02x}'.format(val))
+          mystic.variables.songs[val] = var
+
+        elif(line.strip().startswith('const sfx')):
+          line = line.strip()
+          subLine = line[len('const'):].strip()
+          idx0 = subLine.index('=')
+          var = subLine[:idx0].strip()
+          strVal = subLine[idx0+1:].strip()
+          idx1 = strVal.index('x')
+          idx2 = strVal.index(';')
+          strVal = strVal[idx1+1:idx2].strip()
+          val = int(strVal,16)
+#          print('sfx: ' + var + ' --- val: {:02x}'.format(val))
+          mystic.variables.sounds[val] = var
+ 
           
         else:
           subLines.append(line)
@@ -305,7 +347,7 @@ class JScripts:
         # actualizo su addr
         cmd.hexs = [0x02, addr1, addr2]
         # actualizo el call con el addr físico
-        cmd.strCode = 'script {:04x}'.format(addr)
+        cmd.strCode = 'await script {:04x}'.format(addr)
 
         # si es para el banco 0x0d pero el script no entra
 #        if(nroBanco == 0x0d and script.nro > ultimoNroScriptBanco0d):
@@ -466,7 +508,7 @@ class Script:
     # el address en la rom 'd' o 'e' (si es >= 0x4000)
     self.addr = addr
 
-    # tipo de bloque ('function', 'for', 'else', 'else_if', 'if', 'if_hand', 'if_inventory', 'if_triggered_on_by', 'if_triggered_off_by')
+    # tipo de bloque ('function', 'for', 'else', 'else_if', 'cond_flags', 'cond_hand', 'cond_inventory', 'cond_step_on_by', 'cond_step_off_by')
     self.tipoBloque = tipoBloque
 
     # el nroScript
@@ -527,7 +569,7 @@ class Script:
       # si es un CALL (y no está comentado)
 #      if(cmd.nro == 0x02):
 #      if('CALL' in cmd.strCode and not cmd.strCode.startswith('#')):
-      if(cmd.strCode.startswith('script')):
+      if(cmd.strCode.startswith('await script')):
 #        calls.append(cmd.strCode)
         calls.append(cmd)
 
@@ -621,7 +663,7 @@ class Script:
 #    string += 'addr: {:04x}'.format(self.addr) + '\n'
 #    string += '\n--- script: {:04x} addr: {:04x} ------------------\n'.format(self.nro, self.addr)
     string += '\n/* ----------- addr: {:04x} ----------- */\n'.format(self.addr)
-    string += 'function script_{:04x}()'.format(self.nro) + ' {\n'
+    string += 'async function script_{:04x}()'.format(self.nro) + ' {\n'
 
     # cuando devuelve 0x0000 no es un script usado
     if(not (self.addr == 0x0000 and self.nro > 0)):
@@ -689,16 +731,20 @@ class Comando:
     self.textMode = textMode
     # si se terminó el bloque de IF o de ELSE
     if(len(self.array) == 0):
-      if(self.bloque.tipoBloque == 'if'):
+
+#      if(self.bloque.tipoBloque == 'cond_flags'):
+#        self.strCode = '}//END_IF_FLAGS\n'
+#      elif(self.bloque.tipoBloque == 'cond_hand'):
+#        self.strCode = '}//END_IF_HAND\n'
+#      elif(self.bloque.tipoBloque == 'cond_inventory'):
+#        self.strCode = '}//END_IF_INVENTORY\n'
+#      elif(self.bloque.tipoBloque == 'cond_step_on_by'):
+#        self.strCode = '}//END_IF_STEP_ON_BY\n'
+#      elif(self.bloque.tipoBloque == 'cond_step_off_by'):
+#        self.strCode = '}//END_IF_STEP_OFF_BY\n'
+      if(self.bloque.tipoBloque in ['cond_flags', 'cond_hand', 'cond_inventory', 'cond_step_on_by', 'cond_step_off_by']):
         self.strCode = '}//END_IF\n'
-      elif(self.bloque.tipoBloque == 'if_hand'):
-        self.strCode = '}//END_IF_HAND\n'
-      elif(self.bloque.tipoBloque == 'if_inventory'):
-        self.strCode = '}//END_IF_INVENTORY\n'
-      elif(self.bloque.tipoBloque == 'if_triggered_on_by'):
-        self.strCode = '}//END_IF_TRIGGERED_ON_BY\n'
-      elif(self.bloque.tipoBloque == 'if_triggered_off_by'):
-        self.strCode = '}//END_IF_TRIGGERED_OFF_BY\n'
+
       elif(self.bloque.tipoBloque == 'else'):
         self.strCode = '}//END_ELSE\n'
       elif(self.bloque.tipoBloque == 'else_if'):
@@ -798,11 +844,6 @@ class Comando:
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
       self.strCode = 'NI_IDEA_2: ' + self.strHex + '\n'
 
-    elif(self.nro == 0x12):
-      self.strCode = 'PAUSE'
-      self.size = 1
-      self.strHex = mystic.util.strHexa(self.array[0:self.size])
-
     # o bien termina un script, o bien termina un FOR
     elif(self.nro == 0x00):
       self.size = 1
@@ -840,7 +881,7 @@ class Comando:
       arg1 = self.array[1]
       arg2 = self.array[2]
       arg = arg1*0x100 + arg2
-      self.strCode = 'script {:04x}\n'.format(arg)
+      self.strCode = 'await script {:04x}\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -860,6 +901,17 @@ class Comando:
       bloque.decodeRom(bloqueArray)
       self.script = bloque
 
+
+    # TEXT MODE
+    elif(self.nro == 0x04):
+      # pasamos a text mode
+#      self.strCode = '<TEXT_MODE_ON>'
+#      self.strCode = 'text("<TEXT_MODE_ON>'
+      self.strCode = 'await text("'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+      textMode = True
 
 
     # IF
@@ -894,17 +946,17 @@ class Comando:
           if(k != len(conds)-1):
             strConds += ', '
 
-        self.strCode = 'if(if_flags([' + strConds + '])) {\n'
-        bloque = Script(self.addr + len(conds) + 3, 'if')
+        self.strCode = 'if(cond_flags([' + strConds + '])) {\n'
+        bloque = Script(self.addr + len(conds) + 3, 'cond_flags')
       elif(self.nro == 0x09):
 #        strConds = mystic.util.strHexa(conds)
         # condición sobre lo que tengo en la mano?
-        self.strCode = 'if(if_hand([' + strConds + '])) {\n'
-        bloque = Script(self.addr + len(conds) + 3, 'if_hand')
+        self.strCode = 'if(cond_hand([' + strConds + '])) {\n'
+        bloque = Script(self.addr + len(conds) + 3, 'cond_hand')
       elif(self.nro == 0x0a):
 #        strConds = mystic.util.strHexa(conds)
-        self.strCode = 'if(if_inventory([' + strConds + '])) {\n'
-        bloque = Script(self.addr + len(conds) + 3, 'if_inventory')
+        self.strCode = 'if(cond_inventory([' + strConds + '])) {\n'
+        bloque = Script(self.addr + len(conds) + 3, 'cond_inventory')
       elif(self.nro == 0x0b):
 #        strConds = mystic.util.strHexa(conds)
         # list of possible arguments (joined by 'or')  
@@ -914,13 +966,13 @@ class Comando:
         # f5 = chocobot_over_water
         # a9 = empty_chest or snowman
         # 91 = idk, npc following the hero? enemy?
-        self.strCode = 'if(if_triggered_on_by([' + strConds + '])) {\n'
-        bloque = Script(self.addr + len(conds) + 3, 'if_triggered_on_by')
+        self.strCode = 'if(cond_step_on_by([' + strConds + '])) {\n'
+        bloque = Script(self.addr + len(conds) + 3, 'cond_step_on_by')
 
       elif(self.nro == 0x0c):
 #        strConds = mystic.util.strHexa(conds)
-        self.strCode = 'if(if_triggered_off_by([' + strConds + '])) {\n' 
-        bloque = Script(self.addr + len(conds) + 3, 'if_triggered_off_by')
+        self.strCode = 'if(cond_step_off_by([' + strConds + '])) {\n' 
+        bloque = Script(self.addr + len(conds) + 3, 'cond_step_off_by')
 
       self.strHex = mystic.util.strHexa(self.array[0:i+2])
       bloqueArray = self.array[2+i:2+i+cantBytes]
@@ -953,6 +1005,14 @@ class Comando:
 
       self.script = bloque
 
+
+    # maybe this is only for text mode and we should delete it from here?
+    elif(self.nro == 0x12):
+      self.strCode = 'PAUSE'
+      self.size = 1
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+
     # es uno de los 7 posibles personajes extras
     elif(self.nro >= 0x10 and self.nro <= 0x7f):
 
@@ -972,7 +1032,7 @@ class Comando:
 
       if(strAction in ['StepForward', 'StepBack', 'StepLeft', 'StepRight', 'LookNorth', 'LookSouth', 'LookEast', 'LookWest', 'Remove', 'WalkFastSpeed', 'WalkNormalSpeed', 'NoseC', 'NoseD', 'NoseE', 'NoseF']):
 
-        self.strCode = strCmd + '();\n'
+        self.strCode = 'await ' + strCmd + '();\n'
         self.size = 1
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -983,11 +1043,11 @@ class Comando:
 
         # cambia las coordenadas del extra dentro del bloque actual
 #        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
-        self.strCode = strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
+        self.strCode = 'await ' + strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
         self.size = 3
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
-    # es el extra especial
+    # es el extra especial (partner)
     elif(self.nro >= 0x90 and self.nro <= 0x9f):
 
       primer = self.nro // 0x10
@@ -1002,7 +1062,7 @@ class Comando:
 
       if(strAction in ['StepForward', 'StepBack', 'StepLeft', 'StepRight', 'LookNorth', 'LookSouth', 'LookEast', 'LookWest', 'Remove', 'WalkFastSpeed', 'WalkNormalSpeed', 'NoseD', 'NoseE', 'NoseF']):
 
-        self.strCode = strCmd + '();\n'
+        self.strCode = 'await ' + strCmd + '();\n'
         self.size = 1
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1013,7 +1073,7 @@ class Comando:
 
         # cambia las coordenadas del extra dentro del bloque actual
 #        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
-        self.strCode = strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
+        self.strCode = 'await ' + strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
         self.size = 3
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1021,7 +1081,7 @@ class Comando:
 
         arg = self.array[1]
         # turn extra1 into extra9 (extraspecial)
-        self.strCode = strCmd + '(0x{:02x});\n'.format(arg)
+        self.strCode = 'await ' + strCmd + '(0x{:02x});\n'.format(arg)
         self.size = 2
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1029,7 +1089,7 @@ class Comando:
       # it makes the hero make a small jump (the arg is unknown)
       arg = self.array[1]
 #      self.strCode = 'HOP_JUMP {:02x}\n'.format(arg)
-      self.strCode = 'hopJump(0x{:02x});\n'.format(arg)
+      self.strCode = 'await hopJump(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1048,7 +1108,7 @@ class Comando:
 
       if(strAction in ['StepForward', 'StepBack', 'StepLeft', 'StepRight', 'LookNorth', 'LookSouth', 'LookEast', 'LookWest', 'WalkFastSpeed', 'WalkNormalSpeed', 'NoseB', 'NoseC', 'NoseD', 'NoseE', 'NoseF']):
 
-        self.strCode = strCmd + '();\n'
+        self.strCode = 'await ' + strCmd + '();\n'
         self.size = 1
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1059,7 +1119,7 @@ class Comando:
 
         # cambia las coordenadas del extra dentro del bloque actual
 #        self.strCode = strCmd + ' (XX,YY) = ({:02x}, {:02x})\n'.format(xx,yy)
-        self.strCode = strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
+        self.strCode = 'await ' + strCmd + '(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
         self.size = 3
         self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1067,72 +1127,72 @@ class Comando:
 
     elif(self.nro == 0xa0):
 #      self.strCode = 'WALKING_AS_CHOCOBO\n'
-      self.strCode = 'walkingAsChocobo();\n'
+      self.strCode = 'await walkingAsChocobo();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa1):
 #      self.strCode = 'WALKING_AS_CHOCOBOT_LAND\n'
-      self.strCode = 'walkingAsChocobotLand();\n'
+      self.strCode = 'await walkingAsChocobotLand();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa2):
 #      self.strCode = 'WALKING_AS_CHOCOBOT_WATER\n'
-      self.strCode = 'walkingAsChocobotWater();\n'
+      self.strCode = 'await walkingAsChocobotWater();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa3):
 #      self.strCode = 'WALKING_AS_TROLLEY_WAGON\n'
-      self.strCode = 'walkingAsWagon();\n'
+      self.strCode = 'await walkingAsWagon();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa4):
 #      self.strCode = 'WALKING_AS_NORMAL\n'
-      self.strCode = 'walkingAsNormal();\n'
+      self.strCode = 'await walkingAsNormal();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa5):
 #      self.strCode = 'WALKING_AS_FALLING\n'
-      self.strCode = 'walkingAsFalling();\n'
+      self.strCode = 'await walkingAsFalling();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xa6):
 #      self.strCode = 'WALKING_AS_DEAD\n'
-      self.strCode = 'walkingAsDead();\n'
+      self.strCode = 'await walkingAsDead();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xa9):
       # Sets flag 0x7f to false if current map is 0x01, 0x0e, or 0x0f. Sets to true otherwise.
 #      self.strCode = 'CHECK_IF_CURRENT_MAP_HAS_SMALLMAP\n'
-      self.strCode = 'checkIfCurrentMapHasSmallmap();\n'
+      self.strCode = 'await checkIfCurrentMapHasMiniMap();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xab):
 #      self.strCode = 'CLEAR_MATO_TODOS\n'
-      self.strCode = 'clearKilledAllRoom();\n'
+      self.strCode = 'await clearKilledAllRoom();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xac):
 #      self.strCode = 'SMALLMAP_OPEN\n'
-      self.strCode = 'smallmapOpen();\n'
+      self.strCode = 'await miniMapOpen();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xad):
 #      self.strCode = 'SMALLMAP_IDLE\n'
-      self.strCode = 'smallmapIdle();\n'
+      self.strCode = 'await miniMapIdle();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xae):
 #      self.strCode = 'SMALLMAP_CLOSE\n'
-      self.strCode = 'smallmapClose();\n'
+      self.strCode = 'await miniMapClose();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xaf):
 #      self.strCode = 'OPEN_CHEST\n'
-      self.strCode = 'openChest();\n'
+      self.strCode = 'await openChest();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1144,7 +1204,7 @@ class Comando:
 
       # cambia el sprite de fondo por el indicado en NN, en las coordenadas XX,YY del bloque actual
 #      self.strCode = 'SPRITE (NN,XX,YY) = (' + strNn + ',' + strXx + ',' + strYy + ')\n'
-      self.strCode = 'drawSprite(nn=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(nn,xx,yy)
+      self.strCode = 'await drawSprite(nn=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(nn,xx,yy)
       self.size = 4
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1158,67 +1218,67 @@ class Comando:
 #      strYy = '{:02x}'.format(yy)
 
 #      self.strCode = 'ATTACK_EFFECT (TT,XX,YY) = (' + strTipo + ',' + strXx + ',' + strYy + ')\n'
-      self.strCode = 'attackEffect(tt=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(tipo, xx, yy)
+      self.strCode = 'await attackEffect(tt=0x{:02x}, xx=0x{:02x}, yy=0x{:02x});\n'.format(tipo, xx, yy)
       self.size = 4
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xb6):
 #      self.strCode = 'LETTERBOX_EFFECT\n'
-      self.strCode = 'letterboxEffect();\n'
+      self.strCode = 'await letterboxEffect();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xbc):
       # fades in from both fade_out and wash_out
 #      self.strCode = 'FADE_IN\n'
-      self.strCode = 'fadeInEffect();\n'
+      self.strCode = 'await fadeInEffect();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xbd):
       # fades to black screen
 #      self.strCode = 'FADE_OUT\n'
-      self.strCode = 'fadeOutEffect();\n'
+      self.strCode = 'await fadeOutEffect();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xbe):
       # fades to white screen
 #      self.strCode = 'WASH_OUT\n'
-      self.strCode = 'washOutEffect();\n'
+      self.strCode = 'await washOutEffect();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xbf):
 #      self.strCode = 'PARPADEO\n'
-      self.strCode = 'eyeblinkEffect();\n'
+      self.strCode = 'await eyeblinkEffect();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
 
     elif(self.nro == 0xc0):
 #      self.strCode = 'RECOVER_HP\n'
-      self.strCode = 'recoverHp();\n'
+      self.strCode = 'await recoverHp();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc1):
 #      self.strCode = 'RECOVER_MP\n'
-      self.strCode = 'recoverMp();\n'
+      self.strCode = 'await recoverMp();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc2):
       arg = self.array[1]
 #      self.strCode = 'HEAL_DISEASE {:02x}\n'.format(arg)
-      self.strCode = 'healDisease(0x{:02x});\n'.format(arg)
+      self.strCode = 'await healDisease(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc3):
       # it's a NOP, it does nothing.  unused in the original script
 #      self.strCode = 'PASS\n'
-      self.strCode = 'nop();\n'
+      self.strCode = 'await nop();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1232,7 +1292,7 @@ class Comando:
       # a = avisar que se enfermó (0 = avisa, 1 = no avisa) (para curar: 0x10 = 0b10000)
       arg = self.array[1]
 #      self.strCode = 'DISEASE {:02x}\n'.format(arg)
-      self.strCode = 'disease(0x{:02x});\n'.format(arg)
+      self.strCode = 'await disease(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1240,25 +1300,25 @@ class Comando:
       # stores arg as a 6-bit integer into flags 72..77 in reverse order: 0x01 = flag 77, 0x20 = flag 72
       arg = self.array[1]
 #      self.strCode = 'SET_FLAGS_72_TO_77 {:02x}\n'.format(arg)
-      self.strCode = 'setFlags72To77(0x{:02x});\n'.format(arg)
+      self.strCode = 'await setFlags72To77(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc6):
 #      self.strCode = 'INPUT_NAMES_SUMO_FUJI\n'
-      self.strCode = 'inputNames();\n'
+      self.strCode = 'await inputNames();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc7):
 #      self.strCode = 'RANDOMIZE_7E7F\n'
-      self.strCode = 'randomize7E7F();\n'
+      self.strCode = 'await randomize7E7F();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xc8):
 #      self.strCode = 'RESET_GAME\n'
-      self.strCode = 'resetGame();\n'
+      self.strCode = 'await resetGame();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1267,7 +1327,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg1*0x100 + arg2
 #      self.strCode = 'SET_CHEST1_SCRIPT {:04x}\n'.format(arg)
-      self.strCode = 'setChest1Script(0x{:04x});\n'.format(arg)
+      self.strCode = 'await setChest1Script(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xca):
@@ -1275,7 +1335,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg1*0x100 + arg2
 #      self.strCode = 'SET_CHEST2_SCRIPT {:04x}\n'.format(arg)
-      self.strCode = 'setChest2Script(0x{:04x});\n'.format(arg)
+      self.strCode = 'await setChest2Script(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xcb):
@@ -1283,7 +1343,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg1*0x100 + arg2
 #      self.strCode = 'SET_CHEST3_SCRIPT {:04x}\n'.format(arg)
-      self.strCode = 'setChest3Script(0x{:04x});\n'.format(arg)
+      self.strCode = 'await setChest3Script(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1293,7 +1353,7 @@ class Comando:
     elif(self.nro == 0xcc):
       # stops listening to key inputs
 #      self.strCode = 'INPUT_STOP\n'
-      self.strCode = 'stopInput();\n'
+      self.strCode = 'await stopInput();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1302,7 +1362,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg2*0x100 + arg1
 #      self.strCode = 'INCREASE_GOLD {:02x} {:02x}\n'.format(arg1,arg2)
-      self.strCode = 'increaseGold(0x{:04x});\n'.format(arg)
+      self.strCode = 'await increaseGold(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd1):
@@ -1310,7 +1370,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg2*0x100 + arg1
 #      self.strCode = 'DECREASE_GOLD {:02x} {:02x}\n'.format(arg1,arg2)
-      self.strCode = 'decreaseGold(0x{:04x});\n'.format(arg)
+      self.strCode = 'await decreaseGold(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1319,7 +1379,7 @@ class Comando:
       arg2 = self.array[2]
       arg = arg2*0x100 + arg1
 #      self.strCode = 'INCREASE_EXP {:02x} {:02x}\n'.format(arg1,arg2)
-      self.strCode = 'increaseExp(0x{:04x});\n'.format(arg)
+      self.strCode = 'await increaseExp(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd3):
@@ -1327,44 +1387,44 @@ class Comando:
       arg2 = self.array[2]
       arg = arg2*0x100 + arg1
 #      self.strCode = 'DECREASE_EXP {:02x} {:02x}\n'.format(arg1,arg2)
-      self.strCode = 'decreaseExp(0x{:04x});\n'.format(arg)
+      self.strCode = 'await decreaseExp(0x{:04x});\n'.format(arg)
       self.size = 3
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xd4):
       arg = self.array[1]
 #      self.strCode = 'PICK_ITEM {:02x}\n'.format(arg)
-      self.strCode = 'pickItem(0x{:02x});\n'.format(arg)
+      self.strCode = 'await pickItem(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd5):
       arg = self.array[1]
 #      self.strCode = 'DROP_ITEM {:02x}\n'.format(arg)
-      self.strCode = 'dropItem(0x{:02x});\n'.format(arg)
+      self.strCode = 'await dropItem(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd6):
       arg = self.array[1]
 #      self.strCode = 'PICK_MAGIC {:02x}\n'.format(arg)
-      self.strCode = 'pickMagic(0x{:02x});\n'.format(arg)
+      self.strCode = 'await pickMagic(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd7):
       arg = self.array[1]
 #      self.strCode = 'DROP_MAGIC {:02x}\n'.format(arg)
-      self.strCode = 'dropMagic(0x{:02x});\n'.format(arg)
+      self.strCode = 'await dropMagic(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd8):
       arg = self.array[1]
 #      self.strCode = 'PICK_WEAPON {:02x}\n'.format(arg)
-      self.strCode = 'pickWeapon(0x{:02x});\n'.format(arg)
+      self.strCode = 'await pickWeapon(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xd9):
       arg = self.array[1]
 #      self.strCode = 'DROP_WEAPON {:02x}\n'.format(arg)
-      self.strCode = 'dropWeapon(0x{:02x});\n'.format(arg)
+      self.strCode = 'await dropWeapon(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1372,121 +1432,121 @@ class Comando:
       arg = self.array[1]
       label = mystic.variables.getLabel(arg)
 #      self.strCode = 'FLAG_ON ' + label + '\n'
-      self.strCode = 'flagOn(' + label + ');\n'
+      self.strCode = 'await flagOn(' + label + ');\n'
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xdb):
       arg = self.array[1]
       label = mystic.variables.getLabel(arg)
 #      self.strCode = 'FLAG_OFF ' + label + '\n'
-      self.strCode = 'flagOff(' + label + ');\n'
+      self.strCode = 'await flagOff(' + label + ');\n'
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xdc):
 #      self.strCode = 'TEXT_SPEED_LOCK\n'
-      self.strCode = 'textSpeedLock();\n'
+      self.strCode = 'await textSpeedLock();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xdd):
 #      self.strCode = 'TEXT_SPEED_UNLOCK\n'
-      self.strCode = 'textSpeedUnlock();\n'
+      self.strCode = 'await textSpeedUnlock();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
 
     elif(self.nro == 0xde):
 #      self.strCode = 'CONSUME_ITEM_AT_HAND\n'
-      self.strCode = 'consumeItem();\n'
+      self.strCode = 'await consumeItem();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
  
 
     elif(self.nro == 0xe0):
 #      self.strCode = 'OPEN_DOOR_NORTH\n'
-      self.strCode = 'openDoorNorth();\n'
+      self.strCode = 'await openDoorNorth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe1):
 #      self.strCode = 'CLOSE_DOOR_NORTH\n'
-      self.strCode = 'closeDoorNorth();\n'
+      self.strCode = 'await closeDoorNorth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe2):
 #      self.strCode = 'OPEN_DOOR_SOUTH\n'
-      self.strCode = 'openDoorSouth();\n'
+      self.strCode = 'await openDoorSouth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe3):
 #      self.strCode = 'CLOSE_DOOR_SOUTH\n'
-      self.strCode = 'closeDoorSouth();\n'
+      self.strCode = 'await closeDoorSouth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe4):
 #      self.strCode = 'OPEN_DOOR_EAST\n'
-      self.strCode = 'openDoorEast();\n'
+      self.strCode = 'await openDoorEast();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe5):
 #      self.strCode = 'CLOSE_DOOR_EAST\n'
-      self.strCode = 'closeDoorEast();\n'
+      self.strCode = 'await closeDoorEast();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe6):
 #      self.strCode = 'OPEN_DOOR_WEST\n'
-      self.strCode = 'openDoorWest();\n'
+      self.strCode = 'await openDoorWest();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe7):
 #      self.strCode = 'CLOSE_DOOR_WEST\n'
-      self.strCode = 'closeDoorWest();\n'
+      self.strCode = 'await closeDoorWest();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xe8):
       # la pantalla hace scroll al bloque hacia abajo
 #      self.strCode = 'SCROLL_ABAJO\n'
-      self.strCode = 'scrollSouth();\n'
+      self.strCode = 'await scrollSouth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xe9):
       # la pantalla hace scroll al bloque hacia arriba
 #      self.strCode = 'SCROLL_ARRIBA\n'
-      self.strCode = 'scrollNorth();\n'
+      self.strCode = 'await scrollNorth();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xea):
       # la pantalla hace scroll al bloque de la izquierda
 #      self.strCode = 'SCROLL_IZQUIERDA\n'
-      self.strCode = 'scrollLeft();\n'
+      self.strCode = 'await scrollLeft();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
     elif(self.nro == 0xeb):
       # la pantalla hace scroll al bloque de la derecha
 #      self.strCode = 'SCROLL_DERECHA\n'
-      self.strCode = 'scrollRight();\n'
+      self.strCode = 'await scrollRight();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xec):
       # salta al script que se ejecuta al entrar a dicho bloque?
 #      self.strCode = 'SCRIPT_ENTRAR_BLOQUE\n'
-      self.strCode = 'enterRoomScript();\n'
+      self.strCode = 'await enterRoomScript();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xed):
       # salta al script que se ejecuta al salir de dicho bloque
 #      self.strCode = 'SCRIPT_SALIR_BLOQUE\n'
-      self.strCode = 'exitRoomScript();\n'
+      self.strCode = 'await exitRoomScript();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xee):
       # salta al script que se ejecuta al matar todos los enemigos del bloque
 #      self.strCode = 'SCRIPT_MATOTODOS_BLOQUE\n'
-      self.strCode = 'killedAllRoomScript();\n'
+      self.strCode = 'await killedAllRoomScript();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1496,8 +1556,15 @@ class Comando:
       xx = self.array[1]
       yy = self.array[2]
 #      self.strCode = 'PROXIMO_BLOQUE (XX,YY) = ({:02x},{:02x})\n'.format(xx,yy)
-      self.strCode = 'nextRoom(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
+      self.strCode = 'await nextRoom(xx=0x{:02x}, yy=0x{:02x});\n'.format(xx,yy)
       self.size = 3
+      self.strHex = mystic.util.strHexa(self.array[0:self.size])
+
+    elif(self.nro == 0xf0):
+      arg = self.array[1]
+#      self.strCode = 'SLEEP {:02x}\n'.format(arg)
+      self.strCode = 'await sleep(0x{:02x});\n'.format(arg)
+      self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xf3):
@@ -1513,7 +1580,7 @@ class Comando:
 
       # creo que la diferencia con el otro teleport está en que este no refresca los tiles de cambio de mapa?
 #      self.strCode = 'TELEPORT2 (MM,BB,XX,YY) = (' + strMm + ',' + strBb + ',' + strXx + ',' + strYy + ')\n'
-      self.strCode = 'teleport2(mm=0x' + strMm + ', bb=0x' + strBb + ', xx=0x' + strXx + ', yy=0x' + strYy + ');\n'
+      self.strCode = 'await teleport2(mm=0x' + strMm + ', bb=0x' + strBb + ', xx=0x' + strXx + ', yy=0x' + strYy + ');\n'
       self.size = 5
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1529,7 +1596,7 @@ class Comando:
       strYy = '{:02x}'.format(yy)
 
 #      self.strCode = 'TELEPORT (MM,BB,XX,YY) = (' + strMm + ',' + strBb + ',' + strXx + ',' + strYy + ')\n'
-      self.strCode = 'teleport(mm=0x' + strMm + ', bb=0x' + strBb + ', xx=0x' + strXx + ', yy=0x' + strYy + ');\n'
+      self.strCode = 'await teleport(mm=0x' + strMm + ', bb=0x' + strBb + ', xx=0x' + strXx + ', yy=0x' + strYy + ');\n'
       self.size = 5
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1537,43 +1604,48 @@ class Comando:
       # validos: del 0x00 al 0x10 inclusive
       arg = self.array[1]
 #      self.strCode = 'VENDEDOR {:02x}\n'.format(arg)
-      self.strCode = 'salesman(0x{:02x});\n'.format(arg)
+      self.strCode = 'await salesman(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xf8):
       # indico como mapea con el número de canción del banco 0x0f (0x00 = mute, 0x01 = intro song, ... 0x1e = ill (last song))
       arg = self.array[1]
+      label = mystic.variables.getLabelSong(arg)
 #      self.strCode = 'MUSIC {:02x}\n'.format(arg)
-      self.strCode = 'music(0x{:02x});\n'.format(arg)
+#      self.strCode = 'music(0x{:02x});\n'.format(arg)
+#      self.strCode = 'music(' + label + ');\n'
+      self.strCode = 'await music(' + label + ');\n'
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xf9):
       arg = self.array[1]
+      label = mystic.variables.getLabelSFX(arg)
 #      self.strCode = 'SOUND_EFFECT {:02x}\n'.format(arg)
-      self.strCode = 'soundEffect(0x{:02x});\n'.format(arg)
+#      self.strCode = 'soundEffect(0x{:02x});\n'.format(arg)
+      self.strCode = 'await soundEffect(' + label + ');\n'
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xfb):
       # la pantalla hace scroll al bloque de la derecha
 #      self.strCode = 'SCREEN_SHAKE\n'
-      self.strCode = 'shakeScreen();\n'
+      self.strCode = 'await shakeScreen();\n'
       self.size = 1
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xfc):
       arg = self.array[1]
 #      self.strCode = 'LOAD_GRUPO_PERSONAJE {:02x}\n'.format(arg)
-      self.strCode = 'loadGrupoPersonaje(0x{:02x});\n'.format(arg)
+      self.strCode = 'await loadGrupoPersonaje(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
     elif(self.nro == 0xfd):
       arg = self.array[1]
 #      self.strCode = 'ADD_PERSONAJE {:02x}\n'.format(arg)
-      self.strCode = 'addPersonaje(0x{:02x});\n'.format(arg)
+      self.strCode = 'await addPersonaje(0x{:02x});\n'.format(arg)
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
 
@@ -1582,26 +1654,9 @@ class Comando:
       label = mystic.variables.getLabelBoss(arg)
 #      self.strCode = 'ADD_MONSTRUO_GRANDE {:02x}\n'.format(arg)
 #      self.strCode = 'ADD_MONSTRUO_GRANDE ' + label + '\n'
-      self.strCode = 'addBoss(' + label + ');\n'
+      self.strCode = 'await addBoss(' + label + ');\n'
       self.size = 2
       self.strHex = mystic.util.strHexa(self.array[0:self.size])
-
-    elif(self.nro == 0xf0):
-      arg = self.array[1]
-#      self.strCode = 'SLEEP {:02x}\n'.format(arg)
-      self.strCode = 'sleep(0x{:02x});\n'.format(arg)
-      self.size = 2
-      self.strHex = mystic.util.strHexa(self.array[0:self.size])
-
-    elif(self.nro == 0x04):
-      # pasamos a text mode
-#      self.strCode = '<TEXT_MODE_ON>'
-#      self.strCode = 'text("<TEXT_MODE_ON>'
-      self.strCode = 'text("'
-      self.size = 1
-      self.strHex = mystic.util.strHexa(self.array[0:self.size])
-
-      textMode = True
 
 
 #    print('strCode: ' + self.strCode)
@@ -1663,9 +1718,9 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 
-    elif(line.startswith('script')):
+    elif(line.startswith('await script')):
 
-      argTxt = line[len('script')+1:]
+      argTxt = line[len('await script')+1:]
       strArg1 = argTxt[0:2]
       strArg2 = argTxt[2:4]
       arg1 = int(strArg1, 16)
@@ -1811,7 +1866,7 @@ class Comando:
         hasElse = True
 
 #      if(line.startswith('IF(')):
-      if(line.startswith('if(if_flags([')):
+      if(line.startswith('if(cond_flags([')):
         self.hexs.append(0x08)
 
         args = []
@@ -1820,12 +1875,12 @@ class Comando:
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
 
-        bloque = Script(self.addr + len(args) + 3, 'if')
+        bloque = Script(self.addr + len(args) + 3, 'cond_flags')
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
 #      elif(line.startswith('IF_HAND(')):
-      elif(line.startswith('if(if_hand([')):
+      elif(line.startswith('if(cond_hand([')):
         self.hexs.append(0x09)
 
         args = []
@@ -1836,12 +1891,12 @@ class Comando:
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
 
-        bloque = Script(self.addr + len(args) + 3, 'if_hand')
+        bloque = Script(self.addr + len(args) + 3, 'cond_hand')
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
 #      elif(line.startswith('IF_INVENTORY(')):
-      elif(line.startswith('if(if_inventory([')):
+      elif(line.startswith('if(cond_inventory([')):
         self.hexs.append(0x0a)
 
         args = []
@@ -1852,12 +1907,12 @@ class Comando:
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
 
-        bloque = Script(self.addr + len(args) + 3, 'if_inventory')
+        bloque = Script(self.addr + len(args) + 3, 'cond_inventory')
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
 #      elif(line.startswith('IF_TRIGGERED_ON_BY(')):
-      elif(line.startswith('if(if_triggered_on_by([')):
+      elif(line.startswith('if(cond_step_on_by([')):
         self.hexs.append(0x0b)
 
         args = []
@@ -1868,12 +1923,12 @@ class Comando:
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
 
-        bloque = Script(self.addr + len(args) + 3, 'if_triggered_on_by')
+        bloque = Script(self.addr + len(args) + 3, 'cond_step_on_by')
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
 #      elif(line.startswith('IF_TRIGGERED_OFF_BY(')):
-      elif(line.startswith('if(if_triggered_off_by([')):
+      elif(line.startswith('if(cond_step_off_by([')):
         self.hexs.append(0x0c)
 
         args = []
@@ -1884,7 +1939,7 @@ class Comando:
 #          print('arg: {:02x}'.format(arg))
           args.append(arg)
 
-        bloque = Script(self.addr + len(args) + 3, 'if_triggered_off_by')
+        bloque = Script(self.addr + len(args) + 3, 'cond_step_off_by')
         bloque.decodeTxt(bloqueLines)
         self.script = bloque
 
@@ -1906,8 +1961,8 @@ class Comando:
 
 
 #    elif(line.startswith('HOP_JUMP')):
-    elif(line.startswith('hopJump(')):
-      idx0 = len('hopJump(0x')
+    elif(line.startswith('await hopJump(')):
+      idx0 = len('await hopJump(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0x8b)
@@ -1915,9 +1970,9 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('hero')):
+    elif(line.startswith('await hero')):
       idx = line.index('(')
-      strAction = line[4:idx]
+      strAction = line[len('await hero'):idx]
 #      print('strAction: ' + strAction)
 
       nroExtra = 8
@@ -1949,10 +2004,10 @@ class Comando:
         self.sizeLines = 1
         self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('partner')):
+    elif(line.startswith('await partner')):
 
       idx = line.index('(')
-      strAction = line[7:idx]
+      strAction = line[len('await partner'):idx]
 #      print('strAction: ' + strAction)
 
       nroExtra = 9
@@ -1999,13 +2054,14 @@ class Comando:
         self.sizeBytes = len(self.hexs)
 
 
-    elif(line.startswith('extra')):
+    elif(line.startswith('await extra')):
 
       idx = line.index('(')
-      strAction = line[6:idx]
+      strAction = line[len('await extra')+1:idx]
 #      print('strAction: ' + strAction)
 
-      nroExtra = int(line[5])
+      nroExtra = int(line[len('await extra')])
+#      print('nroExtra: ' + str(nroExtra))
  
       if(strAction in ['StepForward', 'StepBack', 'StepLeft', 'StepRight', 'LookNorth', 'LookSouth', 'LookEast', 'LookWest', 'Remove', 'WalkFastSpeed', 'WalkNormalSpeed', 'NoseC', 'NoseD', 'NoseE', 'NoseF']):
 
@@ -2036,76 +2092,76 @@ class Comando:
 
 
 #    elif(line.startswith('WALKING_AS_CHOCOBO') and not line.startswith('WALKING_AS_CHOCOBOT')):
-    elif(line.startswith('walkingAsChocobo(')):
+    elif(line.startswith('await walkingAsChocobo(')):
       self.hexs.append(0xa0)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_CHOCOBOT_LAND')):
-    elif(line.startswith('walkingAsChocobotLand(')):
+    elif(line.startswith('await walkingAsChocobotLand(')):
       self.hexs.append(0xa1)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_CHOCOBOT_WATER')):
-    elif(line.startswith('walkingAsChocobotWater(')):
+    elif(line.startswith('await walkingAsChocobotWater(')):
       self.hexs.append(0xa2)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_TROLLEY_WAGON')):
-    elif(line.startswith('walkingAsWagon(')):
+    elif(line.startswith('await walkingAsWagon(')):
       self.hexs.append(0xa3)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_NORMAL')):
-    elif(line.startswith('walkingAsNormal(')):
+    elif(line.startswith('await walkingAsNormal(')):
       self.hexs.append(0xa4)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_FALLING')):
-    elif(line.startswith('walkingAsFalling(')):
+    elif(line.startswith('await walkingAsFalling(')):
       self.hexs.append(0xa5)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WALKING_AS_DEAD')):
-    elif(line.startswith('walkingAsDead(')):
+    elif(line.startswith('await walkingAsDead(')):
       self.hexs.append(0xa6)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('CHECK_IF_CURRENT_MAP_HAS_SMALLMAP')):
-    elif(line.startswith('checkIfCurrentMapHasSmallmap(')):
+    elif(line.startswith('await checkIfCurrentMapHasMiniMap(')):
       self.hexs.append(0xa9)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('CLEAR_MATO_TODOS')):
-    elif(line.startswith('clearKilledAllRoom(')):
+    elif(line.startswith('await clearKilledAllRoom(')):
       self.hexs.append(0xab)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SMALLMAP_OPEN')):
-    elif(line.startswith('smallmapOpen(')):
+    elif(line.startswith('await miniMapOpen(')):
       self.hexs.append(0xac)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SMALLMAP_IDLE')):
-    elif(line.startswith('smallmapIdle(')):
+    elif(line.startswith('await miniMapIdle(')):
       self.hexs.append(0xad)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SMALLMAP_CLOSE')):
-    elif(line.startswith('smallmapClose(')):
+    elif(line.startswith('await miniMapClose(')):
       self.hexs.append(0xae)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('OPEN_CHEST')):
-    elif(line.startswith('openChest(')):
+    elif(line.startswith('await openChest(')):
       self.hexs.append(0xaf)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('drawSprite(')):
+    elif(line.startswith('await drawSprite(')):
 
       idx0 = line.index('nn=0x')
       strNn = line[idx0+5:idx0+7]
@@ -2121,7 +2177,7 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('attackEffect(')):
+    elif(line.startswith('await attackEffect(')):
 
       idx0 = line.index('tt=0x')
       strTt = line[idx0+5:idx0+7]
@@ -2138,46 +2194,46 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('LETTERBOX_EFFECT')):
-    elif(line.startswith('letterboxEffect(')):
+    elif(line.startswith('await letterboxEffect(')):
       self.hexs.append(0xb6)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('FADE_IN')):
-    elif(line.startswith('fadeInEffect(')):
+    elif(line.startswith('await fadeInEffect(')):
       self.hexs.append(0xbc)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('FADE_OUT')):
-    elif(line.startswith('fadeOutEffect(')):
+    elif(line.startswith('await fadeOutEffect(')):
       self.hexs.append(0xbd)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('WASH_OUT')):
-    elif(line.startswith('washOutEffect(')):
+    elif(line.startswith('await washOutEffect(')):
       self.hexs.append(0xbe)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('PARPADEO')):
-    elif(line.startswith('eyeblinkEffect(')):
+    elif(line.startswith('await eyeblinkEffect(')):
       self.hexs.append(0xbf)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('RECOVER_HP')):
-    elif(line.startswith('recoverHp(')):
+    elif(line.startswith('await recoverHp(')):
       self.hexs.append(0xc0)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('RECOVER_MP')):
-    elif(line.startswith('recoverMp(')):
+    elif(line.startswith('await recoverMp(')):
       self.hexs.append(0xc1)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('HEAL_DISEASE')):
-    elif(line.startswith('healDisease(')):
-      idx0 = len('healDisease(0x')
+    elif(line.startswith('await healDisease(')):
+      idx0 = len('await healDisease(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xc2)
@@ -2186,14 +2242,14 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('PASS')):
-    elif(line.startswith('nop(')):
+    elif(line.startswith('await nop(')):
       self.hexs.append(0xc3)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('DISEASE')):
-    elif(line.startswith('disease(')):
-      idx0 = len('disease(0x')
+    elif(line.startswith('await disease(')):
+      idx0 = len('await disease(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xc4)
@@ -2202,8 +2258,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SET_FLAGS_72_TO_77')):
-    elif(line.startswith('setFlags72To77(')):
-      idx0 = len('setFlags72To77(0x')
+    elif(line.startswith('await setFlags72To77(')):
+      idx0 = len('await setFlags72To77(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xc5)
@@ -2212,32 +2268,32 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('INPUT_NAMES_SUMO_FUJI')):
-    elif(line.startswith('inputNames();')):
+    elif(line.startswith('await inputNames();')):
       self.hexs.append(0xc6)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('RANDOMIZE_7E7F')):
-    elif(line.startswith('randomize7E7F(')):
+    elif(line.startswith('await randomize7E7F(')):
       self.hexs.append(0xc7)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('RESET_GAME')):
-    elif(line.startswith('resetGame();')):
+    elif(line.startswith('await resetGame();')):
       self.hexs.append(0xc8)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SET_CHEST1_SCRIPT')):
-    elif(line.startswith('setChest1Script(')):
+    elif(line.startswith('await setChest1Script(')):
 #      argTxt = line[len('SET_CHEST1_SCRIPT')+1:]
 #      strArg1 = argTxt[0:2]
 #      strArg2 = argTxt[2:4]
 #      arg1 = int(strArg1, 16)
 #      arg2 = int(strArg2, 16)
 
-      idx = len('setChest1Script(0x')
+      idx = len('await setChest1Script(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2251,8 +2307,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SET_CHEST2_SCRIPT')):
-    elif(line.startswith('setChest2Script(')):
-      idx = len('setChest2Script(0x')
+    elif(line.startswith('await setChest2Script(')):
+      idx = len('await setChest2Script(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2266,9 +2322,9 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SET_CHEST3_SCRIPT')):
-    elif(line.startswith('setChest3Script(')):
+    elif(line.startswith('await setChest3Script(')):
 
-      idx = len('setChest3Script(0x')
+      idx = len('await setChest3Script(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2281,14 +2337,14 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('INPUT_STOP')):
-    elif(line.startswith('stopInput(')):
+    elif(line.startswith('await stopInput(')):
       self.hexs.append(0xcc)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('INCREASE_GOLD')):
-    elif(line.startswith('increaseGold(')):
-      idx = len('increaseGold(0x')
+    elif(line.startswith('await increaseGold(')):
+      idx = len('await increaseGold(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2301,8 +2357,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('DECREASE_GOLD')):
-    elif(line.startswith('decreaseGold(')):
-      idx = len('decreaseGold(0x')
+    elif(line.startswith('await decreaseGold(')):
+      idx = len('await decreaseGold(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2315,8 +2371,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('INCREASE_EXP')):
-    elif(line.startswith('increaseExp(')):
-      idx = len('increaseExp(0x')
+    elif(line.startswith('await increaseExp(')):
+      idx = len('await increaseExp(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2329,8 +2385,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('DECREASE_EXP')):
-    elif(line.startswith('decreaseExp(')):
-      idx = len('increaseExp(0x')
+    elif(line.startswith('await decreaseExp(')):
+      idx = len('await increaseExp(0x')
       strArg1 = line[idx:idx+2]
       strArg2 = line[idx+2:idx+4]
       arg1 = int(strArg1, 16)
@@ -2343,8 +2399,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('PICK_ITEM')):
-    elif(line.startswith('pickItem(')):
-      idx0 = len('pickItem(0x')
+    elif(line.startswith('await pickItem(')):
+      idx0 = len('await pickItem(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd4)
@@ -2352,8 +2408,8 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('DROP_ITEM')):
-    elif(line.startswith('dropItem(')):
-      idx0 = len('dropItem(0x')
+    elif(line.startswith('await dropItem(')):
+      idx0 = len('await dropItem(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd5)
@@ -2362,8 +2418,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('PICK_MAGIC')):
-    elif(line.startswith('pickMagic(')):
-      idx0 = len('pickMagic(0x')
+    elif(line.startswith('await pickMagic(')):
+      idx0 = len('await pickMagic(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd6)
@@ -2371,8 +2427,8 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('DROP_MAGIC')):
-    elif(line.startswith('dropMagic(')):
-      idx0 = len('dropMagic(0x')
+    elif(line.startswith('await dropMagic(')):
+      idx0 = len('await dropMagic(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd7)
@@ -2381,8 +2437,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('PICK_WEAPON')):
-    elif(line.startswith('pickWeapon(')):
-      idx0 = len('pickWeapon(0x')
+    elif(line.startswith('await pickWeapon(')):
+      idx0 = len('await pickWeapon(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd8)
@@ -2390,8 +2446,8 @@ class Comando:
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('DROP_WEAPON')):
-    elif(line.startswith('dropWeapon(')):
-      idx0 = len('dropWeapon(0x')
+    elif(line.startswith('await dropWeapon(')):
+      idx0 = len('await dropWeapon(0x')
       argTxt = line[idx0:idx0+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xd9)
@@ -2400,8 +2456,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('FLAG_ON')):
-    elif(line.startswith('flagOn(')):
-      argTxt = line[len('flagOn('):]
+    elif(line.startswith('await flagOn(')):
+      argTxt = line[len('await flagOn('):]
       argTxt = argTxt[:argTxt.index(')')]
       arg = mystic.variables.getVal(argTxt)
 
@@ -2411,8 +2467,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('FLAG_OFF')):
-    elif(line.startswith('flagOff(')):
-      argTxt = line[len('flagOff('):]
+    elif(line.startswith('await flagOff(')):
+      argTxt = line[len('await flagOff('):]
       argTxt = argTxt[:argTxt.index(')')]
       arg = mystic.variables.getVal(argTxt)
 
@@ -2422,105 +2478,105 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('TEXT_SPEED_LOCK')):
-    elif(line.startswith('textSpeedLock(')):
+    elif(line.startswith('await textSpeedLock(')):
       self.hexs.append(0xdc)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('TEXT_SPEED_UNLOCK')):
-    elif(line.startswith('textSpeedUnlock(')):
+    elif(line.startswith('await textSpeedUnlock(')):
       self.hexs.append(0xdd)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('CONSUME_ITEM_AT_HAND')):
-    elif(line.startswith('consumeItem(')):
+    elif(line.startswith('await consumeItem(')):
       self.hexs.append(0xde)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 
 #    elif(line.startswith('OPEN_DOOR_NORTH')):
-    elif(line.startswith('openDoorNorth(')):
+    elif(line.startswith('await openDoorNorth(')):
       self.hexs.append(0xe0)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('CLOSE_DOOR_NORTH')):
-    elif(line.startswith('closeDoorNorth(')):
+    elif(line.startswith('await closeDoorNorth(')):
       self.hexs.append(0xe1)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('OPEN_DOOR_SOUTH')):
-    elif(line.startswith('openDoorSouth(')):
+    elif(line.startswith('await openDoorSouth(')):
       self.hexs.append(0xe2)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('CLOSE_DOOR_SOUTH')):
-    elif(line.startswith('closeDoorSouth(')):
+    elif(line.startswith('await closeDoorSouth(')):
       self.hexs.append(0xe3)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('OPEN_DOOR_EAST')):
-    elif(line.startswith('openDoorEast(')):
+    elif(line.startswith('await openDoorEast(')):
       self.hexs.append(0xe4)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('CLOSE_DOOR_EAST')):
-    elif(line.startswith('closeDoorEast(')):
+    elif(line.startswith('await closeDoorEast(')):
       self.hexs.append(0xe5)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('OPEN_DOOR_WEST')):
-    elif(line.startswith('openDoorWest(')):
+    elif(line.startswith('await openDoorWest(')):
       self.hexs.append(0xe6)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('CLOSE_DOOR_WEST')):
-    elif(line.startswith('closeDoorWest(')):
+    elif(line.startswith('await closeDoorWest(')):
       self.hexs.append(0xe7)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('SCROLL_ABAJO')):
-    elif(line.startswith('scrollSouth(')):
+    elif(line.startswith('await scrollSouth(')):
       self.hexs.append(0xe8)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCROLL_ARRIBA')):
-    elif(line.startswith('scrollNorth(')):
+    elif(line.startswith('await scrollNorth(')):
       self.hexs.append(0xe9)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCROLL_IZQUIERDA')):
-    elif(line.startswith('scrollLeft(')):
+    elif(line.startswith('await scrollLeft(')):
       self.hexs.append(0xea)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCROLL_DERECHA')):
-    elif(line.startswith('scrollRight(')):
+    elif(line.startswith('await scrollRight(')):
       self.hexs.append(0xeb)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCRIPT_ENTRAR_BLOQUE')):
-    elif(line.startswith('enterRoomScript(')):
+    elif(line.startswith('await enterRoomScript(')):
       self.hexs.append(0xec)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCRIPT_SALIR_BLOQUE')):
-    elif(line.startswith('e')):
+    elif(line.startswith('await exitRoomScript(')):
       self.hexs.append(0xed)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 #    elif(line.startswith('SCRIPT_MATOTODOS_BLOQUE')):
-    elif(line.startswith('killedAllRoomScript(')):
+    elif(line.startswith('await killedAllRoomScript(')):
       self.hexs.append(0xee)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
 
 #    elif(line.startswith('SLEEP')):
-    elif(line.startswith('sleep(')):
-      idx = len('sleep(0x')
+    elif(line.startswith('await sleep(')):
+      idx = len('await sleep(0x')
       argTxt = line[idx:idx+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xf0)
@@ -2530,7 +2586,7 @@ class Comando:
 
 
 #    elif(line.startswith('PROXIMO_BLOQUE')):
-    elif(line.startswith('nextRoom(')):
+    elif(line.startswith('await nextRoom(')):
       idx0 = line.index('xx=0x')
       strXx = line[idx0+5:idx0+7]
       idx0 = line.index('yy=0x')
@@ -2546,7 +2602,7 @@ class Comando:
 
 
 #    elif(line.startswith('TELEPORT')):
-    elif(line.startswith('teleport')):
+    elif(line.startswith('await teleport')):
 
 #      idx0 = line.find('=')
 #      strArgs = line[idx0+3: len(line)-1]
@@ -2564,7 +2620,7 @@ class Comando:
       args = [ int(u, 16) for u in strArgsSplit ]
 
       # si es el teleport 1
-      if(not line[8] == '2'): 
+      if(not line[len('await teleport')] == '2'): 
         self.hexs.append(0xf4)
       # sino, es el teleport 2
       else:
@@ -2575,8 +2631,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('VENDEDOR')):
-    elif(line.startswith('salesman(')):
-      idx = len('salesman(0x')
+    elif(line.startswith('await salesman(')):
+      idx = len('await salesman(0x')
       argTxt = line[idx:idx+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xf6)
@@ -2586,41 +2642,48 @@ class Comando:
 
 
 #    elif(line.startswith('MUSIC')):
-    elif(line.startswith('music(')):
-      idx = len('music(0x')
-      argTxt = line[idx:idx+2]
-      arg = int(argTxt, 16)
-
+    elif(line.startswith('await music(')):
+      argTxt = line[len('await music('):].strip()
+      argTxt = argTxt[:argTxt.index(')')]
+#      print('argTxt: ' + argTxt)
+#      arg = int(argTxt, 16)
+      arg = mystic.variables.getValSong(argTxt)
       self.hexs.append(0xf8)
       self.hexs.append(arg)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('soundEffect(')):
-      idx = len('soundEffect(0x')
-      argTxt = line[idx:idx+2]
-      arg = int(argTxt, 16)
+
+    elif(line.startswith('await soundEffect(')):
+      argTxt = line[len('await soundEffect('):].strip()
+      argTxt = argTxt[:argTxt.index(')')]
+#      print('argTxt: ' + argTxt)
+#      arg = int(argTxt, 16)
+      arg = mystic.variables.getValSFX(argTxt)
       self.hexs.append(0xf9)
       self.hexs.append(arg)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
+
+
+
 #    elif(line.startswith('SCREEN_SHAKE')):
-    elif(line.startswith('shakeScreen(')):
+    elif(line.startswith('await shakeScreen(')):
       self.hexs.append(0xfb)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
 
-    elif(line.startswith('loadGrupoPersonaje(')):
-      idx = len('loadGrupoPersonaje(0x')
+    elif(line.startswith('await loadGrupoPersonaje(')):
+      idx = len('await loadGrupoPersonaje(0x')
       argTxt = line[idx:idx+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xfc)
       self.hexs.append(arg)
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
-    elif(line.startswith('addPersonaje(')):
-      idx = len('addPersonaje(0x')
+    elif(line.startswith('await addPersonaje(')):
+      idx = len('await addPersonaje(0x')
       argTxt = line[idx:idx+2]
       arg = int(argTxt, 16)
       self.hexs.append(0xfd)
@@ -2629,8 +2692,8 @@ class Comando:
       self.sizeBytes = len(self.hexs)
 
 #    elif(line.startswith('ADD_MONSTRUO_GRANDE')):
-    elif(line.startswith('addBoss(')):
-      argTxt = line[len('addBoss('):].strip()
+    elif(line.startswith('await addBoss(')):
+      argTxt = line[len('await addBoss('):].strip()
       argTxt = argTxt[:argTxt.index(')')]
 #      print('argTxt: ' + argTxt)
 #      arg = int(argTxt, 16)
@@ -2642,14 +2705,14 @@ class Comando:
 
     # si es texto
 #    elif(line.startswith('<')):
-    elif(line.startswith('text(')):
+    elif(line.startswith('await text(')):
       # indico que es en modo texto
       self.textMode = True
 
 #      print('LINE: ' + line)
 
 #      compactLine = line.replace('text("<TEXT_MODE_ON>',         u'\U0001F60A')
-      compactLine = line.replace('text("',         u'\U0001F60A')
+      compactLine = line.replace('await text("',         u'\U0001F60A')
 #      compactLine = compactLine.replace('<TEXT_MODE_OFF>");', u'\U0001F61E')
       compactLine = compactLine.replace('");', u'\U0001F61E')
       compactLine = compactLine.replace('<TEXTBOX_SHOW>',  u'\U0001F639')

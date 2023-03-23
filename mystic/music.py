@@ -30,7 +30,7 @@ class Canciones:
       # la decodifico
       cancion.decodeRom(bank, addrCh2, addrCh1, addrCh3)
 
-      print('--- ' + str(i) + ' i: {:02x} | cancion: '.format(i) + str(cancion))
+#      print('--- ' + str(i) + ' i: {:02x} | cancion: '.format(i) + str(cancion))
 
       # y la agrego a la lista
       self.canciones.append(cancion)
@@ -172,6 +172,13 @@ class Canciones:
 #    print('arrayData: ' + mystic.util.strHexa(arrayData))
 
     return array
+
+
+  def exportLilypond(self):
+    """ exports the songs to lilypond """
+
+    for cancion in self.canciones:
+      cancion.exportLilypond()
 
 
 ##########################################################
@@ -459,7 +466,6 @@ class Cancion:
         os.chdir('../..')
 
 
-
   def __str__(self):
     string = 'addrCh2: {:04x} | addrCh1: {:04x} | addrCh3: {:04x}'.format(self.addrCh2, self.addrCh1, self.addrCh3)
     return string
@@ -547,8 +553,8 @@ class Melody:
 #      print('nota: ' + str(nota))
       self.notas.append(nota)
 
-      # si el comando es loop o 0xff
-      if(cmd in [0xff, 0xe1]):
+      # si el comando es loop o END
+      if(cmd in [0xe1, 0xff]):
         # termino la melodía
         break
       # si permito terminar con repeat (por el bug en la rom) y es el comando repeat
@@ -588,7 +594,6 @@ class Melody:
 
     string = ''
 
-
     string += '\n--- CHANNEL: {:02x} addr: {:4x}\n'.format(self.nroChannel, self.addr)
 
     # si el comando anterior fue una nota musical
@@ -609,8 +614,9 @@ class Melody:
           string += label + ':\n'
 
 #      print('notaa: ' + str(nota))
-      # si es un comando (salvo subir o bajar escala)
-      if(nota.cmd1 == 0xe):
+      # si es un comando (salvo subir o bajar escala) o END (0xff)
+#      if(nota.cmd1 == 0xe):
+      if(nota.cmd >= 0xe0):
         # si estaba imprimiendo notas musicales
         if(anteriorFueNota):
           # dejo un enter
@@ -670,6 +676,16 @@ class Melody:
 
           # indico por que addr va la instrucción actual
           vaPorAddr = addr
+
+        elif('END' in line):
+
+#          print('line: ' + line)
+          nota = NotaMusical(vaPorAddr, 1, 0xff, None)
+          nota.labels = currentLabels
+          self.notas.append(nota)
+          vaPorAddr += nota.length
+          currentLabels = []
+#          print('nota: ' + str(nota))
 
         elif('TEMPO' in line):
 
@@ -977,11 +993,14 @@ class Melody:
     # la primer nota está en addr del canal
     vaPorAddr = self.addr
 
-    # segunda pasada (para setear addr fisico de los labels)
+    # primer pasada (para setear addr fisico de las instrucciones)
     for nota in self.notas:
 
       nota.addr = vaPorAddr
       vaPorAddr += nota.length
+
+    # segunda pasada (para setear addr fisico de los labels)
+    for nota in self.notas:
 
       # si es una instrucción de salto (JUMP, REPEAT, JUMPIF)
       if(nota.cmd in [0xe1, 0xe2, 0xeb]):
@@ -1024,7 +1043,7 @@ class Melody:
                 0xb : '16.', # 0x04 (04)  # se usar para triplets
                 0xc : '32',  # 0x03 (03)
 
-                0xf : '1',   # 0xc1?      # 0xff se usa para indicar el final de la canción ?
+                0xf : '1',   # 0xc1?      # 0xff = END indica el final del canal
 
                 0x3 : '2',   # 0x20 (32)  # no se usa
                 0x6 : '4',   # 0x10 (16)  # no se usa
@@ -1145,8 +1164,8 @@ class Melody:
       if(nota.cmd1 == 0xd):
         # no muestro nada
         pass
-      # si es un comando normal
-      elif(nota.cmd1 == 0xe):
+      # si es un comando normal, o END
+      elif(nota.cmd1 == 0xe or nota.cmd == 0xff):
         pass
 
       # sino, es una nota musical
@@ -1308,74 +1327,69 @@ class NotaMusical:
 #      string += label + ' '
 
     # si es un comando de octava
-    if(self.cmd1 == 0xd):
-      if(self.cmd2 == 0x8):
-        string += '>'    # > 
-      elif(self.cmd2 == 0x9):
-        string += '>>'   # }
-      elif(self.cmd2 == 0xa):
-        string += '>>>'  # ] 
-      elif(self.cmd2 == 0xb):
-        string += '>>>>' # )
-      elif(self.cmd2 == 0xc):
-        string += '<'    # <
-      elif(self.cmd2 == 0xd):
-        string += '<<'   # {
-      elif(self.cmd2 == 0xe):
-        string += '<<<'  # [
-      elif(self.cmd2 == 0xf):
-        string += '<<<<' # (
-      else:
-        string += 'o{:01x}'.format(self.cmd2)
+    if(self.cmd >= 0xd0 and self.cmd <= 0xd7):
+      string += 'o{:01x}'.format(self.cmd2)
+    elif(self.cmd == 0xd8):
+      string += '>'    # > 
+    elif(self.cmd == 0xd9):
+      string += '>>'   # }
+    elif(self.cmd == 0xda):
+      string += '>>>'  # ] 
+    elif(self.cmd == 0xdb):
+      string += '>>>>' # )
+    elif(self.cmd == 0xdc):
+      string += '<'    # <
+    elif(self.cmd == 0xdd):
+      string += '<<'   # {
+    elif(self.cmd == 0xde):
+      string += '<<<'  # [
+    elif(self.cmd == 0xdf):
+      string += '<<<<' # (
 
-    # sino, si es un comando general
-    elif(self.cmd1 == 0xe):
+    # volume
+    elif(self.cmd == 0xe0):
+      string += 'VOLUME {:x}'.format(self.arg)
+    # jump
+    elif(self.cmd == 0xe1):
+      string += 'JUMP ' + self.jumpLabel
+    # repeat
+    elif(self.cmd == 0xe2):
+      string += 'REPEAT ' + self.jumpLabel
+    # contador
+    elif(self.cmd == 0xe3):
+      string += 'COUNTER {:x}'.format(self.arg)
+    # instr e4
+    elif(self.cmd == 0xe4):
+      string += 'VIBRATO {:x}'.format(self.arg)
+    # instrumento?
+    elif(self.cmd == 0xe5):
+      string += 'DUTYCYCLE {:x}'.format(self.arg // 64)
+    # stereo panning
+    elif(self.cmd == 0xe6):
+      if True:
+        string += 'STEREO {}'.format(self.arg)
+      elif self.arg == 0:
+        string += 'pS' # Silent
+      elif self.arg == 1:
+        string += 'pR' # Right only
+      elif self.arg == 2:
+        string += 'pL' # Left only
+      elif self.arg == 3:
+        string += 'pC' # Center (both left and right)
+    # tempo
+    elif(self.cmd == 0xe7):
+      string += 'TEMPO {:x}'.format(self.arg)
+    # instr e8
+    elif(self.cmd == 0xe8):
+      string += 'WAVETABLE {:x}'.format(self.arg)
+    # jumpif
+    elif(self.cmd == 0xeb):
+      string += 'JUMPIF {:x} '.format(self.arg) + self.jumpLabel
 
-      # volume
-      if(self.cmd2 == 0x0):
-        string += 'VOLUME {:x}'.format(self.arg)
-      # jump
-      elif(self.cmd2 == 0x1):
-        string += 'JUMP ' + self.jumpLabel
-      # repeat
-      elif(self.cmd2 == 0x2):
-        string += 'REPEAT ' + self.jumpLabel
-      # contador
-      elif(self.cmd2 == 0x3):
-        string += 'COUNTER {:x}'.format(self.arg)
-      # instr e4
-      elif(self.cmd2 == 0x4):
-        string += 'VIBRATO {:x}'.format(self.arg)
-      # instrumento?
-      elif(self.cmd2 == 0x5):
-        string += 'DUTYCYCLE {:x}'.format(self.arg // 64)
-      # stereo panning
-      elif(self.cmd2 == 0x6):
-        if True:
-          string += 'STEREO {}'.format(self.arg)
-        elif self.arg == 0:
-          string += 'pS' # Silent
-        elif self.arg == 1:
-          string += 'pR' # Right only
-        elif self.arg == 2:
-          string += 'pL' # Left only
-        elif self.arg == 3:
-          string += 'pC' # Center (both left and right)
-      # tempo
-      elif(self.cmd2 == 0x7):
-        string += 'TEMPO {:x}'.format(self.arg)
-      # instr e8
-      elif(self.cmd2 == 0x8):
-        string += 'WAVETABLE {:x}'.format(self.arg)
-      # jumpif
-      elif(self.cmd2 == 0xb):
-        string += 'JUMPIF {:x} '.format(self.arg) + self.jumpLabel
-      else:
-        string += '{:02x} '.format(self.cmd, self.arg)
-        if(self.arg != None):
-          string += '{:x} '.format(self.arg)
-        if(self.arg2 != None):
-          string += '{:x} '.format(self.arg2)
+    # sino, si es END
+    elif(self.cmd == 0xff):
+      string += 'END'
+
 
     # sino, es una nota musical
     else:

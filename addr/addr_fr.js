@@ -8,6 +8,7 @@ addrs =
   "addr_loadstate_strangebytes": "02:3aff",
   "addr_windows_labels": "02:3d08",
   "addr_intro": "02:3eb3",
+  "addr_bosses": "04:0739",
   "addr_maps": "05:0000",
   "addr_sheet": [
     "08:00b0",

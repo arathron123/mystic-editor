@@ -104,7 +104,7 @@ def protectStockRoms():
 #      mystic.address.language = idx
       mystic.romSplitter.loadBanksFromFile(romPath)
       # exporto música gbs
-      mystic.romSplitter.exportGbsRom('./stockRoms/gbs_' + lang + '.gb')
+      mystic.romSplitter.exportSongsRom('./stockRoms/gbs_' + lang + '.gb')
 
   return romPath
 

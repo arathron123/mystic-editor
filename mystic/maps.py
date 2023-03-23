@@ -582,7 +582,6 @@ class Mapa:
 
 
     tree = ET.ElementTree(root)
-#    tree.write(filepath + '_banana.tmx')
 #    printed_xml = tree.tostring(root, encoding='UTF-8', xml_declaration=True, pretty_print=True)
     ET.indent(root, space=" ", level=0)
     tree.write(filepath, xml_declaration=True, encoding='utf-8')

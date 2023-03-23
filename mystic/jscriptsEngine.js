@@ -4,11 +4,8 @@
 // (it is not intended to be used separately) 
 
 
-/* convierte a un integer en un string hex (ej: toHex(0xf0,3) = "0f0" */
-function toHex(val, pad) {
-  hexs = val.toString(16).padStart(pad, '0');
-  return hexs;
-}
+// default wait time in milliseconds
+var defaultWait = 100;
 
 // inicializo los flags 0x00-0x7f en False
 var flags = Array(0x80).fill(false);
@@ -19,8 +16,8 @@ var inventory = [];
 // no tenemos nada equipado a mano
 var at_hand = null;
 // ni tampoco activamos ni desactivamos nada
-var triggered_on_by = null;
-var triggered_off_by = null;
+var step_on_by = null;
+var step_off_by = null;
 
 /*
 for(let i=0; i<flags.length; i++) {
@@ -29,817 +26,962 @@ for(let i=0; i<flags.length; i++) {
 }
 */
 
-function if_flags(params) {
-  val = true;
-  // recorro los parametros
-  for(let param of params) {
-    // si se cumplen todos es verdad
-    val = val && flags[param];
-  }
-  return val;
+/* convierte a un integer en un string hex (ej: toHex(0xf0,3) = "0f0" */
+function toHex(val, pad) {
+  hexs = val.toString(16).padStart(pad, '0');
+  return hexs;
 }
 
-function if_hand(params) {
-  val = false;
+
+function cond_flags(params) {
+  retVal = true;
+  // recorro los parametros
+  for(let param of params) {
+    // si es positivo
+    if(param >= 0) {
+      val = flags[param];
+    // sino, es negativo
+    } else {
+      // lo negamos
+      val = !flags[~param];
+    }
+//    console.log('param: ' + param + ' val: ' + val);
+    // si se cumplen todos es verdad
+    retVal = retVal && val;
+  }
+  return retVal;
+}
+
+
+function cond_hand(params) {
+  retVal = false;
   // recorro los parametros
   for(let param of params) {
     // si alguno está a mano es verdad
-    val = val || at_hand == param;
+    retVal = retVal || at_hand == param;
   }
-  return val;
+  return retVal;
 }
 
-function if_inventory(params) {
-  val = true;
+function cond_inventory(params) {
+  retVal = true;
   // recorro los parámetros
   for(let param of params) {
     // si están todos en el inventario es verdad
-    val = val && inventory.includes(param);
+    retVal = retVal && inventory.includes(param);
   }
-  return val;
+  return retVal;
 }
 
-function if_triggered_on_by(params) {
-  val = false;
+function cond_step_on_by(params) {
+  retVal = false;
   // recorro los parámetros
   for(let param of params) {
     // si lo activó alguno está bien
-    val = val || triggered_on_by == param;
+    retVal = retVal || step_on_by == param;
   }
-  return val;
+  return retVal;
 }
 
-function if_triggered_off_by(params) {
-  val = false;
+function cond_step_off_by(params) {
+  retVal = false;
   // recorro los parámetros
   for(let param of params) {
     // si lo desactivó alguno está bien
-    val = val || triggered_off_by == param;
+    retVal = retVal || step_off_by == param;
   }
-  return val;
+  return retVal;
 }
 
 
-var personajes = ['extra1', 'extra2', 'extra3', 'extra4', 'extra5', 'extra6', 'extra7', 'hero', 'partner'];
+
+const awaitSleep = ms => new Promise(r => setTimeout(r, ms));
+
+
+
+
+
+async function getPersonaje(i) {
+  var personajes = ['extra1', 'extra2', 'extra3', 'extra4', 'extra5', 'extra6', 'extra7', 'hero', 'partner'];
+  return personajes[i];
+}
+
 /* extras */
-function extraiStepForward(i) {
-  var personaje = personajes[i-1];
+async function extraiStepForward(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'StepForward');
 }
-function extraiStepBack(i) {
-  var personaje = personajes[i-1];
+async function extraiStepBack(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'StepBack');
 }
-function extraiStepLeft(i) {
-  var personaje = personajes[i-1];
+async function extraiStepLeft(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'StepLeft');
 }
-function extraiStepRight(i) {
-  var personaje = personajes[i-1];
+async function extraiStepRight(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'StepRight');
 }
-function extraiLookNorth(i) {
-  var personaje = personajes[i-1];
+async function extraiLookNorth(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'LookNorth');
 }
-function extraiLookSouth(i) {
-  var personaje = personajes[i-1];
+async function extraiLookSouth(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'LookSouth');
 }
-function extraiLookEast(i) {
-  var personaje = personajes[i-1];
+async function extraiLookEast(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'LookEast');
 }
-function extraiLookWest(i) {
-  var personaje = personajes[i-1];
+async function extraiLookWest(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'LookWest');
 }
-function extraiRemove(i) {
-  var personaje = personajes[i-1];
+async function extraiRemove(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'Remove');
 }
-function extraiTeleport(i, xx,yy) {
-  var personaje = personajes[i-1];
+async function extraiTeleport(i, xx,yy) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'Teleport(0x' + toHex(xx, 2) + ', 0x' + toHex(yy, 2) + ')');
 }
-function extraiWalkFastSpeed(i) {
-  var personaje = personajes[i-1];
+async function extraiWalkFastSpeed(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'WalkFastSpeed');
 }
-function extraiWalkNormalSpeed(i) {
-  var personaje = personajes[i-1];
+async function extraiWalkNormalSpeed(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'WalkNormalSpeed');
 }
-function extraiNoseC(i) {
-  var personaje = personajes[i-1];
+async function extraiNoseC(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'NoseC');
 }
-function extraiNoseD(i) {
-  var personaje = personajes[i-1];
+async function extraiNoseD(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'NoseD');
 }
-function extraiNoseE(i) {
-  var personaje = personajes[i-1];
+async function extraiNoseE(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'NoseE');
 }
-function extraiNoseF(i) {
-  var personaje = personajes[i-1];
+async function extraiNoseF(i) {
+  await awaitSleep(defaultWait);
+  const personaje = await getPersonaje(i-1);
   console.log(personaje + 'NoseF');
 }
 
 /* extra 1 */
-function extra1StepForward() {
-  extraiStepForward(1);
+async function extra1StepForward() {
+  await extraiStepForward(1);
 }
-function extra1StepBack() {
-  extraiStepBack(1);
+async function extra1StepBack() {
+  await extraiStepBack(1);
 }
-function extra1StepLeft() {
-  extraiStepLeft(1);
+async function extra1StepLeft() {
+  await extraiStepLeft(1);
 }
-function extra1StepRight() {
-  extraiStepRight(1);
+async function extra1StepRight() {
+  await extraiStepRight(1);
 }
-function extra1LookNorth() {
-  extraiLookNorth(1);
+async function extra1LookNorth() {
+  await extraiLookNorth(1);
 }
-function extra1LookSouth() {
-  extraiLookSouth(1);
+async function extra1LookSouth() {
+  await extraiLookSouth(1);
 }
-function extra1LookEast() {
-  extraiLookEast(1);
+async function extra1LookEast() {
+  await extraiLookEast(1);
 }
-function extra1LookWest() {
-  extraiLookWest(1);
+async function extra1LookWest() {
+  await extraiLookWest(1);
 }
-function extra1Remove() {
-  extraiRemove(1);
+async function extra1Remove() {
+  await extraiRemove(1);
 }
-function extra1Teleport(xx,yy) {
-  extraiTeleport(1,xx,yy);
+async function extra1Teleport(xx,yy) {
+  await extraiTeleport(1,xx,yy);
 }
-function extra1WalkFastSpeed() {
-  extraiWalkFastSpeed(1);
+async function extra1WalkFastSpeed() {
+  await extraiWalkFastSpeed(1);
 }
-function extra1WalkNormalSpeed() {
-  extraiWalkNormalSpeed(1);
+async function extra1WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(1);
 }
-function extra1NoseC() {
-  extraiNoseC(1);
+async function extra1NoseC() {
+  await extraiNoseC(1);
 }
-function extra1NoseD() {
-  extraiNoseD(1);
+async function extra1NoseD() {
+  await extraiNoseD(1);
 }
-function extra1NoseE() {
-  extraiNoseE(1);
+async function extra1NoseE() {
+  await extraiNoseE(1);
 }
-function extra1NoseF() {
-  extraiNoseF(1);
+async function extra1NoseF() {
+  await extraiNoseF(1);
 }
 /* extra 2 */
-function extra2StepForward() {
-  extraiStepForward(2);
+async function extra2StepForward() {
+  await extraiStepForward(2);
 }
-function extra2StepBack() {
-  extraiStepBack(2);
+async function extra2StepBack() {
+  await extraiStepBack(2);
 }
-function extra2StepLeft() {
-  extraiStepLeft(2);
+async function extra2StepLeft() {
+  await extraiStepLeft(2);
 }
-function extra2StepRight() {
-  extraiStepRight(2);
+async function extra2StepRight() {
+  await extraiStepRight(2);
 }
-function extra2LookNorth() {
-  extraiLookNorth(2);
+async function extra2LookNorth() {
+  await extraiLookNorth(2);
 }
-function extra2LookSouth() {
-  extraiLookSouth(2);
+async function extra2LookSouth() {
+  await extraiLookSouth(2);
 }
-function extra2LookEast() {
-  extraiLookEast(2);
+async function extra2LookEast() {
+  await extraiLookEast(2);
 }
-function extra2LookWest() {
-  extraiLookWest(2);
+async function extra2LookWest() {
+  await extraiLookWest(2);
 }
-function extra2Remove() {
-  extraiRemove(2);
+async function extra2Remove() {
+  await extraiRemove(2);
 }
-function extra2Teleport(xx,yy) {
-  extraiTeleport(2,xx,yy);
+async function extra2Teleport(xx,yy) {
+  await extraiTeleport(2,xx,yy);
 }
-function extra2WalkFastSpeed() {
-  extraiWalkFastSpeed(2);
+async function extra2WalkFastSpeed() {
+  await extraiWalkFastSpeed(2);
 }
-function extra2WalkNormalSpeed() {
-  extraiWalkNormalSpeed(2);
+async function extra2WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(2);
 }
-function extra2NoseC() {
-  extraiNoseC(2);
+async function extra2NoseC() {
+  await extraiNoseC(2);
 }
-function extra2NoseD() {
-  extraiNoseD(2);
+async function extra2NoseD() {
+  await extraiNoseD(2);
 }
-function extra2NoseE() {
-  extraiNoseE(2);
+async function extra2NoseE() {
+  await extraiNoseE(2);
 }
-function extra2NoseF() {
-  extraiNoseF(2);
+async function extra2NoseF() {
+  await extraiNoseF(2);
 }
 /* extra 3 */
-function extra3StepForward() {
-  extraiStepForward(3);
+async function extra3StepForward() {
+  await extraiStepForward(3);
 }
-function extra3StepBack() {
-  extraiStepBack(3);
+async function extra3StepBack() {
+  await extraiStepBack(3);
 }
-function extra3StepLeft() {
-  extraiStepLeft(3);
+async function extra3StepLeft() {
+  await extraiStepLeft(3);
 }
-function extra3StepRight() {
-  extraiStepRight(3);
+async function extra3StepRight() {
+  await extraiStepRight(3);
 }
-function extra3LookNorth() {
-  extraiLookNorth(3);
+async function extra3LookNorth() {
+  await extraiLookNorth(3);
 }
-function extra3LookSouth() {
-  extraiLookSouth(3);
+async function extra3LookSouth() {
+  await extraiLookSouth(3);
 }
-function extra3LookEast() {
-  extraiLookEast(3);
+async function extra3LookEast() {
+  await extraiLookEast(3);
 }
-function extra3LookWest() {
-  extraiLookWest(3);
+async function extra3LookWest() {
+  await extraiLookWest(3);
 }
-function extra3Remove() {
-  extraiRemove(3);
+async function extra3Remove() {
+  await extraiRemove(3);
 }
-function extra3Teleport(xx,yy) {
-  extraiTeleport(3,xx,yy);
+async function extra3Teleport(xx,yy) {
+  await extraiTeleport(3,xx,yy);
 }
-function extra3WalkFastSpeed() {
-  extraiWalkFastSpeed(3);
+async function extra3WalkFastSpeed() {
+  await extraiWalkFastSpeed(3);
 }
-function extra3WalkNormalSpeed() {
-  extraiWalkNormalSpeed(3);
+async function extra3WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(3);
 }
-function extra3NoseC() {
-  extraiNoseC(3);
+async function extra3NoseC() {
+  await extraiNoseC(3);
 }
-function extra3NoseD() {
-  extraiNoseD(3);
+async function extra3NoseD() {
+  await extraiNoseD(3);
 }
-function extra3NoseE() {
-  extraiNoseE(3);
+async function extra3NoseE() {
+  await extraiNoseE(3);
 }
-function extra3NoseF() {
-  extraiNoseF(3);
+async function extra3NoseF() {
+  await extraiNoseF(3);
 }
 /* extra 4 */
-function extra4StepForward() {
-  extraiStepForward(4);
+async function extra4StepForward() {
+  await extraiStepForward(4);
 }
-function extra4StepBack() {
-  extraiStepBack(4);
+async function extra4StepBack() {
+  await extraiStepBack(4);
 }
-function extra4StepLeft() {
-  extraiStepLeft(4);
+async function extra4StepLeft() {
+  await extraiStepLeft(4);
 }
-function extra4StepRight() {
-  extraiStepRight(4);
+async function extra4StepRight() {
+  await extraiStepRight(4);
 }
-function extra4LookNorth() {
-  extraiLookNorth(4);
+async function extra4LookNorth() {
+  await extraiLookNorth(4);
 }
-function extra4LookSouth() {
-  extraiLookSouth(4);
+async function extra4LookSouth() {
+  await extraiLookSouth(4);
 }
-function extra4LookEast() {
-  extraiLookEast(4);
+async function extra4LookEast() {
+  await extraiLookEast(4);
 }
-function extra4LookWest() {
-  extraiLookWest(4);
+async function extra4LookWest() {
+  await extraiLookWest(4);
 }
-function extra4Remove() {
-  extraiRemove(4);
+async function extra4Remove() {
+  await extraiRemove(4);
 }
-function extra4Teleport(xx,yy) {
-  extraiTeleport(4,xx,yy);
+async function extra4Teleport(xx,yy) {
+  await extraiTeleport(4,xx,yy);
 }
-function extra4WalkFastSpeed() {
-  extraiWalkFastSpeed(4);
+async function extra4WalkFastSpeed() {
+  await extraiWalkFastSpeed(4);
 }
-function extra4WalkNormalSpeed() {
-  extraiWalkNormalSpeed(4);
+async function extra4WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(4);
 }
-function extra4NoseC() {
-  extraiNoseC(4);
+async function extra4NoseC() {
+  await extraiNoseC(4);
 }
-function extra4NoseD() {
-  extraiNoseD(4);
+async function extra4NoseD() {
+  await extraiNoseD(4);
 }
-function extra4NoseE() {
-  extraiNoseE(4);
+async function extra4NoseE() {
+  await extraiNoseE(4);
 }
-function extra4NoseF() {
-  extraiNoseF(4);
+async function extra4NoseF() {
+  await extraiNoseF(4);
 }
 /* extra 5 */
-function extra5StepForward() {
-  extraiStepForward(5);
+async function extra5StepForward() {
+  await extraiStepForward(5);
 }
-function extra5StepBack() {
-  extraiStepBack(5);
+async function extra5StepBack() {
+  await extraiStepBack(5);
 }
-function extra5StepLeft() {
-  extraiStepLeft(5);
+async function extra5StepLeft() {
+  await extraiStepLeft(5);
 }
-function extra5StepRight() {
-  extraiStepRight(5);
+async function extra5StepRight() {
+  await extraiStepRight(5);
 }
-function extra5LookNorth() {
-  extraiLookNorth(5);
+async function extra5LookNorth() {
+  await extraiLookNorth(5);
 }
-function extra5LookSouth() {
-  extraiLookSouth(5);
+async function extra5LookSouth() {
+  await extraiLookSouth(5);
 }
-function extra5LookEast() {
-  extraiLookEast(5);
+async function extra5LookEast() {
+  await extraiLookEast(5);
 }
-function extra5LookWest() {
-  extraiLookWest(5);
+async function extra5LookWest() {
+  await extraiLookWest(5);
 }
-function extra5Remove() {
-  extraiRemove(5);
+async function extra5Remove() {
+  await extraiRemove(5);
 }
-function extra5Teleport(xx,yy) {
-  extraiTeleport(5,xx,yy);
+async function extra5Teleport(xx,yy) {
+  await extraiTeleport(5,xx,yy);
 }
-function extra5WalkFastSpeed() {
-  extraiWalkFastSpeed(5);
+async function extra5WalkFastSpeed() {
+  await extraiWalkFastSpeed(5);
 }
-function extra5WalkNormalSpeed() {
-  extraiWalkNormalSpeed(5);
+async function extra5WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(5);
 }
-function extra5NoseC() {
-  extraiNoseC(5);
+async function extra5NoseC() {
+  await extraiNoseC(5);
 }
-function extra5NoseD() {
-  extraiNoseD(5);
+async function extra5NoseD() {
+  await extraiNoseD(5);
 }
-function extra5NoseE() {
-  extraiNoseE(5);
+async function extra5NoseE() {
+  await extraiNoseE(5);
 }
-function extra5NoseF() {
-  extraiNoseF(5);
+async function extra5NoseF() {
+  await extraiNoseF(5);
 }
 /* extra 6 */
-function extra6StepForward() {
-  extraiStepForward(6);
+async function extra6StepForward() {
+  await extraiStepForward(6);
 }
-function extra6StepBack() {
-  extraiStepBack(6);
+async function extra6StepBack() {
+  await extraiStepBack(6);
 }
-function extra6StepLeft() {
-  extraiStepLeft(6);
+async function extra6StepLeft() {
+  await extraiStepLeft(6);
 }
-function extra6StepRight() {
-  extraiStepRight(6);
+async function extra6StepRight() {
+  await extraiStepRight(6);
 }
-function extra6LookNorth() {
-  extraiLookNorth(6);
+async function extra6LookNorth() {
+  await extraiLookNorth(6);
 }
-function extra6LookSouth() {
-  extraiLookSouth(6);
+async function extra6LookSouth() {
+  await extraiLookSouth(6);
 }
-function extra6LookEast() {
-  extraiLookEast(6);
+async function extra6LookEast() {
+  await extraiLookEast(6);
 }
-function extra6LookWest() {
-  extraiLookWest(6);
+async function extra6LookWest() {
+  await extraiLookWest(6);
 }
-function extra6Remove() {
-  extraiRemove(6);
+async function extra6Remove() {
+  await extraiRemove(6);
 }
-function extra6Teleport(xx,yy) {
-  extraiTeleport(6,xx,yy);
+async function extra6Teleport(xx,yy) {
+  await extraiTeleport(6,xx,yy);
 }
-function extra6WalkFastSpeed() {
-  extraiWalkFastSpeed(6);
+async function extra6WalkFastSpeed() {
+  await extraiWalkFastSpeed(6);
 }
-function extra6WalkNormalSpeed() {
-  extraiWalkNormalSpeed(6);
+async function extra6WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(6);
 }
-function extra6NoseC() {
-  extraiNoseC(6);
+async function extra6NoseC() {
+  await extraiNoseC(6);
 }
-function extra6NoseD() {
-  extraiNoseD(6);
+async function extra6NoseD() {
+  await extraiNoseD(6);
 }
-function extra6NoseE() {
-  extraiNoseE(6);
+async function extra6NoseE() {
+  await extraiNoseE(6);
 }
-function extra6NoseF() {
-  extraiNoseF(6);
+async function extra6NoseF() {
+  await extraiNoseF(6);
 }
 /* extra 7 */
-function extra7StepForward() {
-  extraiStepForward(7);
+async function extra7StepForward() {
+  await extraiStepForward(7);
 }
-function extra7StepBack() {
-  extraiStepBack(7);
+async function extra7StepBack() {
+  await extraiStepBack(7);
 }
-function extra7StepLeft() {
-  extraiStepLeft(7);
+async function extra7StepLeft() {
+  await extraiStepLeft(7);
 }
-function extra7StepRight() {
-  extraiStepRight(7);
+async function extra7StepRight() {
+  await extraiStepRight(7);
 }
-function extra7LookNorth() {
-  extraiLookNorth(7);
+async function extra7LookNorth() {
+  await extraiLookNorth(7);
 }
-function extra7LookSouth() {
-  extraiLookSouth(7);
+async function extra7LookSouth() {
+  await extraiLookSouth(7);
 }
-function extra7LookEast() {
-  extraiLookEast(7);
+async function extra7LookEast() {
+  await extraiLookEast(7);
 }
-function extra7LookWest() {
-  extraiLookWest(7);
+async function extra7LookWest() {
+  await extraiLookWest(7);
 }
-function extra7Remove() {
-  extraiRemove(7);
+async function extra7Remove() {
+  await extraiRemove(7);
 }
-function extra7Teleport(xx,yy) {
-  extraiTeleport(7,xx,yy);
+async function extra7Teleport(xx,yy) {
+  await extraiTeleport(7,xx,yy);
 }
-function extra7WalkFastSpeed() {
-  extraiWalkFastSpeed(7);
+async function extra7WalkFastSpeed() {
+  await extraiWalkFastSpeed(7);
 }
-function extra7WalkNormalSpeed() {
-  extraiWalkNormalSpeed(7);
+async function extra7WalkNormalSpeed() {
+  await extraiWalkNormalSpeed(7);
 }
-function extra7NoseC() {
-  extraiNoseC(7);
+async function extra7NoseC() {
+  await extraiNoseC(7);
 }
-function extra7NoseD() {
-  extraiNoseD(7);
+async function extra7NoseD() {
+  await extraiNoseD(7);
 }
-function extra7NoseE() {
-  extraiNoseE(7);
+async function extra7NoseE() {
+  await extraiNoseE(7);
 }
-function extra7NoseF() {
-  extraiNoseF(7);
+async function extra7NoseF() {
+  await extraiNoseF(7);
 }
 /* hero (extra 8) */
-function heroStepForward() {
-  extraiStepForward(8);
+async function heroStepForward() {
+  await extraiStepForward(8);
 }
-function heroStepBack() {
-  extraiStepBack(8);
+async function heroStepBack() {
+  await extraiStepBack(8);
 }
-function heroStepLeft() {
-  extraiStepLeft(8);
+async function heroStepLeft() {
+  await extraiStepLeft(8);
 }
-function heroStepRight() {
-  extraiStepRight(8);
+async function heroStepRight() {
+  await extraiStepRight(8);
 }
-function heroLookNorth() {
-  extraiLookNorth(8);
+async function heroLookNorth() {
+  await extraiLookNorth(8);
 }
-function heroLookSouth() {
-  extraiLookSouth(8);
+async function heroLookSouth() {
+  await extraiLookSouth(8);
 }
-function heroLookEast() {
-  extraiLookEast(8);
+async function heroLookEast() {
+  await extraiLookEast(8);
 }
-function heroLookWest() {
-  extraiLookWest(8);
+async function heroLookWest() {
+  await extraiLookWest(8);
 }
-function heroRemove() {
-  extraiRemove(8);
+async function heroRemove() {
+  await extraiRemove(8);
 }
-function heroTeleport(xx,yy) {
-  extraiTeleport(8,xx,yy);
+async function heroTeleport(xx,yy) {
+  await extraiTeleport(8,xx,yy);
 }
-function heroWalkFastSpeed() {
-  extraiWalkFastSpeed(8);
+async function heroWalkFastSpeed() {
+  await extraiWalkFastSpeed(8);
 }
-function heroWalkNormalSpeed() {
-  extraiWalkNormalSpeed(8);
+async function heroWalkNormalSpeed() {
+  await extraiWalkNormalSpeed(8);
 }
-function heroNoseC() {
-  extraiNoseC(8);
+async function heroNoseC() {
+  await extraiNoseC(8);
 }
-function heroNoseD() {
-  extraiNoseD(8);
+async function heroNoseD() {
+  await extraiNoseD(8);
 }
-function heroNoseE() {
-  extraiNoseE(8);
+async function heroNoseE() {
+  await extraiNoseE(8);
 }
-function heroNoseF() {
-  extraiNoseF(8);
+async function heroNoseF() {
+  await extraiNoseF(8);
 }
 /* partner (extra 9) */
-function partnerStepForward() {
-  extraiStepForward(9);
+async function partnerStepForward() {
+  await extraiStepForward(9);
 }
-function partnerStepBack() {
-  extraiStepBack(9);
+async function partnerStepBack() {
+  await extraiStepBack(9);
 }
-function partnerStepLeft() {
-  extraiStepLeft(9);
+async function partnerStepLeft() {
+  await extraiStepLeft(9);
 }
-function partnerStepRight() {
-  extraiStepRight(9);
+async function partnerStepRight() {
+  await extraiStepRight(9);
 }
-function partnerLookNorth() {
-  extraiLookNorth(9);
+async function partnerLookNorth() {
+  await extraiLookNorth(9);
 }
-function partnerLookSouth() {
-  extraiLookSouth(9);
+async function partnerLookSouth() {
+  await extraiLookSouth(9);
 }
-function partnerLookEast() {
-  extraiLookEast(9);
+async function partnerLookEast() {
+  await extraiLookEast(9);
 }
-function partnerLookWest() {
-  extraiLookWest(9);
+async function partnerLookWest() {
+  await extraiLookWest(9);
 }
-function partnerRemove() {
-  extraiRemove(9);
+async function partnerRemove() {
+  await extraiRemove(9);
 }
-function partnerTeleport(xx,yy) {
-  extraiTeleport(9,xx,yy);
+async function partnerTeleport(xx,yy) {
+  await extraiTeleport(9,xx,yy);
 }
-function partnerWalkFastSpeed() {
-  extraiWalkFastSpeed(9);
+async function partnerWalkFastSpeed() {
+  await extraiWalkFastSpeed(9);
 }
-function partnerWalkNormalSpeed() {
-  extraiWalkNormalSpeed(9);
+async function partnerWalkNormalSpeed() {
+  await extraiWalkNormalSpeed(9);
 }
-function partnerNoseC() {
-  extraiNoseC(9);
+/* this one is partnerSetPersonaje */
+/*
+async function partnerNoseC() {
+  await extraiNoseC(9);
 }
-function partnerNoseD() {
-  extraiNoseD(9);
+*/
+async function partnerSetPersonaje(nn) {
+  await awaitSleep(defaultWait);
+  console.log('partnerSetPersonaje(' + nn + ');');
+
 }
-function partnerNoseE() {
-  extraiNoseE(9);
+
+async function partnerNoseD() {
+  await extraiNoseD(9);
 }
-function partnerNoseF() {
-  extraiNoseF(9);
+async function partnerNoseE() {
+  await extraiNoseE(9);
+}
+async function partnerNoseF() {
+  await extraiNoseF(9);
 }
 
 
-function walkingAsChocobo() {
+async function walkingAsChocobo() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsChocobo');
 }
-function walkingAsChocobotLand() {
+async function walkingAsChocobotLand() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsChocobotLand');
 }
-function walkingAsChocobotWater() {
+async function walkingAsChocobotWater() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsChocobotWater');
 }
-function walkingAsWagon() {
+async function walkingAsWagon() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsWagon');
 }
-function walkingAsNormal() {
+async function walkingAsNormal() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsNormal');
 }
-function walkingAsFalling() {
+async function walkingAsFalling() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsFalling');
 }
-function walkingAsDead() {
+async function walkingAsDead() {
+  await awaitSleep(defaultWait);
   console.log('walkingAsDead');
 }
 
-function checkIfCurrentMapHasSmallmap() {
+async function checkIfCurrentMapHasSmallmap() {
+  await awaitSleep(defaultWait);
   console.log('checkIfCurrentMapHasSmallmap');
 }
 
-function clearKilledAllRoom() {
+async function clearKilledAllRoom() {
+  await awaitSleep(defaultWait);
   console.log('clearKilledAllRoom');
 }
 
-function smallmapOpen() {
+async function smallmapOpen() {
+  await awaitSleep(defaultWait);
   console.log('smallmapOpen');
 }
-function smallmapIdle() {
+async function smallmapIdle() {
+  await awaitSleep(defaultWait);
   console.log('smallmapIdle');
 }
-function smallmapClose() {
+async function smallmapClose() {
+  await awaitSleep(defaultWait);
   console.log('smallmapClose');
 }
 
-function openChest() {
+async function openChest() {
+  await awaitSleep(defaultWait);
   console.log('openChest');
 }
 
-function drawSprite(nn,xx,yy) {
+async function drawSprite(nn,xx,yy) {
+  await awaitSleep(defaultWait);
   console.log('drawSprite nn=' + toHex(nn, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
 }
 
-function attackEffect(tt,xx,yy) {
+async function attackEffect(tt,xx,yy) {
+  await awaitSleep(defaultWait);
   console.log('attackEffect tt=' + toHex(nn, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
 }
 
-function letterboxEffect() {
+async function letterboxEffect() {
+  await awaitSleep(defaultWait);
   console.log('letterboxEffect');
 }
-function fadeInEffect() {
+async function fadeInEffect() {
+  await awaitSleep(defaultWait);
   console.log('fadeInEffect');
 }
-function fadeOutEffect() {
+async function fadeOutEffect() {
+  await awaitSleep(defaultWait);
   console.log('fadeOutEffect');
 }
-function washOutEffect() {
+async function washOutEffect() {
+  await awaitSleep(defaultWait);
   console.log('washOutEffect');
 }
-function eyeblinkEffect() {
+async function eyeblinkEffect() {
+  await awaitSleep(defaultWait);
   console.log('eyeblinkEffect');
 }
 
-function recoverHp() {
+async function recoverHp() {
+  await awaitSleep(defaultWait);
   console.log('recoverHp');
 }
-function recoverMp() {
+async function recoverMp() {
+  await awaitSleep(defaultWait);
   console.log('recoverMp');
 }
 
-function healDisease(val) {
+async function healDisease(val) {
+  await awaitSleep(defaultWait);
   console.log('healDisease ' + toHex(val, 2));
 }
-function nop() {
+async function nop() {
+  await awaitSleep(defaultWait);
   console.log('nop');
 }
-function disease(val) {
+async function disease(val) {
+  await awaitSleep(defaultWait);
   console.log('disease ' + toHex(val, 2));
 }
 
-function setFlags72To77(val) {
+async function setFlags72To77(val) {
+  await awaitSleep(defaultWait);
   console.log('setFlags72To77 ' + toHex(val, 2));
 }
 
-function inputNames() {
-  console.log('inputNames');
+async function inputNames() {
+  await awaitSleep(defaultWait);
+  console.log('inputNames()');
 }
-function randomize7E7F() {
+async function randomize7E7F() {
+  await awaitSleep(defaultWait);
   console.log('randomize7E7F');
 }
-function resetGame() {
+async function resetGame() {
+  await awaitSleep(defaultWait);
   console.log('resetGame');
 }
 
-function setChest1Script(val) {
+async function setChest1Script(val) {
+  await awaitSleep(defaultWait);
   console.log('setChest1Script ' + toHex(val, 2));
 }
-function setChest2Script(val) {
+async function setChest2Script(val) {
+  await awaitSleep(defaultWait);
   console.log('setChest2Script ' + toHex(val, 2));
 }
-function setChest3Script(val) {
+async function setChest3Script(val) {
+  await awaitSleep(defaultWait);
   console.log('setChest3Script ' + toHex(val, 2));
 }
 
-function stopInput() {
+async function stopInput() {
+  await awaitSleep(defaultWait);
   console.log('stopInput');
 }
 
-function increaseGold(val) {
+async function increaseGold(val) {
+  await awaitSleep(defaultWait);
   console.log('increaseGold ' + toHex(val, 2));
 }
-function decreaseGold(val) {
+async function decreaseGold(val) {
+  await awaitSleep(defaultWait);
   console.log('decreaseGold ' + toHex(val, 2));
 }
-function increaseExp(val) {
+async function increaseExp(val) {
+  await awaitSleep(defaultWait);
   console.log('increaseExp ' + toHex(val, 2));
 }
-function decreaseExp(val) {
+async function decreaseExp(val) {
+  await awaitSleep(defaultWait);
   console.log('decreaseExp ' + toHex(val, 2));
 }
 
-function pickItem(val) {
+async function pickItem(val) {
+  await awaitSleep(defaultWait);
   console.log('pickItem ' + toHex(val, 2));
 }
-function dropItem(val) {
+async function dropItem(val) {
+  await awaitSleep(defaultWait);
   console.log('dropItem ' + toHex(val, 2));
 }
-function pickMagic(val) {
+async function pickMagic(val) {
+  await awaitSleep(defaultWait);
   console.log('pickMagic ' + toHex(val, 2));
 }
-function dropMagic(val) {
+async function dropMagic(val) {
+  await awaitSleep(defaultWait);
   console.log('dropMagic ' + toHex(val, 2));
 }
-function pickWeapon(val) {
+async function pickWeapon(val) {
+  await awaitSleep(defaultWait);
   console.log('pickWeapon ' + toHex(val, 2));
 }
-function dropWeapon(val) {
+async function dropWeapon(val) {
+  await awaitSleep(defaultWait);
   console.log('dropWeapon ' + toHex(val, 2));
 }
 
-function flagOn(val) {
+async function flagOn(val) {
+  await awaitSleep(defaultWait);
   console.log('flagOn ' + toHex(val, 2));
 }
-function flagOff(val) {
+async function flagOff(val) {
+  await awaitSleep(defaultWait);
   console.log('flagOff ' + toHex(val, 2));
 }
 
-function textSpeedLock() {
+async function textSpeedLock() {
+  await awaitSleep(defaultWait);
   console.log('textSpeedLock');
 }
-function textSpeedUnlock() {
+async function textSpeedUnlock() {
+  await awaitSleep(defaultWait);
   console.log('textSpeedUnlock');
 }
 
-function consumeItem() {
+async function consumeItem() {
+  await awaitSleep(defaultWait);
   console.log('consumeItem');
 }
 
-function openDoorNorth() {
+async function openDoorNorth() {
+  await awaitSleep(defaultWait);
   console.log('openDoorNorth');
 }
-function closeDoorNorth() {
+async function closeDoorNorth() {
+  await awaitSleep(defaultWait);
   console.log('closeDoorNorth');
 }
-function openDoorSouth() {
+async function openDoorSouth() {
+  await awaitSleep(defaultWait);
   console.log('openDoorSouth');
 }
-function closeDoorSouth() {
+async function closeDoorSouth() {
+  await awaitSleep(defaultWait);
   console.log('closeDoorSouth');
 }
-function openDoorEast() {
+async function openDoorEast() {
+  await awaitSleep(defaultWait);
   console.log('openDoorEast');
 }
-function closeDoorEast() {
+async function closeDoorEast() {
+  await awaitSleep(defaultWait);
   console.log('closeDoorEast');
 }
-function openDoorWest() {
+async function openDoorWest() {
+  await awaitSleep(defaultWait);
   console.log('openDoorWest');
 }
-function closeDoorWest() {
+async function closeDoorWest() {
+  await awaitSleep(defaultWait);
   console.log('closeDoorWest');
 }
 
-function scrollSouth() {
+async function scrollSouth() {
+  await awaitSleep(defaultWait);
   console.log('scrollSouth');
 }
-function scrollNorth() {
+async function scrollNorth() {
+  await awaitSleep(defaultWait);
   console.log('scrollNorth');
 }
-function scrollLeft() {
+async function scrollLeft() {
+  await awaitSleep(defaultWait);
   console.log('scrollLeft');
 }
-function scrollRight() {
+async function scrollRight() {
+  await awaitSleep(defaultWait);
   console.log('scrollRight');
 }
 
-function enterRoomScript() {
+async function enterRoomScript() {
+  await awaitSleep(defaultWait);
   console.log('enterRoomScript');
 }
-function exitRoomScript() {
+async function exitRoomScript() {
+  await awaitSleep(defaultWait);
   console.log('exitRoomScript');
 }
-function killedAllRoomScript() {
+async function killedAllRoomScript() {
+  await awaitSleep(defaultWait);
   console.log('killedAllRoomScript');
 }
 
-function nextRoom(xx,yy) {
+async function nextRoom(xx,yy) {
+  await awaitSleep(defaultWait);
   console.log('nextRoom xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
 }
 
-function teleport2(mm,bb,xx,yy) {
+async function teleport2(mm,bb,xx,yy) {
+
+  await awaitSleep(defaultWait);
+  nroMapaActual = mm;
+  mapaActual = mapas[nroMapaActual];
+  bloqueX = parseInt(toHex(bb,2).substring(0,1),16);
+  bloqueY = parseInt(toHex(bb,2).substring(1,2),16);
+
   console.log('teleporting2 to mm=' + toHex(mm, 2) + ' bb=' + toHex(bb, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
 }
 
-function teleport(mm,bb,xx,yy) {
-  console.log('teleporting to mm=' + toHex(mm, 2) + ' bb=' + toHex(bb, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2));
+async function teleport(mm,bb,xx,yy) {
+
+  await awaitSleep(defaultWait);
+  nroMapaActual = mm;
+  mapaActual = mapas[nroMapaActual];
+  bloqueX = parseInt(toHex(bb,2).substring(0,1),16);
+  bloqueY = parseInt(toHex(bb,2).substring(1,2),16);
+
+  console.log('teleporting to mm=' + toHex(mm, 2) + ' bb=' + toHex(bb, 2) + ' xx=' + toHex(xx, 2) + ' yy=' + toHex(yy, 2) + ' bloqueX: ' + bloqueX + ' bloqueY: ' + bloqueY);
 }
 
-function music(val) {
-  console.log('setting music ' + toHex(val, 2));
+async function music(val) {
+
+  await awaitSleep(defaultWait);
+
+  console.log('playing song ' + toHex(val, 2) + ' (' + val + ')');
+  playSong(val);
 }
-function soundEffect(val) {
+async function soundEffect(val) {
+
+//const asyncB = async () => {
+
+  await awaitSleep(defaultWait);
   console.log('playing sound effect ' + toHex(val, 2));
 }
 
-function shakeScreen() {
+async function shakeScreen() {
+  await awaitSleep(defaultWait);
   console.log('shakeScreen');
 }
 
-function loadGrupoPersonaje(val) {
+async function loadGrupoPersonaje(val) {
+  await awaitSleep(defaultWait);
   console.log('loadGrupoPersonaje ' + toHex(val, 2));
 }
-function addPersonaje(val) {
+async function addPersonaje(val) {
+  await awaitSleep(defaultWait);
   console.log('addPersonaje ' + toHex(val, 2));
 }
 
-function addBoss(val) {
+async function addBoss(val) {
+  await awaitSleep(defaultWait);
   console.log('addBoss ' + toHex(val, 2));
 }
 
-function sleep(val) {
+async function sleep(val) {
+  await awaitSleep(defaultWait);
   console.log('sleeping: ' + toHex(val, 2));
 }
 
-function text(speech) {
+async function text(speech) {
+  await awaitSleep(defaultWait);
   console.log('text: ' + speech);
 }
 

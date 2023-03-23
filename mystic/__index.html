@@ -103,6 +103,7 @@ img {
       <a href="#" id="menuHeroProjs" onclick="selectHeroProjs();">HeroProjs</a>
       <a href="#" id="menuNpc" onclick="selectNpc();">Npc</a>
       <a href="#" id="menuNpcProjs" onclick="selectNpcProjs();">NpcProjs</a>
+      <a href="#" id="menuBoss" onclick="selectBoss();">Boss</a>
 
       <!--a href="#bosses">Bosses</a>
       <a href="#projectiles">Projectiles</a>
@@ -248,7 +249,19 @@ img {
 
 </div>
 
+<!-- cargo los bosses -->
+<div class="maindiv" id="boss" style="display:none;">
+<h1 style="color:red;">Bosses</h1>
 
+<table id="bosstable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>sprites</th>
+  </tr>
+</table>
+
+</div>
 
 <!-- cargo los spriteSheets -->
 <div class="maindiv" id="spriteSheets" style="display:none;">
@@ -274,7 +287,8 @@ img {
 <div class="maindiv" id="tilesets" style="display:none;">
 <h1 style="color:red;">Tilesets</h1>
 
-<img id="imgTilesets" width="256" src="../en/tilesets/tilesets.png" />
+<img id="imgTilesets" style="display:none;" width="256" src="../en/tilesets/tilesets.png" />
+<canvas id="canvasTilesets" width="256" height="5120" style="border: 4px solid green;"></canvas>
 
 <h3>Water canvas</h3>
 <canvas id="canvasWaterfallDown" width="16" height="8" style="border: 4px solid green;"></canvas>
@@ -293,12 +307,29 @@ img {
 <p>Open the javascript console (CTRL+SHIFT+i) and you can execute the script you want from there</p>
 
 
-<p>For example, try writing</p>
-<pre>script_0003();</pre>
-<p>then press enter (and don't expect too much, it just prints some text in the console 😊)</p>
+<p>Examples</p>
+
+<table id="heroProjstable">
+  <tr>
+    <th><pre>script_0003();</pre></th>
+    <th>Prints in the console the instructions to execute the script 0003</th>
+  </tr>
+  <tr>
+    <th><pre>playSong(0);</pre></th>
+    <th>Stop the current music</th>
+  </tr>
+  <tr>
+    <th><pre>script_0541();</pre></th>
+    <th>Plays the ending song, the teleports do work in the Home tab.</th>
+  </tr>
+</table>
+
+
 </div>
 
-<script src="jscriptsEngine.js"></script>
+
+<script type='text/javascript' src='sound-engine.js'></script>
+<script type='text/javascript' src='jscriptsEngine.js'></script>
 <script>
 
 window.onscroll = function() {myFunction()};
@@ -360,7 +391,11 @@ document.write("<script type='text/javascript' src='"+ basePath + '/personajes/p
 document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/heroProjs.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/npcProjs_noedit.js' + "'><\/script>");
 
+document.write("<script type='text/javascript' src='"+ basePath + '/bosses/bosses.js' + "'><\/script>");
+
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheetHero/heroSpritesTable.js' + "'><\/script>");
+
+document.write("<script type='text/javascript' src='"+ basePath + '/audio/audio_noedit.js' + "'><\/script>");
 
 
 // Get the canvas and context
@@ -403,15 +438,18 @@ contextHeroSprites.imageSmoothingEnabled = false;
 contextHeroSprites.scale(2,2);
 
 
-
 var nroMapaActual = 0;
-//var bloqueX = 0;
-//var bloqueY = 0;
-var bloqueX = 8;
-var bloqueY = 7;
-
+var bloqueX = 0;
+var bloqueY = 0;
 
 var imgTilesets = document.getElementById("imgTilesets");
+var canvasTilesets = document.getElementById("canvasTilesets"); 
+var contextTilesets = canvasTilesets.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+contextTilesets.imageSmoothingEnabled = false;
+// dibujo el tileset en su canvas
+contextTilesets.drawImage(imgTilesets, 0,0, 256, 5120);
+
 
 //var imgTileset00 = document.getElementById("tileset_00");
 var canvasSheet00 = document.getElementById("cSheet_00");
@@ -527,6 +565,8 @@ if(selectedMenu == 'mysticVM') {
   selectNpc();
 } else if(selectedMenu == 'npcProjs') {
   selectNpcProjs();
+} else if(selectedMenu == 'boss') {
+  selectBoss();
 } else if(selectedMenu == 'spriteSheets') {
   selectSpriteSheets();
 } else if(selectedMenu == 'tilesets') {
@@ -583,6 +623,12 @@ function selectNpc() {
 function selectNpcProjs() {
 //  console.log('projectiles');
   selectMenu('npcProjs', 'menuNpcProjs');
+}
+
+
+function selectBoss() {
+//  console.log('bosses');
+  selectMenu('boss', 'menuBoss');
 }
 
 function selectSpriteSheets() {
@@ -747,6 +793,9 @@ window.onload = function() {
   fillSheet(sheet_03, contextSheet03, 3);
   fillSheet(sheet_04, contextSheet04, 4);
 
+  sheets = [sheet_00, sheet_01, sheet_02, sheet_03, sheet_04];
+  canvasSheets = [canvasSheet00, canvasSheet01, canvasSheet02, canvasSheet03, canvasSheet04];
+
   // y los mapas
   fillMap(mapa_00, 16,16, canvasSheet00, contextMap00);
   fillMap(mapa_01, 8,8, canvasSheet00, contextMap01);
@@ -764,6 +813,15 @@ window.onload = function() {
   fillMap(mapa_0d, 8,8, canvasSheet03, contextMap0d);
   fillMap(mapa_0e, 8,8, canvasSheet01, contextMap0e);
   fillMap(mapa_0f, 8,8, canvasSheet01, contextMap0f);
+
+  mapas = [mapa_00, mapa_01, mapa_02, mapa_03, 
+           mapa_04, mapa_05, mapa_06, mapa_07, 
+           mapa_08, mapa_09, mapa_0a, mapa_0b, 
+           mapa_0c, mapa_0d, mapa_0e, mapa_0f];
+
+  nroMapaActual = 0x0e;
+//  bloqueX = 0;
+//  bloqueY = 0;
 
 
   var npctable = document.getElementById('npctable');
@@ -1226,14 +1284,225 @@ window.onload = function() {
       contextNpcProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
 
     }
+  }
 
+
+
+  var bossTable = document.getElementById('bosstable');
+
+  for(i=0; i<bosses['boss'].length; i++) {
+
+    boss = bosses['boss'][i];
+
+    var tr = document.createElement("tr");
+
+    nroProjectil = boss['idBoss'];
+    var th = document.createElement("th");
+    th.innerHTML = nroProjectil;
+    tr.appendChild(th);
+
+    comment = boss['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+
+
+    var th = document.createElement("th");
+    th.innerHTML = '<canvas id="canvasBoss' + i + '" width="'+ 16*10 +'" height="'+ 16*8 +'" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
+
+    bossTable.appendChild(tr);
+
+  }
+
+
+//  for(i=0; i<1; i++) {
+  for(i=0; i<bosses['boss'].length; i++) {
+
+    let canvasBoss = document.getElementById('canvasBoss' + i);
+    canvasBoss.width = 16*10*2;
+    canvasBoss.height = 16*8*2;
+
+    let contextBoss = canvasBoss.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextBoss.imageSmoothingEnabled = false;
+
+
+    boss = bosses['boss'][i];
+    // ACA DECIDO SI LA SELFIE LA HAGO CON EL BEHAVIOUR START O EL COMÚN
+//    behav = bosses['behaviours'][boss['idBehaviourStart']];
+    behav = bosses['behaviours'][boss['idBehaviour']];
+
+//    console.log('behav: ' + behav['comment']);
+    strIdLiveAction = behav['actionGroups'][0]['idLiveAction'];
+    idLiveActions = strIdLiveAction.split(',');
+    idLiveAction = idLiveActions[0];
+
+
+    sortTiles = bosses['sortTiles'][boss['idSortTiles']];
+    sorting = sortTiles['sorting'];
+    sorting = sorting.split(' ');
+    sorting.pop();
+    for(k=0; k<sorting.length; k++) {
+      sorting[k] = parseInt(sorting[k],16);
+    }
+//    console.log('sorting: ' + sorting);
+
+
+//    console.log('idLiveAction: ' + idLiveAction);
+    liveAction = bosses['liveAction'][idLiveAction];
+//    console.log('liveAction: ' + liveAction['idLiveAction']);
+    idDirec = liveAction['actions'][0]['idDirection'];
+//    console.log('idDirec: ' + idDirec);
+    direc = bosses['direction'][ idDirec ];
+    vramSprite = direc['vramSprite'];
+//    console.log('vramSprite: ' + vramSprite);
+
+    let offset = parseInt(boss['offsetBank8'],16);
+    let tileBase = offset / 0x10;
+//    console.log('tileBase: ' + tileBase);
+
+
+    idLayout = liveAction['actions'][0]['idLayout'];
+//    console.log('idLayout: ' + idLayout);
+
+
+    layout = bosses['layout'][idLayout];
+//    console.log('layout: ' + layout['idLayout']);
+
+    vramOffset = parseInt(boss['vramTileOffset'],16);
+//    console.log('vramOffset: ' + vramOffset);
+
+    idSpriteGroup = boss['idSpriteGroup'];
+//    console.log('idSpriteGroup: ' + idSpriteGroup);
+
+    spriteGroup = bosses['spriteGroups'][idSpriteGroup];
+//    console.log('group: ' + spriteGroup['comment']);
+
+
+    posX = 8;
+    posY = 6;
+    x = 0;
+    y = 0;
+//    console.log('--- x: ' + x + ' y: ' + y);
+
+    sprite = spriteGroup['sprites'][vramSprite];
+//    console.log('sprite: ' + sprite);
+//    console.log('tile1: ' + sprite['tile1'] + ' tile2: ' + sprite['tile2']);
+    attrib = sprite['attrib'];
+    binAttrib = parseInt(attrib,16).toString(2);
+    binAttrib = "00000000".substr(binAttrib.length) + binAttrib
+//    console.log('binAttrib: ' + binAttrib);
+    flipX = (attrib & 0b00010000) >> 4;
+    flipY = (attrib & 0b00100000) >> 5;
+    flipX = (flipX == 1) ? true : false;
+    flipY = (flipY == 1) ? true : false;
+//    console.log('flipX: ' + flipX + ' flipY: ' + flipY);    
+
+    tile1a = parseInt(sprite['tile1'],16)-vramOffset;
+    tile2a = parseInt(sprite['tile2'],16)-vramOffset;
+//    console.log('tile1a, tile2a: ' + tile1a + ', ' + tile2a);
+    tile1 = tileBase+(sorting[tile1a]);
+    tile2 = tileBase+(sorting[tile1a+1]);
+    tile3 = tileBase+(sorting[tile2a]);
+    tile4 = tileBase+(sorting[tile2a+1]);
+    _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+//    for(j=0; j<1; j++) {
+    for(j=0; j<layout['lays'].length; j++) {
+      // the first layout sprite
+      lay = layout['lays'][j];
+      vramSprite = lay['vramSprite']
+      x = lay['x'];
+      y = lay['y'];
+//      console.log('--- x: ' + x + ' y: ' + y);
+
+
+      sprite = spriteGroup['sprites'][vramSprite];
+//      console.log('sprite: ' + sprite);
+//      console.log('tile1: ' + sprite['tile1'] + ' tile2: ' + sprite['tile2']);
+      attrib = sprite['attrib'];
+      binAttrib = parseInt(attrib,16).toString(2);
+      binAttrib = "00000000".substr(binAttrib.length) + binAttrib
+//      console.log('binAttrib: ' + binAttrib);
+      flipX = (attrib & 0b00010000) >> 4;
+      flipY = (attrib & 0b00100000) >> 5;
+      flipX = (flipX == 1) ? true : false;
+      flipY = (flipY == 1) ? true : false;
+//      console.log('flipX: ' + flipX + ' flipY: ' + flipY);    
+
+      tile1a = parseInt(sprite['tile1'],16)-vramOffset;
+      tile2a = parseInt(sprite['tile2'],16)-vramOffset;
+//      console.log('tile1a, tile2a: ' + tile1a + ', ' + tile2a);
+      tile1 = tileBase+(sorting[tile1a]);
+      tile2 = tileBase+(sorting[tile1a+1]);
+      tile3 = tileBase+(sorting[tile2a]);
+      tile4 = tileBase+(sorting[tile2a+1]);
+//      _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, posX+2*x, posY+2*y, tileBase, vramOffset);
+      _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+
+    }
 
 
   }
 
 
 
+
   init();
+}
+
+
+function _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, posX, posY, tileBase, vramOffset) {
+
+  let size = 2;
+
+  contextBoss.save();
+
+
+  if(flipX) {
+    contextBoss.scale(-1, 1);
+    flipX = -1;
+  } else {
+    contextBoss.scale(1, 1);
+    flipX = 1;
+  }
+//  flipX = 1;
+//  console.log('**** flipX: ' + flipX);
+
+
+//  tile = tileBase+(tile1-vramOffset);
+//  console.log('tile: ' + tile);
+  tile = tile1;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+
+//  var imgData = contextTilesets.getImageData(0,0, 8, 8);
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), size*(posY), flipX*8*size, 8*size);
+
+
+//  tile = tileBase+(tile2-vramOffset);
+  tile = tile2;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), size*(posY+8), flipX*8*size, 8*size);
+
+
+//  tile = tileBase+(tile1+1-vramOffset);
+  tile = tile3;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), size*(posY), flipX*8*size, 8*size);
+
+
+//  tile = tileBase+(tile2+1-vramOffset);
+  tile = tile4;
+  tX = tile % 16;
+  tY = Math.floor(tile/16);
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), size*(posY+8), flipX*8*size, 8*size);
+
+  contextBoss.restore();
 
 
 }
@@ -1366,6 +1635,8 @@ function render() {
   fillSheetWater(sheet_02, contextSheet02, 2);
   fillSheetWater(sheet_03, contextSheet03, 3);
 
+  var sizeX = parseInt(mapas[nroMapaActual].property.sizeX,16);
+  var sizeY = parseInt(mapas[nroMapaActual].property.sizeY,16);
 
 
   // proceso el bloque (dibujo el fondo)
@@ -1373,8 +1644,12 @@ function render() {
     for (var i=0; i<10; i++) {
 
 //      nroSprite = mapaActual.mapa[bloqueY][bloqueX].bloque[j][i];
-      nroSprite = parseInt(mapa_0e.rooms[0].data[j][i],16);
+//      nroSprite = parseInt(mapa_0e.rooms[0].data[j][i],16);
+//      nroSprite = parseInt(mapas[0x0e].rooms[0].data[j][i],16);
+//      nroSprite = parseInt(mapas[nroMapaActual].rooms[0].data[j][i],16);
+      nroSprite = parseInt(mapas[nroMapaActual].rooms[bloqueY*sizeX+bloqueX].data[j][i],16);
 //      console.log('nroSprite: ' + nroSprite);
+      nroSheet = parseInt(mapas[nroMapaActual].property.nroSpriteSheet,16);
 
       // busco las coordenadas del sprite en el spriteSheet
       spriteX = nroSprite % 16;
@@ -1383,8 +1658,9 @@ function render() {
       // y lo dibujo en pantalla
 //      context.drawImage(imgSpriteSheet1, 16*spriteX, 16*spriteY, 16, 16, 16*i, 16*j, 16, 16);
 
-
-      context.drawImage(canvasSheet01, 16*spriteX, 16*spriteY, 16, 16, sW*i, sH*j, sW, sH);
+      canvasSheet = canvasSheets[nroSheet];
+//      context.drawImage(canvasSheet01, 16*spriteX, 16*spriteY, 16, 16, sW*i, sH*j, sW, sH);
+      context.drawImage(canvasSheet, 16*spriteX, 16*spriteY, 16, 16, sW*i, sH*j, sW, sH);
     }
   }
 

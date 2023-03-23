@@ -218,7 +218,7 @@ class SpriteSheet:
     # agarro el tileset para colorear
 #    tileset = mystic.romSplitter.tilesets[self.nroTileset]
     tileset = mystic.romSplitter.tilesets
-    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
+    baseTile = mystic.address.baseSubtile[self.nroTileset]
 
     # creo un array de tiles vacío 
     tiles = [None for i in range(0, 4*w*h)]
@@ -296,14 +296,15 @@ class SpriteSheet:
 
     root = ET.Element("map", version='1.9', tiledversion="1.9.0", orientation="orthogonal", renderorder="right-down", width=str(width), height=str(height), tilewidth="8", tileheight="8", infinite="0", nextlayerid="3", nextobjectid="14")
 
-#    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tileset_{:02x}.tsx'.format(self.nroTileset))
-    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tilesets.tsx')
+#    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tilesets.tsx')
+    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/sub_tileset_{:02x}.tsx'.format(self.nroTileset))
 
     layer1 = ET.SubElement(root, "layer", id=str(iidd), name="Tile Layer 1", width=str(width), height=str(height))
     iidd += 1
     data = ET.SubElement(layer1, "data", encoding="csv")
 
-    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
+    # where the subtilesets begin respective to the big tileset      xxxxxx
+    baseTile = mystic.address.baseSubtile[self.nroTileset]
 
     renglones = []
     renglones.append("")
@@ -316,7 +317,9 @@ class SpriteSheet:
 
         if(spritey*self.w + spritex < len(self.sprites)):
           sprite = self.sprites[spritey*self.w + spritex]
-          nroTile = baseTile + sprite.tiles[(j%2)*2+(i%2)]
+#          nroTile = baseTile + sprite.tiles[(j%2)*2+(i%2)]
+          # don't use the baseTile for using subtiles in tiled
+          nroTile = sprite.tiles[(j%2)*2+(i%2)]
           renglon += str(nroTile+1)
         else:
           sprite = None
@@ -382,7 +385,8 @@ class SpriteSheet:
 
     tileData = []
 
-    baseTile = mystic.romSplitter.baseTiles[self.nroTileset]
+    # where the subtilesets begin respective to the big tileset
+    baseTile = mystic.address.baseSubtile[self.nroTileset]
 
     tiles = myroot[1][0].text
 #    print('tiles: ' + tiles)
@@ -397,7 +401,9 @@ class SpriteSheet:
       for tile in tiles:
         numTile = -1
         if(len(tile)>0):
-          numTile = int(tile,10)-1 - baseTile
+#          numTile = int(tile,10)-1 - baseTile
+          # don't use the baseTile for using subtiles in tiled
+          numTile = int(tile,10)-1 
         renglon.append(numTile)
 
       tileData.append(renglon)
@@ -471,6 +477,79 @@ class SpriteSheet:
 #    strSheet = json.dumps(data)
     f = open(filepath, 'w', encoding="utf-8")
     f.write('sheet_{:02x} = \n'.format(self.nroSpriteSheet) + strSheet)
+    f.close()
+
+  def exportPyxelEdit(self, filepath):
+
+    import os
+    # si el directorio no existía
+    if not os.path.exists(filepath):
+      # lo creo
+      os.makedirs(filepath)
+
+    tileset = mystic.romSplitter.tilesets
+ 
+    nroTileset = 0
+    baseTile = mystic.address.baseSubtile[nroTileset]
+    for i in range(0,8*8):
+      tile = tileset.tiles[baseTile + i]
+      tile.exportPngFile(filepath + '/tile{:1}.png'.format(i))
+
+    docData = {}
+
+    docData['tileset'] = { 'tileWidth' : 8, 'tileHeight' : 8, 'tilesWide' : 8, 'numTiles' : 16 }
+    docData['palette'] = {}
+    docData['palette']['numColors'] = 32
+    docData['palette']['colors'] = {"0":"ff1e2936",
+"1":"ff0e354b",
+"2":"ff004c73",
+"3":"ff1279ae",
+"4":"ff31a2ee",
+"5":"ff88c7ea",
+"6":"ff1b342b",
+"7":"ff1e5537",
+"8":"ff45911a",
+"9":"ff79bf1d",
+"10":"ffbede2c",
+"11":"ff451212",
+"12":"ff711f1f",
+"13":"ffb82535",
+"14":"ffdc5173",
+"15":"ffff9fb6",
+"16":"ff271443",
+"17":"ff691c63",
+"18":"ffad51b9",
+"19":"ffb898d0",
+"20":"ff353024",
+"21":"ff594228",
+"22":"ff8c5c4d",
+"23":"ffd08070",
+"24":"ffe59131",
+"25":"fff7b072",
+"26":"fffcd78e",
+"27":"ff000000",
+#"27":"000000",
+"28":"ff212121",
+"29":"ff4f4f4f",
+"30":"ffb3b3b3",
+"31":"ffffffff"
+#"31":"ffffff"
+}
+
+    docData['canvas'] = {}
+    docData['canvas']['tileWidth'] = 8
+    docData['canvas']['tileHeight'] = 8
+    docData['canvas']['width'] = 48
+    docData['canvas']['height'] = 32
+    docData['canvas']['numLayers'] = 1
+    docData['canvas']['layers'] = {}
+    docData['canvas']['layers']['0'] = {"name":"Layer 0","hidden":False,"tileRefs":{"0":{"index":0,"flipX":False,"rot":0},"1":{"index":1,"flipX":False,"rot":0},"2":{"index":2,"flipX":False,"rot":0},"4":{"index":0,"flipX":False,"rot":0},"5":{"index":1,"flipX":True,"rot":3},"22":{"index":0,"flipX":False,"rot":0},"18":{"index":0,"flipX":False,"rot":0},"11":{"index":1,"flipX":False,"rot":0},"20":{"index":13,"flipX":False,"rot":0},"13":{"index":14,"flipX":False,"rot":0},"15":{"index":15,"flipX":False,"rot":0}}}
+
+    import json
+    strSheet = json.dumps(docData, indent=2)
+    f = open(filepath + '/docData.json', 'w', encoding="utf-8")
+#    f.write('sheet_{:02x} = \n'.format(self.nroSpriteSheet) + strSheet)
+    f.write(strSheet)
     f.close()
 
 
