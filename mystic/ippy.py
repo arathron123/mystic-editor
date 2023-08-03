@@ -18,6 +18,8 @@ def printHelp():
   print('  python3 ippy.py --patch in.bin out.bin patch.ips')
   print('Usage example for building an ips file: ')
   print('  python3 ippy.py --build in.bin out.bin patch.ips')
+  print('Usage example for viewing an ips file: ')
+  print('  python3 ippy.py --view patch.ips')
   print('--------------------------------------------------')
 
 
@@ -280,6 +282,20 @@ class Patch:
 #    arrayToFile(arraySource, 'patched.gb')
 
     return arraySource
+
+
+  def view(self, pathIps):
+    """ shows the ips file on terminal """
+    print('viewing ips=' + pathIps)
+
+    arrayIps = fileToArray(pathIps)
+
+    # first we parse the ips array
+    self._parseArrayIps(arrayIps)
+
+    # for each record
+    for rec in self.records:
+      print('rec: ' + str(rec))
 
       
   def patch(self, pathSource, pathTarget, pathIps):
@@ -698,13 +714,18 @@ def main(argv):
   # create the patcher
   patch = Patch()
 
-  # if the number of arguments is not correct
-  if(len(argv) != 4):
-    # show usage help
-    printHelp()
 
-  # else, the number of arguments is correct
-  else:
+  # if the number of arguments 2
+  if(len(argv) == 2):
+
+    pathIps    = argv[1]
+
+    # if he wants to view an ips
+    if('--view' in argv):
+      patch.view(pathIps)
+
+  # else, if the number of arguments is 4
+  elif(len(argv) == 4):
 
     pathSource = argv[1]
     pathTarget = argv[2]
@@ -720,6 +741,14 @@ def main(argv):
     # if he wants to create an ips file
     elif('--build' in argv):
       patch.buildIpsFromFiles(pathSource, pathTarget, pathIps)
+
+  # else, the number of arguments is incorrect
+  else:
+    # show usage help
+    printHelp()
+
+
+
 
 #  patch._generateExampleFiles()
 

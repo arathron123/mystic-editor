@@ -39,6 +39,8 @@ def strHexa(bytes):
   string = ''
   for byte in bytes:
     string += '{:02x} '.format(byte)
+
+  string = string.strip()
   return string
 
 def hexaStr(strHexa):

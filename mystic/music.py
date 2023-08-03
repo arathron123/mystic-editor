@@ -433,16 +433,16 @@ class Cancion:
     basePath = mystic.address.basePath
     path = basePath + '/audio'
  
-    fileTxt = 'song_{:02}.txt'.format(self.nro)
-    fileLily = 'song_{:02}_lily.txt'.format(self.nro)
+#    fileTxt = 'song_{:02}_noedit.txt'.format(self.nro)
+    fileLily = 'song_{:02}_noedit.ly'.format(self.nro)
     fileMidi = 'song_{:02}_lily.midi'.format(self.nro)
     fileMp3 = 'song_{:02}_lily.mp3'.format(self.nro)
 
-    lines = self.encodeTxt()
-    strTxt = '\n'.join(lines)
-    f = open(path + '/' + fileTxt, 'w', encoding="utf-8")
-    f.write(strTxt)
-    f.close()
+#    lines = self.encodeTxt()
+#    strTxt = '\n'.join(lines)
+#    f = open(path + '/' + fileTxt, 'w', encoding="utf-8")
+#    f.write(strTxt)
+#    f.close()
 
 #    exportaLily = False
     exportaLily = True
@@ -1039,6 +1039,7 @@ class Melody:
                 0x5 : '4',   # 0x18 (24)
                 0x7 : '8.',  # 0x12 (18)
                 0x8 : '8',   # 0x0c (12)
+#                0x9 : '8.',  # se usa para triplets
                 0xa : '16',  # 0x06 (06)
                 0xb : '16.', # 0x04 (04)  # se usar para triplets
                 0xc : '32',  # 0x03 (03)
@@ -1180,11 +1181,17 @@ class Melody:
           saltaOctava = 1
 
         # si es la nota de longitud rara
-        if(nota.cmd1 == 0xb):
+        if(nota.cmd1 == 0x9):
+          string += '\\tuplet 3/2 {' + lilyNota
+          if(lilyNota not in ['~', 'r']):
+            string += '\''*(octava + saltaOctava)
+          string += '8}'
+        elif(nota.cmd1 == 0xb):
           string += '\\tuplet 3/2 {' + lilyNota
           if(lilyNota not in ['~', 'r']):
             string += '\''*(octava + saltaOctava)
           string += '16}'
+
 
         # sino, es de longitud normal
         else:

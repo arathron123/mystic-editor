@@ -15,29 +15,48 @@ romName = 'en'
 basePath = './en'
 
 
+# snowman spriteGroup
+addrSnowmanSpriteGroup = (0x00, 0x2c93)
+
 # cosas del diccionario
 addrDictionary = (0x00, 0x3f1d)
 cantDictionary = 112
 
+# the hero
+addrHero = (0x01, 0x0752)
+# the hero projectiles
+addrHeroProjs = (0x01, 0x1dcd)
+
 # listado de ventanas en el bank02
 addrWindows = (0x02, 0x1baa)
+
+addrLevelUp = (0x02, 0x1cfe)
+addrWindowsAddr = (0x02, 0x1d0e)
 
 # listado de magia en el bank02
 addrMagic = (0x02, 0x1dda)
 
 addrInitialWeapons = (0x02, 0x2f10)
 
-addrLoadStateStrangeBytes = (0x02, 0x3aed)
+addrDoorTileLocations = (0x02, 0x3aed)
 
 addrWindowsLabels = (0x02, 0x3cf6)
+addrWindowsLabels2 = (0x02, 0x3df9)
 #addrWindowsLabels2 = (0x02, 0x1dc5)
 
 # la intro en el bank02
 addrIntro = (0x02, 0x3e8a)
 
+# the npcs
+#addrNpc = (0x03, 0x1f5a)
+addrNpc = (0x03, 0x19fe)
+numberNpcStats = 98
+numberNpc = 191 
+numberNpcGroup = 109
+
 # los bosses del bank04
-addrBosses = (0x04, 0x0739)
-cantBosses = 21
+addrBoss = (0x04, 0x0739)
+numberBoss = 21
 
 addrMaps = (0x05, 0x0000)
 
@@ -56,6 +75,11 @@ addrExpTable = (0x08, 0x0dd6)
 # cosas de scripts
 addrScriptAddrDic = (0x08, 0x0f05)
 cantScripts = 0x054a
+
+# the projectiles
+addrProjectiles = (0x09, 0x0479)
+numberProjectiles = 40
+
 
 # the songs
 addrMusic = (0x0f, 0x0a12)
@@ -112,23 +136,39 @@ def decodeJs(filepath):
   address = json.loads(data)
 #  print('address: ' + str(address))
 
+
+
+  mystic.address.addrSnowmanSpriteGroup = _addrToInt(address['addr_snowman'])
+
   mystic.address.addrDictionary = _addrToInt(address['addr_dictionary'])
   mystic.address.cantDictionary = int(address['cant_dictionary'])
 
+  mystic.address.addrHero = _addrToInt(address['addr_hero'])
+  mystic.address.addrHeroProjs = _addrToInt(address['addr_hero_projs'])
+
   mystic.address.addrWindows = _addrToInt(address['addr_windows'])
+
+  mystic.address.addrLevelUp = _addrToInt(address['addr_level_up'])
+  mystic.address.addrWindowsAddr = _addrToInt(address['addr_windows_addr'])
 
   mystic.address.addrMagic = _addrToInt(address['addr_magic'])
 
   mystic.address.addrInitialWeapons = _addrToInt(address['addr_initial_weapons'])
 
-  mystic.address.addrLoadStateStrangeBytes = _addrToInt(address['addr_loadstate_strangebytes'])
+  mystic.address.addrDoorTileLocations = _addrToInt(address['addr_door_tile_locations'])
 
   mystic.address.addrWindowsLabels = _addrToInt(address['addr_windows_labels'])
-#  mystic.address.addrWindowsLabels2 = _addrToInt(address['addr_windows_labels2'])
+  mystic.address.addrWindowsLabels2 = _addrToInt(address['addr_windows_labels2'])
 
   mystic.address.addrIntro = _addrToInt(address['addr_intro'])
 
-  mystic.address.addrBosses = _addrToInt(address['addr_bosses'])
+  mystic.address.addrNpc = _addrToInt(address['addr_npc'])
+  mystic.address.numberNpcStats = int(address['number_npc_stats'])
+  mystic.address.numberNpc = int(address['number_npc'])
+  mystic.address.numberNpcGroup = int(address['number_npc_group'])
+
+  mystic.address.addrBoss = _addrToInt(address['addr_boss'])
+  mystic.address.numberBoss = int(address['number_boss'])
 
   mystic.address.addrMaps = _addrToInt(address['addr_maps'])
 
@@ -144,6 +184,9 @@ def decodeJs(filepath):
   mystic.address.addrScriptAddrDic = _addrToInt(address['addr_script_addr_dic'])
   mystic.address.cantScripts = address['cant_scripts']
 
+  mystic.address.addrProjectiles = _addrToInt(address['addr_projectiles'])
+  mystic.address.numberProjectiles = address['number_projectiles']
+
   mystic.address.addrMusic = _addrToInt(address['addr_music'])
 
 
@@ -151,20 +194,36 @@ def encodeJs(filepath):
 
   address = {}
 
+
+
+  address['addr_snowman'] = _intToAddr(addrSnowmanSpriteGroup)
+
   address['addr_dictionary'] = _intToAddr(addrDictionary)
   address['cant_dictionary'] = cantDictionary
 
+  address['addr_hero'] = _intToAddr(addrHero)
+  address['addr_hero_projs'] = _intToAddr(addrHeroProjs)
+
   address['addr_windows'] = _intToAddr(addrWindows)
+
+  address['addr_level_up'] = _intToAddr(addrLevelUp)
+  address['addr_windows_addr'] = _intToAddr(addrWindowsAddr)
 
   address['addr_magic'] = _intToAddr(addrMagic)
   address['addr_initial_weapons'] = _intToAddr(addrInitialWeapons)
 
-  address['addr_loadstate_strangebytes'] = _intToAddr(addrLoadStateStrangeBytes)
+  address['addr_door_tile_locations'] = _intToAddr(addrDoorTileLocations)
 
   address['addr_windows_labels'] = _intToAddr(addrWindowsLabels)
-#  address['addr_windows_labels2'] = _intToAddr(addrWindowsLabels2)
+  address['addr_windows_labels2'] = _intToAddr(addrWindowsLabels2)
   address['addr_intro'] = _intToAddr(addrIntro)
-  address['addr_bosses'] = _intToAddr(addrBosses)
+
+  address['addr_npc'] = _intToAddr(addrNpc)
+  address['number_npc_stats'] = numberNpcStats
+  address['number_npc'] = numberNpc
+  address['number_npc_group'] = numberNpcGroup
+  address['addr_boss'] = _intToAddr(addrBoss)
+  address['number_boss'] = numberBoss
 
   address['addr_maps'] = _intToAddr(addrMaps)
 
@@ -180,6 +239,9 @@ def encodeJs(filepath):
   address['addr_script_addr_dic'] = _intToAddr(addrScriptAddrDic)
   address['cant_scripts'] = cantScripts
 
+  address['addr_projectiles'] = _intToAddr(addrProjectiles)
+  address['number_projectiles'] = numberProjectiles
+
   address['addr_music'] = _intToAddr(addrMusic)
 
 
@@ -191,148 +253,5 @@ def encodeJs(filepath):
   f.close()
 
 
-
-def decodeTxt(lines):
-  for line in lines:
-#    print('line: ' + line)
-
-#    if(line.startswith('language')):
-#      idx = line.index('=')
-#      strLang = line[idx+1:].strip().strip('\"').strip('\'')
-#      lang = mystic.language.stockRomsLang.index(strLang)
-#      mystic.address.language = lang
-#    elif(line.startswith('romPath')):
-#      idx = line.index('=')
-#      romPath = line[idx+1:].strip().strip('\"').strip('\'')
-#      mystic.address.romPath = romPath
-#    elif(line.startswith('romName')):
-#      idx = line.index('=')
-#      romName = line[idx+1:].strip().strip('\"').strip('\'')
-#      mystic.address.romName = romName
-#    elif(line.startswith('basePath')):
-#      idx = line.index('=')
-#      basePath = line[idx+1:].strip().strip('\"').strip('\'')
-#      mystic.address.basePath = basePath
-
-    if(line.startswith('addrDictionary')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrDictionary = (bank, offset)
-    elif(line.startswith('cantDictionary')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      cantDictionary = int(string, 10)
-#      print('cantDictionary: ' + str(cantDictionary))
-      mystic.address.cantDictionary = cantDictionary
-
-    elif(line.startswith('addrWindows')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrWindows = (bank, offset)
-
-    elif(line.startswith('addrMagic')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrMagic = (bank, offset)
-
-    elif(line.startswith('addrInitialWeapons')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrInitialWeapons = (bank, offset)
-
-    elif(line.startswith('addrLoadStateStrangeBytes')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrLoadStateStrangeBytes = (bank, offset)
-
-    elif(line.startswith('addrIntro')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrIntro = (bank, offset)
-
-    elif(line.startswith('addrMaps')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrMaps = (bank, offset)
-
-    elif(line.startswith('spriteSheetsAddr')):
-      idx = line.index('=')
-      strLista = line[idx+1:].strip().strip('\"').strip('\'').strip('[]').split(',')
-
-      listado = []
-      for string in strLista:
-        idx = string.index(':')
-        bank = int(string[idx-2:idx],16)
-        offset = int(string[idx+1:idx+5], 16)
-#        print('bank {:02x} offset {:04x}'.format(bank, offset))
-        listado.append( (bank, offset) )
-
-      mystic.address.spriteSheetsAddr = listado
-    elif(line.startswith('cantSpritesInSheet')):
-      idx = line.index('=')
-      strLista = line[idx+1:].strip().strip('\"').strip('\'').strip('[]').split(',')
-      mystic.address.cantSpritesInSheet = [int(addr,16) for addr in strLista]
-
-    elif(line.startswith('addrExpTable')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrExpTable = (bank, offset)
-
-
-    elif(line.startswith('addrScriptAddrDic')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrScriptAddrDic = (bank, offset)
-    elif(line.startswith('cantScripts')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      cantScripts = int(string, 16)
-#      print('cantScripts: {:04x}'.format(cantScripts))
-      mystic.address.cantScripts = cantScripts
-
-    elif(line.startswith('addrMusic')):
-      idx = line.index('=')
-      string = line[idx+1:].strip().strip('\"').strip('\'')
-      idx = string.index(':')
-      bank = int(string[idx-2:idx],16)
-      offset = int(string[idx+1:idx+5], 16)
-#      print('bank {:02x} offset {:04x}'.format(bank, offset))
-      mystic.address.addrMusic = (bank, offset)
 
 

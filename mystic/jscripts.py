@@ -65,9 +65,20 @@ class JScripts:
       script.nro = nroScript
 
       banco = 0x0d
-      if(addr >= 0x4000):
-        banco = 0x0e
-        addr -= 0x4000
+      if(addr < 0x4000):
+        banco += 0
+        addr -= 0*0x4000
+      elif(addr >= 0x4000 and addr < 0x8000):
+        banco += 1
+        addr -= 1*0x4000
+      elif(addr >= 0x8000 and addr < 0xc000):
+        banco += 2
+        addr -= 2*0x4000
+      elif(addr >= 0xc000 and addr < 0x10000):
+        banco += 3
+        addr -= 3*0x4000
+ 
+
       array = mystic.romSplitter.banks[banco]
       # creo un array desde donde empieza el script
       array = array[addr:]
@@ -82,11 +93,31 @@ class JScripts:
       rr = random.randint(0,0xff)
       gg = random.randint(0,0xff)
       bb = random.randint(0,0xff)
+
+      banco = 0x0d
+      addr0 = script.addr
+      addr1 = vaPorAddr
       # grabo las romstats
       if(script.addr < 0x4000):
-        mystic.romStats.appendDato(0x0d, script.addr, vaPorAddr, (rr, gg, bb), 'un script')
-      else:
-        mystic.romStats.appendDato(0x0e, script.addr - 0x4000, vaPorAddr - 0x4000, (rr, gg, bb), 'un script')
+        banco += 0
+        addr0 -= 0*0x4000
+        addr1 -= 0*0x4000
+      elif(script.addr >= 0x4000 and script.addr < 0x8000):
+        banco += 1
+        addr0 -= 1*0x4000
+        addr1 -= 1*0x4000
+      elif(script.addr >= 0x8000 and script.addr < 0xc000):
+        banco += 2
+        addr0 -= 2*0x4000
+        addr1 -= 2*0x4000
+      elif(script.addr >= 0xc000 and script.addr < 0x10000):
+        banco += 3
+        addr0 -= 3*0x4000
+        addr1 -= 3*0x4000
+
+#      print('script banco: {:02x} addr0: {:04x} addr1: {:04x}'.format(banco, addr0, addr1))
+      mystic.romStats.appendDato(banco, addr0, addr1, (rr, gg, bb), 'un script')
+
 #      print('romstats {:04x} {:04x}'.format(script.addr, vaPorAddr))
 
 
@@ -380,6 +411,8 @@ class JScripts:
       script = self.scripts[i]
       # lo codifico
       subArray = script.encodeRom()
+
+#      print('i: ' + str(i) + ' subArray: ' + mystic.util.strHexa(subArray))
 
       # calculo addr donde termina
       proxAddr = vaPorAddr + len(subArray)
@@ -765,6 +798,7 @@ class Comando:
 
     return textMode
 
+
   def decodeTextMode(self):
 
     textMode = True
@@ -777,11 +811,10 @@ class Comando:
     self.size = 0 
 
     # si es texto
-    if(self.nro in mystic.dictionary.keys()):
-
+    if(str(self.nro) in mystic.dictionary.keys()):
 
       # agarro el char (o par de chars)
-      char = mystic.dictionary.decodeByte(self.nro)
+      char = mystic.dictionary.decodeByte(self.nro, True)
 
 #      print('llegó: {:02x} '.format(self.nro) + char)
 
@@ -1833,8 +1866,6 @@ class Comando:
       argsTxt = argTxt.split(',')
       argsTxt = [argTxt.strip() for argTxt in argsTxt]
 #      print('argsTxt: ' + str(argsTxt))
-      # elimino el último (está vacío, por el espacio al final antes del paréntesis)
-#      argsTxt.pop()
 
       line0 = self.lines[0]
       origDeep = len(line0) - len(line0.lstrip(' '))
@@ -2711,133 +2742,22 @@ class Comando:
 
 #      print('LINE: ' + line)
 
-#      compactLine = line.replace('text("<TEXT_MODE_ON>',         u'\U0001F60A')
-      compactLine = line.replace('await text("',         u'\U0001F60A')
-#      compactLine = compactLine.replace('<TEXT_MODE_OFF>");', u'\U0001F61E')
-      compactLine = compactLine.replace('");', u'\U0001F61E')
-      compactLine = compactLine.replace('<TEXTBOX_SHOW>',  u'\U0001F639')
-      compactLine = compactLine.replace('<TEXTBOX_HIDE>',  u'\U0001F63F')
-      compactLine = compactLine.replace('<PAUSE>',         u'\U0001F610')
-      compactLine = compactLine.replace('<ENTER>',         u'\U0001F618')
-      compactLine = compactLine.replace('<SUMO>',          u'\U0001F466')
-      compactLine = compactLine.replace('<FUJI>',          u'\U0001F467')
-      compactLine = compactLine.replace('<CLS>',           u'\U0001F61D')
-      compactLine = compactLine.replace('<BACKSPACE>',     u'\U0001F47C')
-      compactLine = compactLine.replace('<CARRY>',         u'\U0001F634')
-      compactLine = compactLine.replace('<ASK_YES_NO>',       u'\U0001F624')
-      compactLine = compactLine.replace('<ICON a0>', u'\U00002200')
-      compactLine = compactLine.replace('<ICON a1>', u'\U00002201')
-      compactLine = compactLine.replace('<ICON a2>', u'\U00002202')
-      compactLine = compactLine.replace('<ICON a3>', u'\U00002203')
-      compactLine = compactLine.replace('<ICON a4>', u'\U00002204')
-      compactLine = compactLine.replace('<ICON a5>', u'\U00002205')
-      compactLine = compactLine.replace('<ICON a6>', u'\U00002206')
-      compactLine = compactLine.replace('<ICON a7>', u'\U00002207')
-      compactLine = compactLine.replace('<ICON a8>', u'\U00002208')
-      compactLine = compactLine.replace('<ICON a9>', u'\U00002209')
-      compactLine = compactLine.replace('<ICON aa>', u'\U0000220a')
-      compactLine = compactLine.replace('<ICON ab>', u'\U0000220b')
-      compactLine = compactLine.replace('<ICON ac>', u'\U0000220c')
-      compactLine = compactLine.replace('<ICON ad>', u'\U0000220d')
-      compactLine = compactLine.replace('<ICON ae>', u'\U0000220e')
-      compactLine = compactLine.replace('<ICON af>', u'\U0000220f')
+      # remove the javascript text
+      line = line.replace('await text("', '')
+      line = line.replace('");', '')
+      # add the text opening and ending codes (needed for detecting jp non-compressable word exceptions)
+      line = '[04]' + line + '[00]'
 
-
-      lang = mystic.address.language
-      # si es la rom 'jp'
-      if(lang == mystic.language.JAPAN):
-        # tiene su propia forma de comprimir palabras
-        self.hexs = mystic.dictionary.tryJpCompress(compactLine)
-        strHex = mystic.util.strHexa(self.hexs)
-#        print('japancomprimi strHex: ' + strHex)
-
-      else:
-
-        sizeLine = len(compactLine)
-        i = 0
-        while(i < sizeLine):
-          char = compactLine[i]
-
-          if(char == u'\U0001F60A'):
-            self.hexs.append(0x04)
-          elif(char == u'\U0001F61E'):
-            self.hexs.append(0x00)
-          elif(char == u'\U0001F639'):
-            self.hexs.append(0x10)
-          elif(char == u'\U0001F63F'):
-            self.hexs.append(0x11)
-          elif(char == u'\U0001F610'):
-            self.hexs.append(0x12)
-          elif(char == u'\U0001F618'):
-            self.hexs.append(0x1a)
-          elif(char == u'\U0001F466'):
-            self.hexs.append(0x14)
-          elif(char == u'\U0001F467'):
-            self.hexs.append(0x15)
-          elif(char == u'\U0001F61D'):
-            self.hexs.append(0x1b)
-          elif(char == u'\U0001F47C'):
-            self.hexs.append(0x1d)
-          elif(char == u'\U0001F634'):
-            self.hexs.append(0x1f)
-          elif(char == u'\U0001F624'):
-            self.hexs.append(0x13)
-          elif(char == u'\U00002200'):
-            self.hexs.append(0xa0)
-          elif(char == u'\U00002201'):
-            self.hexs.append(0xa1)
-          elif(char == u'\U00002202'):
-            self.hexs.append(0xa2)
-          elif(char == u'\U00002203'):
-            self.hexs.append(0xa3)
-          elif(char == u'\U00002204'):
-            self.hexs.append(0xa4)
-          elif(char == u'\U00002205'):
-            self.hexs.append(0xa5)
-          elif(char == u'\U00002206'):
-            self.hexs.append(0xa6)
-          elif(char == u'\U00002207'):
-            self.hexs.append(0xa7)
-          elif(char == u'\U00002208'):
-            self.hexs.append(0xa8)
-          elif(char == u'\U00002209'):
-            self.hexs.append(0xa9)
-          elif(char == u'\U0000220a'):
-            self.hexs.append(0xaa)
-          elif(char == u'\U0000220b'):
-            self.hexs.append(0xab)
-          elif(char == u'\U0000220c'):
-            self.hexs.append(0xac)
-          elif(char == u'\U0000220d'):
-            self.hexs.append(0xad)
-          elif(char == u'\U0000220e'):
-            self.hexs.append(0xae)
-          elif(char == u'\U0000220f'):
-            self.hexs.append(0xaf)
-
-          else:
-            # agarro dos chars seguidos
-            chars = compactLine[i:i+2]
-
-#            if(chars in mystic.dictionary.invDeDict.keys()):
-            if(chars in mystic.dictionary.chars()):
-#              hexy = mystic.dictionary.invDeDict[chars]
-              hexy = mystic.dictionary.encodeChars(chars)
-#              print('chars: ' + chars + ' - hex: {:02x}'.format(hexy))
-
-              i += 1
-            else:
-              char = chars[0]
-#              hexy = mystic.dictionary.invDeDict[char]
-              hexy = mystic.dictionary.encodeChars(char)
-#              print('char: ' + char + ' - hex: {:02x}'.format(hexy))
-          
-            self.hexs.append(hexy)
-
-          i += 1
+      self.hexs = []
+#      self.hexs.append(0x04)
+      # get the compressed bytes
+      values = mystic.dictionary.tryCompress(line, True)
+      self.hexs.extend(values)
+#      self.hexs.append(0x00)
 
       self.sizeLines = 1
       self.sizeBytes = len(self.hexs)
+
 
 
 

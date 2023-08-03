@@ -99,10 +99,10 @@ img {
   <div class="subnav">
     <button class="subnavbtn">Sprites<i class="fa fa-caret-down"></i></button>
     <div class="subnav-content">
-      <a href="#" id="menuHeroSprites" onclick="selectHeroSprites();">HeroSprites</a>
+      <a href="#" id="menuHero" onclick="selectHero();">Hero</a>
       <a href="#" id="menuHeroProjs" onclick="selectHeroProjs();">HeroProjs</a>
       <a href="#" id="menuNpc" onclick="selectNpc();">Npc</a>
-      <a href="#" id="menuNpcProjs" onclick="selectNpcProjs();">NpcProjs</a>
+      <a href="#" id="menuProjectiles" onclick="selectProjectiles();">Projectiles</a>
       <a href="#" id="menuBoss" onclick="selectBoss();">Boss</a>
 
       <!--a href="#bosses">Bosses</a>
@@ -116,6 +116,13 @@ img {
       <a href="#" id="menuMaps" onclick="selectMaps();">Maps</a>
       <a href="#" id="menuSpriteSheets" onclick="selectSpriteSheets();">SpriteSheets</a>
       <a href="#" id="menuTilesets" onclick="selectTilesets();">Tilesets</a>
+    </div>
+  </div> 
+  <div class="subnav">
+    <button class="subnavbtn">Text <i class="fa fa-caret-down"></i></button>
+    <div class="subnav-content">
+      <a href="#" id="menuDictionary" onclick="selectDictionary();">Dictionary</a>
+      <a href="#" id="menuTextPreview" onclick="selectTextPreview();">Text Preview</a>
     </div>
   </div> 
   <a href="#" id="menuScripts" onclick="selectScripts();">Scripts</a>
@@ -133,126 +140,130 @@ img {
 <div class="maindiv" id="maps" style="display:none;">
 <h1 style="color:red;">Maps</h1>
 <h3>Map_00</h3>
-<!--img id="map_00" src="../en/mapas/mapa_00_00.png" /-->
+<!--img id="map_00" src="../en/maps/map_00_00.png" /-->
 <canvas id="cMap_00" width="2560" height="2048" style="border: 4px solid green;"></canvas>
 <h3>Map_01</h3>
-<!--img id="map_01" src="../en/mapas/mapa_01_01.png" /-->
+<!--img id="map_01" src="../en/maps/map_01_01.png" /-->
 <canvas id="cMap_01" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_02</h3>
-<!--img id="map_02" src="../en/mapas/mapa_02_02.png" /-->
+<!--img id="map_02" src="../en/maps/map_02_02.png" /-->
 <canvas id="cMap_02" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_03</h3>
-<!--img id="map_03" src="../en/mapas/mapa_03_03.png" /-->
+<!--img id="map_03" src="../en/maps/map_03_03.png" /-->
 <canvas id="cMap_03" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_04</h3>
-<!--img id="map_04" src="../en/mapas/mapa_04_04.png" /-->
+<!--img id="map_04" src="../en/maps/map_04_04.png" /-->
 <canvas id="cMap_04" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_05</h3>
-<!--img id="map_05" src="../en/mapas/mapa_05_05.png" /-->
+<!--img id="map_05" src="../en/maps/map_05_05.png" /-->
 <canvas id="cMap_05" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_06</h3>
-<!--img id="map_06" src="../en/mapas/mapa_06_06.png" /-->
+<!--img id="map_06" src="../en/maps/map_06_06.png" /-->
 <canvas id="cMap_06" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_07</h3>
-<!--img id="map_07" src="../en/mapas/mapa_07_07.png" /-->
+<!--img id="map_07" src="../en/maps/map_07_07.png" /-->
 <canvas id="cMap_07" width="2560" height="256" style="border: 4px solid green;"></canvas>
 <h3>Map_08</h3>
-<!--img id="map_08" src="../en/mapas/mapa_08_08.png" /-->
+<!--img id="map_08" src="../en/maps/map_08_08.png" /-->
 <canvas id="cMap_08" width="1120" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_09</h3>
-<!--img id="map_09" src="../en/mapas/mapa_09_09.png" /-->
+<!--img id="map_09" src="../en/maps/map_09_09.png" /-->
 <canvas id="cMap_09" width="800" height="512" style="border: 4px solid green;"></canvas>
 <h3>Map_0a</h3>
-<!--img id="map_0a" src="../en/mapas/mapa_10_0a.png" /-->
+<!--img id="map_0a" src="../en/maps/map_10_0a.png" /-->
 <canvas id="cMap_0a" width="1120" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_0b</h3>
-<!--img id="map_0b" src="../en/mapas/mapa_11_0b.png" /-->
+<!--img id="map_0b" src="../en/maps/map_11_0b.png" /-->
 <canvas id="cMap_0b" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_0c</h3>
-<!--img id="map_0c" src="../en/mapas/mapa_12_0c.png" /-->
+<!--img id="map_0c" src="../en/maps/map_12_0c.png" /-->
 <canvas id="cMap_0c" width="800" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_0d</h3>
-<!--img id="map_0d" src="../en/mapas/mapa_13_0d.png" /-->
+<!--img id="map_0d" src="../en/maps/map_13_0d.png" /-->
 <canvas id="cMap_0d" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_0e</h3>
-<!--img id="map_0e" src="../en/mapas/mapa_14_0e.png" /-->
+<!--img id="map_0e" src="../en/maps/map_14_0e.png" /-->
 <canvas id="cMap_0e" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 <h3>Map_0f</h3>
-<!--img id="map_0f" src="../en/mapas/mapa_15_0f.png" /-->
+<!--img id="map_0f" src="../en/maps/map_15_0f.png" /-->
 <canvas id="cMap_0f" width="1280" height="1024" style="border: 4px solid green;"></canvas>
 </div>
 
 
-<div class="maindiv" id="heroSprites" style="display:none;">
-<h1 style="color:red;">Hero Sprites</h1>
-<canvas id="canvasHeroSprites" width="64" height="352" style="border: 4px solid green;"></canvas>
+
+
+<!-- cargo los npc -->
+<div class="maindiv" id="npc" style="display:none;">
+<h1 style="color:red;">NPC</h1>
+
+<table id="npctable">
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Npc Sprites</th>
+    <th>Npc Tiles</th>
+    <th>Script</th>
+    <th>Chest</th>
+  </tr>
+</table>
+</div>
+
+
+<div class="maindiv" id="hero" style="display:none;">
+<h1 style="color:red;">Hero</h1>
+
+<table id="herotable">
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Image</th>
+  </tr>
+</table>
 </div>
 
 
 <!-- cargo los hero projectiles -->
 <div class="maindiv" id="heroProjs" style="display:none;">
 <h1 style="color:red;">Hero Projectiles</h1>
-
 <table id="heroProjstable">
   <tr>
     <th>ID</th>
     <th>comment</th>
     <th>speedSleep</th>
-    <th>attack</th>
+    <th>collisionFlags</th>
     <th>vramSlot</th>
-    <th>nose0</th>
-    <th>nose1</th>
-    <th>nose2</th>
+    <th>noseBytes</th>
     <th>offsetBank7</th>
     <th>addrSortTiles</th>
-    <th>sprites</th>
+    <th>tiles</th>
   </tr>
 </table>
-
 </div>
 
-
-<!-- cargo los npc -->
-<div class="maindiv" id="npc" style="display:none;">
-<h1 style="color:red;">Personajes</h1>
-
-<table id="npctable">
-  <tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Image</th>
-    <th>Script</th>
-    <th>Chest</th>
-  </tr>
-</table>
-
-</div>
 
 
 <!-- cargo los npc projectiles -->
-<div class="maindiv" id="npcProjs" style="display:none;">
-<h1 style="color:red;">Npc Projectiles</h1>
-
-<table id="npcProjstable">
+<div class="maindiv" id="projectiles" style="display:none;">
+<h1 style="color:red;">Projectiles</h1>
+<table id="projectilesTable">
   <tr>
     <th>ID</th>
     <th>comment</th>
     <th>speedSleep</th>
     <th>cantDosTiles</th>
     <th>offsetBank8</th>
-    <th>addrSortTiles</th>
-    <th>nroSortTiles</th>
+    <th>idSortTiles</th>
     <th>vramTileOffset</th>
     <th>sprites</th>
+    <th>tiles</th>
+    <th>used by</th>
   </tr>
 </table>
-
 </div>
 
 <!-- cargo los bosses -->
 <div class="maindiv" id="boss" style="display:none;">
 <h1 style="color:red;">Bosses</h1>
-
 <table id="bosstable">
   <tr>
     <th>ID</th>
@@ -260,7 +271,6 @@ img {
     <th>sprites</th>
   </tr>
 </table>
-
 </div>
 
 <!-- cargo los spriteSheets -->
@@ -299,6 +309,53 @@ img {
 </div>
 
 
+
+<!-- cargo el dictionary -->
+<div class="maindiv" id="dictionary" style="display:none;">
+<h1 style="color:red;">Dictionary</h1>
+
+<table id="dictionaryTable">
+</table>
+
+</div>
+
+
+<!-- cargo el textPreview -->
+<div class="maindiv" id="textPreview" style="display:none;">
+<h1 style="color:red;">Text Preview</h1>
+
+
+
+<canvas id="canvasTextPreview" width="640" height="256" style="border: 4px solid green;"></canvas>
+
+<br>
+<br>
+
+<p style="display:inline">Sumo:</p>
+<input id="sumo" type="text" style="width: 3em" value="Sumo">
+<p style="display:inline">Fuji:</p>
+<input id="fuji" type="text" style="width: 3em" value="Fuji">
+
+
+<p style="display:inline">clearX:</p>
+<input id="clearX" type="number" style="width: 2em" value="1">
+<p style="display:inline">clearY:</p>
+<input id="clearY" type="number" style="width: 2em" value="2">
+<p style="display:inline">verticalSpacing:</p>
+<input id="verticalSpacing" type="number" style="width: 2em" value="2">
+<button type="button" onclick="updateTextPreview();">Refresh</button>
+
+<br>
+<br>
+<button type="button" onclick="prevPageTextPreview();">Previous page</button>
+<p id="currentPageLabel" style="display:inline"> << Page 0 >> </p>
+<button type="button" onclick="nextPageTextPreview();">Next page</button>
+
+<br>
+<textarea id="textboxPreview" rows="5" cols="80" name="text" placeholder="Enter text" oninput="updateTextPreview();">[openwin]This text is\nin Page 0.[pause][clear]This is Page 1.\n   Icon list: \n ⛨🎩👕🡔🗡🪓🔨💣🔗💧🔑🍬𐇞💰💎🔮[pause][clear]This is Page 2 \nand it is the \nlast one.[closewin]</textarea>
+
+
+</div>
 
 <!-- cargo los scripts -->
 <div class="maindiv" id="scripts" style="display:none;">
@@ -350,8 +407,9 @@ function myFunction() {
 var basePath = './';
 //var basePath = '../en';
 
+
 //document.getElementById('sheet_00.js').src = basePath + '/spriteSheets/sheet_00.js';
-//document.getElementById('mapa_00_00.js').src = basePath + '/mapas/mapa_00_00.js';
+//document.getElementById('map_00_00.js').src = basePath + '/maps/map_00_00.js';
 /*
 var script = document.createElement("script");
 script.src = basePath + '/spriteSheets/sheet_00.js';
@@ -366,34 +424,32 @@ document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_03.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_04.js' + "'><\/script>");
 
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_00_00.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_01_01.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_02_02.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_03_03.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_04_04.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_05_05.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_06_06.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_07_07.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_08_08.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_09_09.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_10_0a.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_11_0b.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_12_0c.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_13_0d.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_14_0e.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/mapas/mapa_15_0f.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_00_00.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_01_01.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_02_02.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_03_03.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_04_04.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_05_05.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_06_06.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_07_07.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_08_08.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_09_09.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_10_0a.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_11_0b.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_12_0c.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_13_0d.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_14_0e.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/maps/map_15_0f.js' + "'><\/script>");
 
-document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajes.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajeStats.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/personajes/grupos3Personajes.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/personajes/personajeAnims.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/dictionary/dictionary.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/bosses/bosses.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/npc/npcs.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/projectiles.js' + "'><\/script>");
 
 document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/heroProjs.js' + "'><\/script>");
-document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/npcProjs_noedit.js' + "'><\/script>");
 
-document.write("<script type='text/javascript' src='"+ basePath + '/bosses/bosses.js' + "'><\/script>");
 
-document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheetHero/heroSpritesTable.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/npc/hero.js' + "'><\/script>");
 
 document.write("<script type='text/javascript' src='"+ basePath + '/audio/audio_noedit.js' + "'><\/script>");
 
@@ -427,15 +483,6 @@ var contextWaterSea2 = canvasWaterSea2.getContext("2d");
 var canvasWater = document.getElementById("canvasWater");
 var contextWater = canvasWater.getContext("2d");
 
-var canvasHeroSprites = document.getElementById("canvasHeroSprites");
-var contextHeroSprites = canvasHeroSprites.getContext("2d");
-canvasHeroSprites.width = 64*2;
-canvasHeroSprites.height = 352*2;
-
-// para que dibuje pixelado (y no blurry)
-contextHeroSprites.imageSmoothingEnabled = false;
-// hago zoom al doble 
-contextHeroSprites.scale(2,2);
 
 
 var nroMapaActual = 0;
@@ -557,20 +604,24 @@ if(selectedMenu == 'mysticVM') {
   selectMysticVM();
 } else if(selectedMenu == 'maps') {
   selectMaps();
-} else if(selectedMenu == 'heroSprites') {
-  selectHeroSprites();
+} else if(selectedMenu == 'hero') {
+  selectHero();
 } else if(selectedMenu == 'heroProjs') {
   selectHeroProjs();
 } else if(selectedMenu == 'npc') {
   selectNpc();
-} else if(selectedMenu == 'npcProjs') {
-  selectNpcProjs();
+} else if(selectedMenu == 'projectiles') {
+  selectProjectiles();
 } else if(selectedMenu == 'boss') {
   selectBoss();
 } else if(selectedMenu == 'spriteSheets') {
   selectSpriteSheets();
 } else if(selectedMenu == 'tilesets') {
   selectTilesets();
+} else if(selectedMenu == 'dictionary') {
+  selectDictionary();
+} else if(selectedMenu == 'textPreview') {
+  selectTextPreview();
 } else if(selectedMenu == 'scripts') {
   selectScripts();
 } else {
@@ -606,8 +657,8 @@ function selectMaps() {
   selectMenu('maps', 'menuMaps');
 }
 
-function selectHeroSprites() {
-  selectMenu('heroSprites', 'menuHeroSprites');
+function selectHero() {
+  selectMenu('hero', 'menuHero');
 }
 
 function selectHeroProjs() {
@@ -616,13 +667,13 @@ function selectHeroProjs() {
 }
 
 function selectNpc() {
-//  console.log('personajes');
+//  console.log('npcs');
   selectMenu('npc', 'menuNpc');
 }
 
-function selectNpcProjs() {
+function selectProjectiles() {
 //  console.log('projectiles');
-  selectMenu('npcProjs', 'menuNpcProjs');
+  selectMenu('projectiles', 'menuProjectiles');
 }
 
 
@@ -639,6 +690,16 @@ function selectSpriteSheets() {
 function selectTilesets() {
 //  console.log('tiles');
   selectMenu('tilesets', 'menuTilesets');
+}
+
+function selectDictionary() {
+//  console.log('dictionary');
+  selectMenu('dictionary', 'menuDictionary');
+}
+
+function selectTextPreview() {
+//  console.log('text preview');
+  selectMenu('textPreview', 'menuTextPreview');
 }
 
 function selectScripts() {
@@ -783,6 +844,261 @@ function fillMap(mapa, w,h, canvasSheet, contextMap) {
 
 
 
+
+
+
+//var imgTilesets = document.getElementById("imgTilesets");
+var textboxPreview = document.getElementById("textboxPreview");
+var currentPageLabel = document.getElementById("currentPageLabel");
+var inputSumo = document.getElementById("sumo");
+var inputFuji = document.getElementById("fuji");
+var inputVerticalSpacing = document.getElementById("verticalSpacing");
+var inputClearX = document.getElementById("clearX");
+var inputClearY = document.getElementById("clearY");
+
+// Get the canvas and context
+var textPreviewCanvas = document.getElementById("canvasTextPreview");
+var textPreviewContext = textPreviewCanvas.getContext("2d");
+// para que dibuje pixelado (y no blurry)
+textPreviewContext.imageSmoothingEnabled = false;
+
+// the current page
+currentTextPreviewPage = 0;
+// cursor position after clear
+clearX = 1;
+clearY = 2;
+// vertical lines after \n
+verticalSpacing = 2;
+// the names
+sumoTextPreview = 'Sumo';
+fujiTextPreview = 'Fuji';
+
+
+function updateTextPreview() {
+
+  sumoTextPreview = inputSumo.value;
+  fujiTextPreview = inputFuji.value;
+  clearX = parseInt(inputClearX.value);
+  clearY = parseInt(inputClearY.value);
+  verticalSpacing = parseInt(inputVerticalSpacing.value);
+
+
+  string = textboxPreview.value;
+  processStringTextPreview(string);
+
+//  console.log('updating');
+}
+
+function textPreviewClear() {
+  cursorX = 0;
+  cursorY = 0;
+  drawStringTextPreview('┌──────────────────┐');
+  cursorX = 0;
+  cursorY = 1;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 2;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 3;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 4;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 5;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 6;
+  drawStringTextPreview('├                  ┤');
+  cursorX = 0;
+  cursorY = 7;
+  drawStringTextPreview('└┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┘');
+
+  cursorX = clearX;
+  cursorY = clearY;
+
+
+}
+
+function prevPageTextPreview() {
+  currentTextPreviewPage--;
+
+  currentPageLabel.innerHTML = '<< Page ' + currentTextPreviewPage + ' >>';
+
+//  cursorX = 1;
+//  cursorY = 2;
+  updateTextPreview();
+}
+
+function nextPageTextPreview() {
+  currentTextPreviewPage++;
+
+  currentPageLabel.innerHTML = '<< Page ' + currentTextPreviewPage + ' >>';
+
+//  cursorX = 1;
+//  cursorY = 2;
+  updateTextPreview();
+}
+
+// returns the index of the nth apparition of the substring
+function getPosition(string, subString, n) {
+  return string.split(subString, n).join(subString).length;
+}
+
+
+function processStringTextPreview(string) {
+
+  textPreviewProcessing = true;
+
+  // truncate the string according to the currentPage
+  pos = getPosition(string, '[pause]', currentTextPreviewPage);
+//  console.log('pos: ' + pos + ' string: ' + string);
+  string = string.substring(pos);
+  if(string.startsWith('[pause]')) {
+    string = string.substring(7);
+  }
+//  console.log('---currentPage: ' + currentTextPreviewPage + ' processing: ' + string);
+
+
+  while(textPreviewProcessing) {
+/*
+    if(string.length == 0) {
+      textPreviewProcessing = false;
+    }
+*/
+
+
+    if(string.startsWith('[openwin]')) {
+//      console.log('processing: [openwin]');
+      textPreviewClear();
+      string = string.substring(9);
+
+    } else if(string.startsWith('[closewin]')) {
+//      console.log('processing: [closewin]');
+      string = string.substring(10);
+
+    } else if(string.startsWith('[pause]')) {
+//      console.log('processing: [pause]');
+      string = string.substring(7);
+      textPreviewProcessing = false;
+
+
+    } else if(string.startsWith('[sumo]')) {
+//      console.log('processing: [sumo]');
+      drawStringTextPreview(sumoTextPreview);
+      string = string.substring(6);
+
+    } else if(string.startsWith('[fuji]')) {
+//      console.log('processing: [fuji]');
+      drawStringTextPreview(fujiTextPreview);
+      string = string.substring(6);
+
+
+    } else if(string.startsWith('[clear]')) {
+//      console.log('processing: [clear]');
+      textPreviewClear();
+      string = string.substring(7);
+
+
+    } else if(string.startsWith('\\n')) {
+//      console.log('processing: \\n');
+      cursorX = 1;
+      cursorY = cursorY+verticalSpacing;
+      string = string.substring(2);
+
+    } else if(string.startsWith('[right]')) {
+//      console.log('processing: [right]');
+      cursorX++;
+      string = string.substring(7);
+
+    } else if(string.startsWith('[left]')) {
+//      console.log('processing: [left]');
+      cursorX--;
+      string = string.substring(6);
+
+    } else if(string.startsWith('[up]')) {
+//      console.log('processing: [up]');
+      cursorY--;
+      string = string.substring(4);
+
+    } else if(string.startsWith('[down]')) {
+//      console.log('processing: [down]');
+      cursorY++;
+      string = string.substring(6);
+
+
+    } else {
+//      char = string.substring(0,1);
+      // we get the first (unicode) character
+      char = [...string][0];
+//      console.log('processing: ' + char);
+
+      // if it was the last char
+      if(char == undefined) {
+        // we ended iterating over the string
+        textPreviewProcessing = false;
+      // else
+      } else {
+        // we draw the char
+        drawStringTextPreview(char);
+//        string = string.substring(1);
+        // and remove it from the rest of the string to be processed
+        string = string.substring(char.length);
+
+      }
+
+
+    }
+
+  }
+
+}
+
+
+function drawStringTextPreview(string) {
+
+
+  symbols = [...string];
+//  console.log('symbols: ' + symbols);
+  for (var i = 0; i < symbols.length; i++) {
+
+    char = symbols[i];
+//    console.log('char: ' + char + ' cursorX: ' + cursorX + ' cursorY: ' + cursorY);
+    drawCharTextPreview(char, cursorX, cursorY);
+    cursorX++;
+  }
+
+/*  
+  for (var i = 0; i < string.length; i++) {
+    char = string.charAt(i);
+//    console.log('char: ' + char + ' cursorX: ' + cursorX + ' cursorY: ' + cursorY);
+    drawCharTextPreview(char, cursorX, cursorY);
+    cursorX++;
+  }
+*/
+
+}
+
+function drawCharTextPreview(char, posX, posY) {
+
+//  console.log('char: ' + char + ' posX: ' + posX + ' posY: ' + posY);
+  code = parseInt(invTextDictionary[char]);
+//  console.log('code: ' + code);
+  offset = 624 + code - 0x70;
+//  console.log('offset: ' + offset);
+
+  tX = offset%16;
+  tY = Math.floor(offset/16);
+//  console.log('tX: ' + tX + ' tY: ' + tY);
+  size = 4;
+  textPreviewContext.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*posX, 8*size*posY, 8*size, 8*size);
+
+}
+
+
+
+
 // The function gets called when the window is fully loaded
 window.onload = function() {
 
@@ -824,81 +1140,163 @@ window.onload = function() {
 //  bloqueY = 0;
 
 
+  var dictionaryTable = document.getElementById('dictionaryTable');
+  for(i=0; i<16; i++) {
+
+    var tr = document.createElement("tr");
+
+    for(j=0; j<16; j++) {
+      code = i*16+j;
+      var th = document.createElement("th");
+      var string = textDictionary[code];
+      th.innerHTML = '<pre style="color:#ff0000">' + code.toString(16) + '</pre><pre>\'' + string + "\'</pre>";
+      tr.appendChild(th);
+    }
+
+    dictionaryTable.appendChild(tr);
+
+
+
+
+
+    invTextDictionary = {};
+    // invert the dictonary
+    for(var key in textDictionary){
+//      console.log('key: ' + key + ' value: ' + textDictionary[key]);
+      invTextDictionary[textDictionary[key]] = key;
+    }
+
+    textPreviewClear();
+    updateTextPreview();
+
+
+  }
+
+
   var npctable = document.getElementById('npctable');
 
-  for(i=0; i<personajes.length; i++) {
-    p = personajes[i];
-//    console.log('p: ' + p);
-    nroPersonaje = parseInt(p['nroPersonaje'],16);
-    nombre = p['comments'];
-    nroScript = parseInt(p['nroScript'],16);
-    itemTesoro = parseInt(p['itemTesoro'],16);
+  for(i=0; i<npcs['npc'].length; i++) {
+    npc = npcs['npc'][i];
+//    console.log('npc: ' + npc);
+    idNpc = parseInt(npc['idNpc'],16);
+    comment = npc['comment'];
+    talkScript = parseInt(npc['talkScript'],16);
+    chestScript = parseInt(npc['chestScript'],16);
 
     var tr = document.createElement("tr");
 
     var th = document.createElement("th");
-    th.innerHTML = p['nroPersonaje'];
+    th.innerHTML = npc['idNpc'];
     tr.appendChild(th);
 
     var th = document.createElement("th");
-    th.innerHTML = nombre;
+    th.innerHTML = comment;
+    tr.appendChild(th);
+
+    let cantDosTiles = parseInt(npc['cantDosTiles'],16);
+
+    var th = document.createElement("th");
+    th.innerHTML = '<canvas id="canvasNpcSprites' + i + '" width="' + 16*6 + '" height="' + 16*2 + '" style="border: 4px solid green;"></canvas>';
     tr.appendChild(th);
 
     var th = document.createElement("th");
-    let cantDosTiles = parseInt(p['cantDosTiles'],16);
-    th.innerHTML = '<canvas id="canvasPersonaje' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
-
+    th.innerHTML = '<canvas id="canvasNpcTiles' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
     tr.appendChild(th);
 
     var th = document.createElement("th");
-    th.innerHTML = p['nroScript'];
+    th.innerHTML = npc['talkScript'];
     tr.appendChild(th);
 
     var th = document.createElement("th");
-    th.innerHTML = p['itemTesoro'];
+    th.innerHTML = npc['chestScript'];
     tr.appendChild(th);
 
     npctable.appendChild(tr);
   }
 
-  for (let k=0; k<personajes.length; k++) {
+  for (let k=0; k<npcs['npc'].length; k++) {
 //  for (let k=0; k<4; k++) {
 
-    p = personajes[k];
+    npc = npcs['npc'][k];
 
-    let cantDosTiles = parseInt(p['cantDosTiles'],16);
+    let cantDosTiles = parseInt(npc['cantDosTiles'],16);
 //    let addr = 0x20000 + parseInt(p['offsetBank8'],16);
 //    let nroBank = Math.floor(addr / 0x4000);
 //    let offset = addr % 0x4000;
-    let offset = parseInt(p['offsetBank8'],16);
+    let offset = parseInt(npc['offsetBank8'],16);
     let tileBase = offset / 0x10;
 //    console.log('tileBase: 0x' + tileBase.toString(16) + ' = ' + tileBase);
 
 
-    let canvasPersonaje = document.getElementById('canvasPersonaje' + k);
+    let canvasNpcSprites = document.getElementById('canvasNpcSprites' + k);
 
-//    canvasPersonaje.width = 32;
-//    canvasPersonaje.height = 32;
+//    canvasNpcSprites.width = 32;
+//    canvasNpcSprites.height = 32;
+
+    sprites = npcs['spriteGroups'][npc['idSpriteGroup']]['sprites'];
+//    console.log('sprites: ' + sprites.length);
 
     let size = 2;
-    canvasPersonaje.width = 16*size*(cantDosTiles/2);
-    canvasPersonaje.height = 16*size;
+    canvasNpcSprites.width = 16*size*4;
+    canvasNpcSprites.height = 16*size*(sprites.length/4);
 
-    let contextPersonaje = canvasPersonaje.getContext("2d");
+    let contextNpcSprites = canvasNpcSprites.getContext("2d");
     // para que dibuje pixelado (y no blurry)
-    contextPersonaje.imageSmoothingEnabled = false;
+    contextNpcSprites.imageSmoothingEnabled = false;
+
+    let sortTiles = npcs['sortTiles'][npc['idSortTiles']];
+    sorting = sortTiles['sorting'];
+    sorting = sorting.split(' ');
+//    sorting.pop();
+    for(j=0; j<sorting.length; j++) {
+      sorting[j] = parseInt(sorting[j],16);
+    }
+//    console.log('sorting: ' + sorting);
+
+
+    vramOffset = parseInt(npc['vramTileOffset'],16);
+
+    for(i=0; i<4; i++) {
+
+      for(j=0; j<(sprites.length/4); j++) {
+
+        posX = 2*i;
+        posY = 2*j;
+        x = 0;
+        y = 0;
+        sprite = sprites[i+4*j];
+        _drawBossSprite(contextNpcSprites, sprite, sorting, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+      }
+
+    }
+
+
+
+    let canvasNpcTiles = document.getElementById('canvasNpcTiles' + k);
+
+//    canvasNpcTiles.width = 32;
+//    canvasNpcTiles.height = 32;
+
+
+    canvasNpcTiles.width = 16*size*(cantDosTiles/2);
+    canvasNpcTiles.height = 16*size;
+
+    let contextNpcTiles = canvasNpcTiles.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextNpcTiles.imageSmoothingEnabled = false;
 
     tile = tileBase;
     for (let j=0; j<cantDosTiles; j++) {
       tX = tile % 16;
       tY = Math.floor(tile/16);
-      contextPersonaje.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
+      contextNpcTiles.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
 
       tile += 2;
 
       tX = tile % 16;
       tY = Math.floor(tile/16);
-      contextPersonaje.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
+      contextNpcTiles.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
 
       // si es par
       if(j%2 == 0) {
@@ -912,146 +1310,109 @@ window.onload = function() {
     }
   }
 
-//  console.log('heroSpritesTable: ' + heroSpritesTable);
-
+//  console.log('hero: ' + hero);
 
   // the addr where the hero tiles begin
-  var baseTile = 0x1a40/0x10;
-
-  j = 0;
-  for(let renglon of heroSpritesTable) {
-      i = 0;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 0*8, j*16, 8, 8);
-
-      i = 2;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 1*8, j*16, 8, 8);
-
-      i = 4;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 2*8, j*16, 8, 8);
-
-      i = 6;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 3*8, j*16, 8, 8);
-
-      i = 8;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 4*8, j*16, 8, 8);
-
-      i = 10;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 5*8, j*16, 8, 8);
+  var tileBase = 0x1a40/0x10;
 
 
-      i = 12;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 6*8, j*16, 8, 8);
 
-      i = 14;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 7*8, j*16, 8, 8);
+  var herotable = document.getElementById('herotable');
+
+  for(i=0; i<hero['sortTiles'].length; i++) {
+    h = hero['sortTiles'][i];
+//    console.log('npc: ' + npc);
+    idHero = parseInt(npc['idSortTiles'],16);
+    comment = h['comment'];
 
 
-      i = 1;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 0*8, j*16+8, 8, 8);
+    var tr = document.createElement("tr");
 
-      i = 3;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 1*8, j*16+8, 8, 8);
+    var th = document.createElement("th");
+    th.innerHTML = h['idSortTiles'];
+    tr.appendChild(th);
 
-      i = 5;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 2*8, j*16+8, 8, 8);
+    var th = document.createElement("th");
+    th.innerHTML = h['comment'];
+    tr.appendChild(th);
 
-      i = 7;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 3*8, j*16+8, 8, 8);
+    var th = document.createElement("th");
+    let cantDosTiles = 8;
+    th.innerHTML = '<canvas id="canvasHero' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
 
+    tr.appendChild(th);
 
-      i = 9;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 4*8, j*16+8, 8, 8);
+    herotable.appendChild(tr);
 
-      i = 11;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 5*8, j*16+8, 8, 8);
-
-      i = 13;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 6*8, j*16+8, 8, 8);
-
-      i = 15;
-      strTile = renglon[i];
-      var tile = baseTile + parseInt(strTile,16);
-      tX = tile % 16;
-      tY = Math.floor(tile/16);
-      contextHeroSprites.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 7*8, j*16+8, 8, 8);
-
-    
-    j++;
   }
 
 
 
+//  for(i=0; i<1; i++) {
+  for(i=0; i<hero['sortTiles'].length; i++) {
+    h = hero['sortTiles'][i];
+
+    let canvasHero = document.getElementById('canvasHero' + i);
+    canvasHero.width = 16*4*2;
+    canvasHero.height = 16*1*2;
+
+    let contextHero = canvasHero.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextHero.imageSmoothingEnabled = false;
+
+
+
+    sorting = h['sorting'];
+    sorting = sorting.split(' ');
+//    sorting.pop();
+    for(k=0; k<sorting.length; k++) {
+      sorting[k] = parseInt(sorting[k],16);
+    }
+//    console.log('sorting: ' + sorting);
+
+    posX = 0;
+    posY = 0;
+    x = 0;
+    y = 0;
+    vramOffset = 0;
+
+    sprite = hero['spriteGroups'][0]['sprites'][0];
+    sortingg = [sorting[0], sorting[1], sorting[2], sorting[3]];
+    _drawBossSprite(contextHero, sprite, sortingg, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+    posX = 2;
+    posY = 0;
+    sprite = hero['spriteGroups'][0]['sprites'][1];
+    sortingg = [sorting[4], sorting[5], sorting[6], sorting[7]];
+    _drawBossSprite(contextHero, sprite, sortingg, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+    posX = 4;
+    posY = 0;
+    sprite = hero['spriteGroups'][0]['sprites'][2];
+    sortingg = [sorting[8], sorting[9], sorting[10], sorting[11]];
+    _drawBossSprite(contextHero, sprite, sortingg, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+    posX = 6;
+    posY = 0;
+    sprite = hero['spriteGroups'][0]['sprites'][3];
+    sortingg = [sorting[12], sorting[13], sorting[14], sorting[15]];
+    _drawBossSprite(contextHero, sprite, sortingg, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
+
+  }
+
+
   var heroProjstable = document.getElementById('heroProjstable');
 
-  for(i=0; i<heroProjs['projectiles'].length; i++) {
+  for(i=0; i<heroProjs['animationFrames'].length; i++) {
 
-    proj = heroProjs['projectiles'][i];
+    proj = heroProjs['animationFrames'][i];
 
     var tr = document.createElement("tr");
 
-    nroProjectil = proj['nroProjectil'];
+    idAnimationFrame = proj['idAnimationFrame'];
     var th = document.createElement("th");
-    th.innerHTML = nroProjectil;
+    th.innerHTML = idAnimationFrame;
     tr.appendChild(th);
 
     comment = proj['comment'];
@@ -1064,9 +1425,9 @@ window.onload = function() {
     th.innerHTML = speedSleep;
     tr.appendChild(th);
 
-    attack = proj['attack'];
+    collisionFlags = proj['collisionFlags'];
     var th = document.createElement("th");
-    th.innerHTML = attack;
+    th.innerHTML = collisionFlags;
     tr.appendChild(th);
 
     vramSlot = proj['vramSlot'];
@@ -1074,19 +1435,9 @@ window.onload = function() {
     th.innerHTML = vramSlot;
     tr.appendChild(th);
 
-    nose0 = proj['noseBytes'][0];
+    noseBytes = proj['noseBytes'];
     var th = document.createElement("th");
-    th.innerHTML = nose0;
-    tr.appendChild(th);
-
-    nose1 = proj['noseBytes'][1];
-    var th = document.createElement("th");
-    th.innerHTML = nose1;
-    tr.appendChild(th);
-
-    nose2 = proj['noseBytes'][2];
-    var th = document.createElement("th");
-    th.innerHTML = nose2;
+    th.innerHTML = noseBytes;
     tr.appendChild(th);
 
     offsetBank7 = proj['offsetBank7'];
@@ -1094,7 +1445,7 @@ window.onload = function() {
     th.innerHTML = offsetBank7;
     tr.appendChild(th);
 
-    addrSortTiles = proj['addrSortTiles'];
+    addrSortTiles = proj['idSortTiles'];
     var th = document.createElement("th");
     th.innerHTML = addrSortTiles;
     tr.appendChild(th);
@@ -1112,11 +1463,23 @@ window.onload = function() {
   // where the sort tiles start
   var baseSortTiles = 0x28df;
 
-  for(i=0; i<heroProjs['projectiles'].length; i++) {
-    proj = heroProjs['projectiles'][i];
+  for(i=0; i<heroProjs['animationFrames'].length; i++) {
+    proj = heroProjs['animationFrames'][i];
 
     offsetBank7 = parseInt(proj['offsetBank7'],16);
-    addrSortTiles = parseInt(proj['addrSortTiles'],16);
+
+    idSortTiles = proj['idSortTiles'];
+//    console.log('idSortTiles: ' + idSortTiles);
+    sortTiles = heroProjs['sortTiles'][idSortTiles];
+//    console.log('sortTiles: ' + sortTiles);
+    sorting = sortTiles['sorting'];
+    sorting = sorting.split(' ');
+//    sorting.pop();
+    for(j=0; j<sorting.length; j++) {
+      sorting[j] = parseInt(sorting[j],16);
+    }
+//    console.log('sorting: ' + sorting);
+
 
     let canvasHeroProj = document.getElementById('canvasHeroProj' + i);
     let size = 2;
@@ -1130,10 +1493,8 @@ window.onload = function() {
 
 //    console.log('------ offsetBank7: ' + offsetBank7.toString(16));
     for(j=0; j<cantDosTiles; j++) {
-      var tuli = addrSortTiles-0x4000-baseSortTiles + 2*j;
-      var tulix = tuli%12;
-      var tuliy = Math.floor(tuli/12);
-      sortTile = parseInt(heroProjs['sortTiles'][tuliy][tulix],16);
+
+      sortTile = sorting[2*j];
 
       // si el tile no está anulado
       if(sortTile != 0xff) {
@@ -1149,10 +1510,7 @@ window.onload = function() {
       contextHeroProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
 
 
-      var tuli = addrSortTiles-0x4000-baseSortTiles + 2*j+1;
-      var tulix = tuli%12;
-      var tuliy = Math.floor(tuli/12);
-      sortTile = parseInt(heroProjs['sortTiles'][tuliy][tulix],16);
+      sortTile = sorting[2*j+1];
 
       // si el tile no está anulado
       if(sortTile != 0xff) {
@@ -1173,17 +1531,18 @@ window.onload = function() {
   }
 
 
-  var npcProjstable = document.getElementById('npcProjstable');
 
-  for(i=0; i<npcProjs['projectiles'].length; i++) {
+  var projectilesTable = document.getElementById('projectilesTable');
 
-    proj = npcProjs['projectiles'][i];
+  for(i=0; i<projectiles['projectiles'].length; i++) {
+
+    proj = projectiles['projectiles'][i];
 
     var tr = document.createElement("tr");
 
-    nroProjectil = proj['nroProjectil'];
+    idProjectile = proj['idProjectile'];
     var th = document.createElement("th");
-    th.innerHTML = nroProjectil;
+    th.innerHTML = idProjectile;
     tr.appendChild(th);
 
     comment = proj['comment'];
@@ -1206,14 +1565,9 @@ window.onload = function() {
     th.innerHTML = offsetBank8;
     tr.appendChild(th);
 
-    addrSortTiles = proj['addrSortTiles'];
+    idSortTiles = proj['idSortTiles'];
     var th = document.createElement("th");
-    th.innerHTML = addrSortTiles;
-    tr.appendChild(th);
-
-    nroSortTiles = proj['nroSortTiles'];
-    var th = document.createElement("th");
-    th.innerHTML = nroSortTiles;
+    th.innerHTML = idSortTiles;
     tr.appendChild(th);
 
     vramTileOffset = proj['vramTileOffset'];
@@ -1221,14 +1575,60 @@ window.onload = function() {
     th.innerHTML = vramTileOffset;
     tr.appendChild(th);
 
+    var th = document.createElement("th");
+    th.innerHTML = '<canvas id="canvasProjectileSprites' + i + '" width="' + 16*6 + '" height="' + 16*2 + '" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
 
     var th = document.createElement("th");
     var cantDosTiles = 32;
-    th.innerHTML = '<canvas id="canvasNpcProj' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
+    th.innerHTML = '<canvas id="canvasProjectileTiles' + i + '" width="' + 8*cantDosTiles + '" height="16" style="border: 4px solid green;"></canvas>';
     tr.appendChild(th);
 
 
-    npcProjstable.appendChild(tr);
+
+
+//    console.log('--- i: ' + i);
+    projNpcs = [];
+    for (let k=0; k<npcs['npc'].length; k++) {
+
+      npc = npcs['npc'][k];
+      comment = npc['comment'];
+      idNpcStat = npc['idNpcStat'];
+      stat = npcs['npcStat'][idNpcStat];
+
+      idProj = stat['projectile'];
+      idProj = parseInt(idProj,16);
+
+      if(idProj == idProjectile) {
+        projNpcs.push(comment);
+      }
+    }
+//    console.log('projNpcs: ' + projNpcs);
+    projBoss = [];
+    for (let k=0; k<bosses['boss'].length; k++) {
+
+      boss = bosses['boss'][k];
+      comment = boss['comment'];
+      idProj = boss['projectile'];
+      idProj = parseInt(idProj,16);
+
+      if(idProj == idProjectile) {
+        projBoss.push(comment);
+      }
+    }
+//    console.log('projBoss: ' + projBoss);
+    usedBy = [];
+    usedBy = usedBy.concat(projNpcs);
+    usedBy = usedBy.concat(projBoss);
+//    console.log('usedBy: ' + usedBy);
+
+
+    var th = document.createElement("th");
+    th.innerHTML = usedBy;
+    tr.appendChild(th);
+
+
+    projectilesTable.appendChild(tr);
 
   }
 
@@ -1237,51 +1637,93 @@ window.onload = function() {
   // where the sort tiles start
 //  var baseSortTiles = 0x28df;
 
-  for(i=0; i<npcProjs['projectiles'].length; i++) {
-    proj = npcProjs['projectiles'][i];
+//  for(i=0; i<1; i++) {
+  for(i=0; i<projectiles['projectiles'].length; i++) {
+    proj = projectiles['projectiles'][i];
+//    console.log('proj: ' + proj['idProjectile']);
 
     offsetBank8 = parseInt(proj['offsetBank8'],16);
-    addrSortTiles = parseInt(proj['addrSortTiles'],16);
-    nroSortTiles = parseInt(proj['nroSortTiles'],16);
+    let tileBase = (offsetBank8)/0x10;
+    idSortTiles = parseInt(proj['idSortTiles'],16);
     cantDosTiles = parseInt(proj['cantDosTiles'],16);
 
-    let canvasNpcProj = document.getElementById('canvasNpcProj' + i);
     let size = 2;
-    canvasNpcProj.width = 16*size*(cantDosTiles/2);
-    canvasNpcProj.height = 16*size;
 
-    let contextNpcProj = canvasNpcProj.getContext("2d");
+
+    let canvasProjectileSprites = document.getElementById('canvasProjectileSprites' + i);
+
+//    canvasProjectilesSprites.width = 32;
+//    canvasProjectilesSprites.height = 32;
+
+    sprites = projectiles['spriteGroups'][proj['idSpriteGroup']]['sprites'];
+//    console.log('sprites: ' + sprites.length);
+
+
+    canvasProjectileSprites.width = 16*size*4;
+    canvasProjectileSprites.height = 16*size*(sprites.length/4);
+
+    let contextProjectileSprites = canvasProjectileSprites.getContext("2d");
     // para que dibuje pixelado (y no blurry)
-    contextNpcProj.imageSmoothingEnabled = false;
+    contextProjectileSprites.imageSmoothingEnabled = false;
+
+    let sortTiles = projectiles['sortTiles'][proj['idSortTiles']];
+    sorting = sortTiles['sorting'];
+    sorting = sorting.split(' ');
+//    sorting.pop();
+    for(j=0; j<sorting.length; j++) {
+      sorting[j] = parseInt(sorting[j],16);
+    }
+//    console.log('sorting: ' + sorting);
 
 
-    sortTiles = npcProjs['sortTiles'][nroSortTiles];
-//    console.log('sortTiles: ' + sortTiles);
+    vramOffset = parseInt(proj['vramTileOffset'],16);
+
+
+    for(u=0; u<4; u++) {
+
+      for(v=0; v<2; v++) {
+
+        posX = 2*u;
+        posY = 2*v;
+        x = 0;
+        y = 0;
+        sprite = sprites[u+4*v];
+        _drawBossSprite(contextProjectileSprites, sprite, sorting, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+      }
+   }
+
+
+    let canvasProjectileTiles = document.getElementById('canvasProjectileTiles' + i);
+    canvasProjectileTiles.width = 16*size*(cantDosTiles/2);
+    canvasProjectileTiles.height = 16*size;
+
+    let contextProjectileTiles = canvasProjectileTiles.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextProjectileTiles.imageSmoothingEnabled = false;
+
 
 //    console.log('------ offsetBank7: ' + offsetBank7.toString(16));
     for(j=0; j<cantDosTiles; j++) {
-      strSortTile = sortTiles['tiles'][2*j];
-      sortTile = parseInt(strSortTile,16);
+      sortTile = sorting[2*j];
+
 //      console.log('strSortTile: ' + strSortTile);
       // calculamos cual es
-      var tile = (offsetBank8)/0x10 + sortTile;
+      var tile = tileBase + sortTile;
 //      console.log('tile: ' + tile);
 
       tX = tile % 16;
       tY = Math.floor(tile/16);
-      contextNpcProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
+      contextProjectileTiles.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 0, 8*size, 8*size);
 
-
-      strSortTile = sortTiles['tiles'][2*j+1];
-      sortTile = parseInt(strSortTile,16);
+      sortTile = sorting[2*j+1];
 //      console.log('strSortTile: ' + strSortTile);
       // calculamos cual es
-      var tile = (offsetBank8)/0x10 + sortTile;
+      var tile = tileBase + sortTile;
 //      console.log('tile: ' + tile);
 
       tX = tile % 16;
       tY = Math.floor(tile/16);
-      contextNpcProj.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
+      contextProjectileTiles.drawImage(imgTilesets, tX*8, tY*8, 8, 8, 8*size*j, 8*size, 8*size, 8*size);
 
     }
   }
@@ -1342,7 +1784,7 @@ window.onload = function() {
     sortTiles = bosses['sortTiles'][boss['idSortTiles']];
     sorting = sortTiles['sorting'];
     sorting = sorting.split(' ');
-    sorting.pop();
+//    sorting.pop();
     for(k=0; k<sorting.length; k++) {
       sorting[k] = parseInt(sorting[k],16);
     }
@@ -1387,26 +1829,9 @@ window.onload = function() {
 //    console.log('--- x: ' + x + ' y: ' + y);
 
     sprite = spriteGroup['sprites'][vramSprite];
-//    console.log('sprite: ' + sprite);
-//    console.log('tile1: ' + sprite['tile1'] + ' tile2: ' + sprite['tile2']);
-    attrib = sprite['attrib'];
-    binAttrib = parseInt(attrib,16).toString(2);
-    binAttrib = "00000000".substr(binAttrib.length) + binAttrib
-//    console.log('binAttrib: ' + binAttrib);
-    flipX = (attrib & 0b00010000) >> 4;
-    flipY = (attrib & 0b00100000) >> 5;
-    flipX = (flipX == 1) ? true : false;
-    flipY = (flipY == 1) ? true : false;
-//    console.log('flipX: ' + flipX + ' flipY: ' + flipY);    
+    _drawBossSprite(contextBoss, sprite, sorting, 8*posX+x, 8*posY+y, tileBase, vramOffset);
 
-    tile1a = parseInt(sprite['tile1'],16)-vramOffset;
-    tile2a = parseInt(sprite['tile2'],16)-vramOffset;
-//    console.log('tile1a, tile2a: ' + tile1a + ', ' + tile2a);
-    tile1 = tileBase+(sorting[tile1a]);
-    tile2 = tileBase+(sorting[tile1a+1]);
-    tile3 = tileBase+(sorting[tile2a]);
-    tile4 = tileBase+(sorting[tile2a+1]);
-    _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, 8*posX+x, 8*posY+y, tileBase, vramOffset);
+
 
 //    for(j=0; j<1; j++) {
     for(j=0; j<layout['lays'].length; j++) {
@@ -1417,30 +1842,8 @@ window.onload = function() {
       y = lay['y'];
 //      console.log('--- x: ' + x + ' y: ' + y);
 
-
       sprite = spriteGroup['sprites'][vramSprite];
-//      console.log('sprite: ' + sprite);
-//      console.log('tile1: ' + sprite['tile1'] + ' tile2: ' + sprite['tile2']);
-      attrib = sprite['attrib'];
-      binAttrib = parseInt(attrib,16).toString(2);
-      binAttrib = "00000000".substr(binAttrib.length) + binAttrib
-//      console.log('binAttrib: ' + binAttrib);
-      flipX = (attrib & 0b00010000) >> 4;
-      flipY = (attrib & 0b00100000) >> 5;
-      flipX = (flipX == 1) ? true : false;
-      flipY = (flipY == 1) ? true : false;
-//      console.log('flipX: ' + flipX + ' flipY: ' + flipY);    
-
-      tile1a = parseInt(sprite['tile1'],16)-vramOffset;
-      tile2a = parseInt(sprite['tile2'],16)-vramOffset;
-//      console.log('tile1a, tile2a: ' + tile1a + ', ' + tile2a);
-      tile1 = tileBase+(sorting[tile1a]);
-      tile2 = tileBase+(sorting[tile1a+1]);
-      tile3 = tileBase+(sorting[tile2a]);
-      tile4 = tileBase+(sorting[tile2a+1]);
-//      _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, posX+2*x, posY+2*y, tileBase, vramOffset);
-      _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, 8*posX+x, 8*posY+y, tileBase, vramOffset);
-
+      _drawBossSprite(contextBoss, sprite, sorting, 8*posX+x, 8*posY+y, tileBase, vramOffset);
 
     }
 
@@ -1454,57 +1857,91 @@ window.onload = function() {
 }
 
 
-function _drawBossSprite(contextBoss, tile1,tile2,tile3,tile4,flipX,flipY, posX, posY, tileBase, vramOffset) {
+function _drawBossSprite(contextBoss, sprite, sorting, posX, posY, tileBase, vramOffset) {
 
   let size = 2;
 
   contextBoss.save();
 
+//  console.log('sprite: ' + sprite);
+//  console.log('attrib: ' + sprite['attrib']);
+//  console.log('tile1: ' + sprite['tile1'] + ' tile2: ' + sprite['tile2']);
+  attrib = parseInt(sprite['attrib'],16);
+  binAttrib = attrib.toString(2);
+  binAttrib = "00000000".substr(binAttrib.length) + binAttrib
+  flipX = (attrib & 0b00100000) >> 5;
+  flipY = (attrib & 0b01000000) >> 6;
+  flipX = (flipX == 1) ? true : false;
+  flipY = (flipY == 1) ? true : false;
+//  console.log('flipX: ' + flipX + ' flipY: ' + flipY);
 
-  if(flipX) {
+  tile1a = parseInt(sprite['tile1'],16)-vramOffset;
+  tile2a = parseInt(sprite['tile2'],16)-vramOffset;
+//  console.log('tile1a, tile2a: ' + tile1a + ', ' + tile2a);
+  tile1 = tileBase+(sorting[tile1a]);
+  tile2 = tileBase+(sorting[tile1a+1]);
+  tile3 = tileBase+(sorting[tile2a]);
+  tile4 = tileBase+(sorting[tile2a+1]);
+
+  if(flipX && flipY) {
+    contextBoss.scale(-1, -1);
+    flipX = -1;
+    flipY = -1;
+  } else if(flipX && !flipY) {
     contextBoss.scale(-1, 1);
     flipX = -1;
-  } else {
+    flipY = 1;
+  } else if(!flipX && flipY) {
+    contextBoss.scale(1, -1);
+    flipX = 1;
+    flipY = -1;
+  } else if(!flipX && !flipY) {
     contextBoss.scale(1, 1);
     flipX = 1;
-  }
-//  flipX = 1;
-//  console.log('**** flipX: ' + flipX);
+    flipY = 1;
+  } 
+//  console.log('**** flipX: ' + flipX + ' flipY: ' + flipY);
 
+  // vertical flipping requires swapping the tiles
+  if(flipY < 0) {
+    tiletmp1 = tile1;
+    tiletmp2 = tile2;
+    tiletmp3 = tile3;
+    tiletmp4 = tile4;
+
+    tile1 = tiletmp2;
+    tile2 = tiletmp1;
+    tile3 = tiletmp4;
+    tile4 = tiletmp3; 
+  }
 
 //  tile = tileBase+(tile1-vramOffset);
 //  console.log('tile: ' + tile);
   tile = tile1;
   tX = tile % 16;
   tY = Math.floor(tile/16);
-
 //  var imgData = contextTilesets.getImageData(0,0, 8, 8);
-  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), size*(posY), flipX*8*size, 8*size);
-
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), flipY*size*(posY), flipX*8*size, flipY*8*size);
 
 //  tile = tileBase+(tile2-vramOffset);
   tile = tile2;
   tX = tile % 16;
   tY = Math.floor(tile/16);
-  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), size*(posY+8), flipX*8*size, 8*size);
-
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX), flipY*size*(posY+8), flipX*8*size, flipY*8*size);
 
 //  tile = tileBase+(tile1+1-vramOffset);
   tile = tile3;
   tX = tile % 16;
   tY = Math.floor(tile/16);
-  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), size*(posY), flipX*8*size, 8*size);
-
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), flipY*size*(posY), flipX*8*size, flipY*8*size);
 
 //  tile = tileBase+(tile2+1-vramOffset);
   tile = tile4;
   tX = tile % 16;
   tY = Math.floor(tile/16);
-  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), size*(posY+8), flipX*8*size, 8*size);
+  contextBoss.drawImage(imgTilesets, tX*8, tY*8, 8, 8, flipX*size*(posX+8), flipY*size*(posY+8), flipX*8*size, flipY*8*size);
 
   contextBoss.restore();
-
-
 }
 
 

@@ -1,5 +1,39 @@
 
-import mystic.romStats
+import mystic.address
+
+
+data = []
+
+def appendData(initAddr, dataSize, dataFilepath):
+  """ append data to the rom info """
+  data.append( (initAddr, dataSize, dataFilepath) )
+
+def _globalAddrToStrAddr(globalAddr):
+
+  numBank = globalAddr // 0x4000
+  offset = globalAddr % 0x4000
+
+  strAddr = '{:02x}:{:04x}'.format(numBank, offset)
+  return strAddr
+
+
+def exportData():
+
+#  print('data: ' + str(data))
+  sortedData = sorted(data)
+#  print('sortedData: ' + str(sortedData))
+
+  for d in sortedData:
+    initAddr = d[0]
+    dataSize = d[1]
+    dataFilepath = d[2]
+    strInitAddr = _globalAddrToStrAddr(initAddr)
+    strEndAddr = _globalAddrToStrAddr(initAddr+dataSize-1)
+
+#    print('initAddr: ' + strInitAddr + ' endAddr: ' + strEndAddr + ' filepath: '.format(initAddr, dataSize) + dataFilepath)
+
+##################################### all bellow this is deprecated and should be deleted
+
 
 # los bancoDatas
 banks = []
@@ -15,7 +49,7 @@ datos = []
 
 def appendDato(banco, iniAddr, finAddr, color, descrip):
   """ agrega un dato a la info de los bancos """
-  mystic.romStats.datos.append( (banco, iniAddr, finAddr, color, descrip) )
+  datos.append( (banco, iniAddr, finAddr, color, descrip) )
 
 def exportPng():
 
@@ -30,7 +64,7 @@ def exportPng():
   pixels = img.load()
 
   # para cada dato
-  for dato in mystic.romStats.datos:
+  for dato in datos:
     banco   = dato[0]
     iniAddr = dato[1]
     finAddr = dato[2]
@@ -40,21 +74,21 @@ def exportPng():
 #    print('procesando en banco: {:02x}'.format(banco))
 
     # agarro el bancoData correspondiente
-    bancoData = mystic.romStats.banks[banco]
+    bancoData = banks[banco]
 
     # el intervalo indicado
     for i in range(iniAddr, finAddr):
       # lo coloreo del color indicado
       bancoData[i] = color
 
-#    mystic.romStats.banks[banco] = bancoData
+#    banks[banco] = bancoData
 
   # para cada uno de los 16 bancos
   for j in range(0,4):
     for i in range(0,4):
 
       # agarro el bancoData correspondiente
-      bancoData = mystic.romStats.banks[j*4+i]
+      bancoData = banks[j*4+i]
 
       imgBank = Image.new('RGB', (0x80, 0x80))
       imgBank.putdata(bancoData)
@@ -85,5 +119,7 @@ def exportPng():
   basePath = mystic.address.basePath
   # grabo la imagen
   img.save(basePath + '/rom_info.png')
+
+
 
 
