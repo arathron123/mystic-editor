@@ -116,6 +116,7 @@ img {
       <a href="#" id="menuMaps" onclick="selectMaps();">Maps</a>
       <a href="#" id="menuSpriteSheets" onclick="selectSpriteSheets();">SpriteSheets</a>
       <a href="#" id="menuTilesets" onclick="selectTilesets();">Tilesets</a>
+      <a href="#" id="menuRomInfo" onclick="selectRomInfo();">Rom Info</a>
     </div>
   </div> 
   <div class="subnav">
@@ -123,6 +124,7 @@ img {
     <div class="subnav-content">
       <a href="#" id="menuDictionary" onclick="selectDictionary();">Dictionary</a>
       <a href="#" id="menuTextPreview" onclick="selectTextPreview();">Text Preview</a>
+      <a href="#" id="menuItems" onclick="selectItems();">Items</a>
     </div>
   </div> 
   <a href="#" id="menuScripts" onclick="selectScripts();">Scripts</a>
@@ -309,6 +311,35 @@ img {
 </div>
 
 
+<!-- cargo el rom info -->
+<div class="maindiv" id="romInfo" style="display:none;">
+<h1 style="color:red;">Rom Info</h1>
+
+
+<table style="border-spacing: 30px">
+<tr>
+<th style="vertical-align: text-top;">
+
+<h3>Decode</h3>
+<table id="romInfoDecodeTable">
+</table>
+
+</th>
+<th style="vertical-align: text-top;">
+
+<h3>Encode</h3>
+<table id="romInfoEncodeTable">
+</table>
+
+</th>
+</tr>
+</table>
+
+</div>
+
+
+
+
 
 <!-- cargo el dictionary -->
 <div class="maindiv" id="dictionary" style="display:none;">
@@ -357,6 +388,41 @@ img {
 
 </div>
 
+
+
+<!-- cargo los items -->
+<div class="maindiv" id="items" style="display:none;">
+
+<h1 style="color:red;">Magic</h1>
+<table id="magictable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>name</th>
+  </tr>
+</table>
+
+<h1 style="color:red;">Items</h1>
+<table id="itemstable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>name</th>
+  </tr>
+</table>
+
+<h1 style="color:red;">Equip</h1>
+<table id="equiptable">
+  <tr>
+    <th>ID</th>
+    <th>comment</th>
+    <th>name</th>
+  </tr>
+</table>
+
+
+</div>
+
 <!-- cargo los scripts -->
 <div class="maindiv" id="scripts" style="display:none;">
 <h1 style="color:red;">Scripts</h1>
@@ -366,7 +432,7 @@ img {
 
 <p>Examples</p>
 
-<table id="heroProjstable">
+<table>
   <tr>
     <th><pre>script_0003();</pre></th>
     <th>Prints in the console the instructions to execute the script 0003</th>
@@ -418,6 +484,9 @@ document.body.appendChild(script);
 
 document.write("<script type='text/javascript' src='"+ basePath + '/scripts/jscripts.js' + "'><\/script>");
 
+document.write("<script type='text/javascript' src='"+ basePath + '/rom_info_decode.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/rom_info_encode.js' + "'><\/script>");
+
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_00.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_01.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/spriteSheets/sheet_02.js' + "'><\/script>");
@@ -445,6 +514,7 @@ document.write("<script type='text/javascript' src='"+ basePath + '/dictionary/d
 document.write("<script type='text/javascript' src='"+ basePath + '/bosses/bosses.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/npc/npcs.js' + "'><\/script>");
 document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/projectiles.js' + "'><\/script>");
+document.write("<script type='text/javascript' src='"+ basePath + '/windows/windows.js' + "'><\/script>");
 
 document.write("<script type='text/javascript' src='"+ basePath + '/projectiles/heroProjs.js' + "'><\/script>");
 
@@ -618,10 +688,14 @@ if(selectedMenu == 'mysticVM') {
   selectSpriteSheets();
 } else if(selectedMenu == 'tilesets') {
   selectTilesets();
+} else if(selectedMenu == 'romInfo') {
+  selectRomInfo();
 } else if(selectedMenu == 'dictionary') {
   selectDictionary();
 } else if(selectedMenu == 'textPreview') {
   selectTextPreview();
+} else if(selectedMenu == 'items') {
+  selectItems();  
 } else if(selectedMenu == 'scripts') {
   selectScripts();
 } else {
@@ -692,6 +766,11 @@ function selectTilesets() {
   selectMenu('tilesets', 'menuTilesets');
 }
 
+function selectRomInfo() {
+//  console.log('romInfo');
+  selectMenu('romInfo', 'menuRomInfo');
+}
+
 function selectDictionary() {
 //  console.log('dictionary');
   selectMenu('dictionary', 'menuDictionary');
@@ -702,10 +781,60 @@ function selectTextPreview() {
   selectMenu('textPreview', 'menuTextPreview');
 }
 
+function selectItems() {
+//  console.log('items');
+  selectMenu('items', 'menuItems');
+}
+
 function selectScripts() {
 //  console.log('scripts');
   selectMenu('scripts', 'menuScripts');
 }
+
+function fillRomBankInfo(rom_info_bank, context) {
+
+  var id = context.createImageData(128,128); 
+  var d  = id.data;                          
+
+  // recorro los data del rom_info_bank
+  for(i=0; i<rom_info_bank.length; i++) {
+    data = rom_info_bank[i];
+    iniAddr = parseInt(data['iniAddr'],16);
+    endAddr = parseInt(data['endAddr'],16);
+    filePath = data['filePath'];
+//    console.log('iniAddr: ' + iniAddr + ' endAddr: ' + endAddr);
+//    console.log('filePath: ' + filePath);
+
+    var r = 64 + Math.abs(hashString(filePath + 'Red') % 192);
+    var g = 64 + Math.abs(hashString(filePath + 'Green') % 192);
+    var b = 64 + Math.abs(hashString(filePath + 'Blue') % 192);
+    var a = 255; // 128 + Math.abs(hashString(filePath + 'Alpha') % 128);
+
+    for(k=iniAddr; k<endAddr; k++) {
+      d[4*k+0]   = r;
+      d[4*k+1]   = g;
+      d[4*k+2]   = b;
+      d[4*k+3]   = a;
+    }
+  }
+
+  context.putImageData( id, 0, 0 );
+
+}
+
+
+function hashString(text) {
+  var hash = 0,
+    i, chr;
+  if (text.length === 0) return hash;
+  for (i = 0; i < text.length; i++) {
+    chr = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
 
 function fillSheet(sheet, contextSheet, nroTileset) {
 
@@ -1102,6 +1231,7 @@ function drawCharTextPreview(char, posX, posY) {
 // The function gets called when the window is fully loaded
 window.onload = function() {
 
+
   // cargo los spriteSheets
   fillSheet(sheet_00, contextSheet00, 0);
   fillSheet(sheet_01, contextSheet01, 1);
@@ -1138,6 +1268,7 @@ window.onload = function() {
   nroMapaActual = 0x0e;
 //  bloqueX = 0;
 //  bloqueY = 0;
+
 
 
   var dictionaryTable = document.getElementById('dictionaryTable');
@@ -1401,6 +1532,89 @@ window.onload = function() {
 
   }
 
+
+
+  var magictable = document.getElementById('magictable');
+  
+  for(i=0; i<windows['magic'].length; i++) {
+
+    item = windows['magic'][i];
+
+    var tr = document.createElement("tr");
+
+    idItem = item['id'];
+    var th = document.createElement("th");
+    th.innerHTML = idItem;
+    tr.appendChild(th);
+
+    comment = item['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+    
+    name = item['name'];
+    var th = document.createElement("th");
+    th.innerHTML = name;
+    tr.appendChild(th);
+
+    magictable.appendChild(tr);    
+  }
+
+
+
+  var itemstable = document.getElementById('itemstable');
+  
+  for(i=0; i<windows['items'].length; i++) {
+
+    item = windows['items'][i];
+
+    var tr = document.createElement("tr");
+
+    idItem = item['id'];
+    var th = document.createElement("th");
+    th.innerHTML = idItem;
+    tr.appendChild(th);
+
+    comment = item['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+    
+    name = item['name'];
+    var th = document.createElement("th");
+    th.innerHTML = name;
+    tr.appendChild(th);
+
+    itemstable.appendChild(tr);    
+  }
+
+
+  var equiptable = document.getElementById('equiptable');
+  
+  for(i=0; i<windows['equip'].length; i++) {
+
+    item = windows['equip'][i];
+
+    var tr = document.createElement("tr");
+
+    idItem = item['id'];
+    var th = document.createElement("th");
+    th.innerHTML = idItem;
+    tr.appendChild(th);
+
+    comment = item['comment'];
+    var th = document.createElement("th");
+    th.innerHTML = comment;
+    tr.appendChild(th);
+    
+    name = item['name'];
+    var th = document.createElement("th");
+    th.innerHTML = name;
+    tr.appendChild(th);
+
+    equiptable.appendChild(tr);    
+  }    
+    
 
   var heroProjstable = document.getElementById('heroProjstable');
 
@@ -1850,6 +2064,79 @@ window.onload = function() {
 
   }
 
+
+
+  var romInfoDecodeTable = document.getElementById('romInfoDecodeTable');
+
+
+//  var numBanksDecode = 16;
+  var numBanksDecode = rom_info_decode.length;
+//  console.log('numBanksDecode: ' + numBanksDecode);
+
+  // redondeamos al múltiplo de 4 mas cercano por arriba
+  numBanksDecodeRounded = 4*Math.ceil(numBanksDecode/4);
+
+  var tr = document.createElement("tr");
+  for (var k=0; k<numBanksDecodeRounded; k++) {
+
+    var th = document.createElement("th");
+    th.innerHTML = '<p>Bank ' + k + '</p><canvas id="cRomDecoInfo' + k + '" width="128" height="128" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
+
+    if(k%4 == 3) {
+      romInfoDecodeTable.appendChild(tr); 
+      var tr = document.createElement("tr");
+    }
+  }
+
+
+//  var numBanksEncode = 16;
+  var numBanksEncode = rom_info_encode.length;
+
+  // redondeamos al múltiplo de 4 mas cercano por arriba
+  numBanksEncodeRounded = 4*Math.ceil(numBanksEncode/4);
+
+  var tr = document.createElement("tr");
+  for (var k=0; k<numBanksEncodeRounded; k++) {
+
+    var th = document.createElement("th");
+    th.innerHTML = '<p>Bank ' + k + '</p><canvas id="cRomEncoInfo' + k + '" width="128" height="128" style="border: 4px solid green;"></canvas>';
+    tr.appendChild(th);
+
+    if(k%4 == 3) {
+      romInfoEncodeTable.appendChild(tr); 
+      var tr = document.createElement("tr");
+    }
+  }
+
+
+  for (var k=0; k<numBanksDecode; k++) {
+    var canvasRomInfo = document.getElementById('cRomDecoInfo' + k);
+    var contextRomInfo = canvasRomInfo.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextRomInfo.imageSmoothingEnabled = false;
+
+    var rom_info_bank = rom_info_decode[k]['data'];
+    if(rom_info_bank != undefined) {
+      fillRomBankInfo(rom_info_bank, contextRomInfo);
+    }
+
+
+  }
+
+  for (var k=0; k<numBanksEncode; k++) {
+    var canvasRomInfo = document.getElementById('cRomEncoInfo' + k);
+    var contextRomInfo = canvasRomInfo.getContext("2d");
+    // para que dibuje pixelado (y no blurry)
+    contextRomInfo.imageSmoothingEnabled = false;
+
+    var rom_info_bank = rom_info_encode[k]['data'];
+    if(rom_info_bank != undefined) {
+      fillRomBankInfo(rom_info_bank, contextRomInfo);
+    }
+
+
+  }
 
 
 

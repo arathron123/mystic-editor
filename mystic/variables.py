@@ -1,308 +1,15 @@
 import mystic.variables
 
+
+#nombresOriginales = False
+nombresOriginales = True
+
 # diccionario de flags
 flags = {}
 for i in range(0,0x78):
   flags[i] = 'flag_{:02x}'.format(i)
 for i in range(0x78,0x80):
   flags[i] = 'flag_sinbatt_{:02x}'.format(i)
-
-# diccionario de monstruos grandes
-bosses = {}
-for i in range(0,0x15):
-  bosses[i] = 'boss_{:02x}'.format(i)
-
-# dictionary of npcs
-npc = {}
-for i in range(0,0xbf):
-  npc[i] = 'npc_{:02x}'.format(i)
-
-# dictionary of projectiles
-projectiles = {}
-for i in range(0,40):
-  projectiles[i] = 'proj_{:02x}'.format(i)
-
-# dictionary of hero sprites
-hero = {}
-for i in range(0,22):
-  hero[i] = 'hero_{:02x}'.format(i)
-
-
-# diccionario de ventanas/paneles
-windows = {}
-for i in range(0,34):
-  windows[i] = 'win_{:02x}'.format(i)
-
-
-# diccionario de canciones
-songs = {}
-songs[0x00] = 'song_MUTE'             # 0
-songs[0x01] = 'song_RISING_SUN'       # 1
-songs[0x02] = 'song_IN_SORROW'        # 2
-songs[0x03] = 'song_MANA_MISION'      # 3
-songs[0x04] = 'song_VILLAGE'          # 4
-songs[0x05] = 'song_CHOCOBOS_BIRTH'   # 5
-songs[0x06] = 'song_CHOCOBOS_THEME'   # 6
-songs[0x07] = 'song_DUNGEON_1'        # 7
-songs[0x08] = 'song_DUNGEON_2'        # 8
-songs[0x09] = 'song_DANGER'           # 9
-songs[0x0a] = 'song_JULIUS_AMBITION'  # 10
-songs[0x0b] = 'song_ROYAL_PALACE'     # 11
-songs[0x0c] = 'song_DUNGEON_3'        # 12
-songs[0x0d] = 'song_LET_THOUGHTS_RIDE_ON_KNOWLEDGE' #13
-songs[0x0e] = 'song_GLANCE_DUKEDOM'   # 14
-songs[0x0f] = 'song_FIGHT_1'          # 15
-songs[0x10] = 'song_FINAL_BATTLE'     # 16
-songs[0x11] = 'song_JINGLE'           # 17
-songs[0x12] = 'song_MOOGLES'          # 18
-songs[0x13] = 'song_FIGHT_2'          # 19
-songs[0x14] = 'song_OVERWORLD_1'      # 20
-songs[0x15] = 'song_SUNSET'           # 21
-songs[0x16] = 'song_MANA_PALACE'      # 22
-songs[0x17] = 'song_REQUIEM'          # 23
-songs[0x18] = 'song_DWARVES_THEME'    # 24
-songs[0x19] = 'song_OVERWORLD_2'      # 25
-songs[0x1a] = 'song_FIGHTING_ARENA'   # 26
-songs[0x1b] = 'song_GEMMAS_REALIZATION' # 27
-songs[0x1c] = 'song_LEVEL_UP'         # 28
-songs[0x1d] = 'song_TENSION'          # 29
-songs[0x1e] = 'song_ILL'              # 30
-
-
-# diccionario de efectos de sonido sfx
-sounds = {}
-sounds[0x00] = 'sfx_MUTE'
-sounds[0x01] = 'sfx_SWORD_SLIDE'
-sounds[0x02] = 'sfx_SWORD_STRAIGHT'
-sounds[0x03] = 'sfx_FIRE'
-sounds[0x04] = 'sfx_BREAK_WALL_IDK'
-sounds[0x05] = 'sfx_CURE'
-sounds[0x06] = 'sfx_LESTER_CURED'
-sounds[0x07] = 'sfx_CUACK'
-sounds[0x08] = 'sfx_KAMEHAMEHA'
-sounds[0x09] = 'sfx_STRANGE_FALL_IDK'
-sounds[0x0a] = 'sfx_BLING'
-sounds[0x0b] = 'sfx_ENEMY_DEFEATED'
-sounds[0x0c] = 'sfx_FALLING'
-sounds[0x0d] = 'sfx_ENEMY_HIT'
-sounds[0x0e] = 'sfx_WRONG_PHONE'
-sounds[0x0f] = 'sfx_OPEN_CHEST'
-sounds[0x10] = 'sfx_CLOSE_DOOR'
-sounds[0x11] = 'sfx_HUGE_EXPLOSION'
-sounds[0x12] = 'sfx_ITEM_SELECT'
-sounds[0x13] = 'sfx_MAGIC_BLEEP'
-sounds[0x14] = 'sfx_SPLASH'
-sounds[0x15] = 'sfx_SHIELD_BLOCKING'
-sounds[0x16] = 'sfx_METAL_CLASHING'
-sounds[0x17] = 'sfx_NEVERENDING_STEAM_ENGINE'
-sounds[0x18] = 'sfx_PASSAGE_FOUND'
-sounds[0x19] = 'sfx_SMALL_EXPLOSION'
-sounds[0x1a] = 'sfx_MEDIUM_EXPLOSION'
-sounds[0x1b] = 'sfx_NEVERENDING_HELICOPTER'
-sounds[0x1c] = 'sfx_CHAIN_IDK'
-sounds[0x1d] = 'sfx_CHAIN2_IDK'
-sounds[0x1e] = 'sfx_SICKLE'
-sounds[0x1f] = 'sfx_MORNING_STAR'
-sounds[0x20] = 'sfx_DEFEATED'
-sounds[0x21] = 'sfx_SWORD_SPECIAL'
-sounds[0x22] = 'sfx_NOSOUND'
-sounds[0x23] = 'sfx_BEEP'
-sounds[0x24] = 'sfx_BOOP'
-sounds[0x25] = 'sfx_FIRE_ATTACKED'
-
-# dictionary of hero-projectile frames
-hero_projectile_frame = {}
-hero_projectile_frame[0] = 'frame_SWORD'
-hero_projectile_frame[1] = 'frame_KAMEHAMEHA'
-hero_projectile_frame[2] = 'frame_FIRE'
-hero_projectile_frame[3] = 'frame_ICE'
-hero_projectile_frame[4] = 'frame_FIRE1'
-hero_projectile_frame[5] = 'frame_FIRE2'
-hero_projectile_frame[6] = 'frame_ICE1'
-hero_projectile_frame[7] = 'frame_ICE2'
-hero_projectile_frame[8] = 'frame_ICE3'
-hero_projectile_frame[9] = 'frame_ICE4'
-hero_projectile_frame[10] = 'frame_CURE1'
-hero_projectile_frame[11] = 'frame_CURE2'
-hero_projectile_frame[12] = 'frame_CURE3'
-hero_projectile_frame[13] = 'frame_CURE4'
-hero_projectile_frame[14] = 'frame_PURE'
-hero_projectile_frame[15] = 'frame_PURE1'
-hero_projectile_frame[16] = 'frame_PURE2'
-hero_projectile_frame[17] = 'frame_PURE3'
-hero_projectile_frame[18] = 'frame_PURE4'
-hero_projectile_frame[19] = 'frame_BLANK'
-hero_projectile_frame[20] = 'frame_SLEEP1'
-hero_projectile_frame[21] = 'frame_SLEEP2'
-hero_projectile_frame[22] = 'frame_SLEEP3'
-hero_projectile_frame[23] = 'frame_SLEEP4'
-hero_projectile_frame[24] = 'frame_MUTE1'
-hero_projectile_frame[25] = 'frame_MUTE2'
-hero_projectile_frame[26] = 'frame_MUTE3'
-hero_projectile_frame[27] = 'frame_MUTE4'
-hero_projectile_frame[28] = 'frame_NUKE1'
-hero_projectile_frame[29] = 'frame_NUKE2'
-hero_projectile_frame[30] = 'frame_THUNDER1'
-hero_projectile_frame[31] = 'frame_THUNDER2'
-hero_projectile_frame[32] = 'frame_THUNDER3'
-hero_projectile_frame[33] = 'frame_AXE'
-hero_projectile_frame[34] = 'frame_CHAIN'
-hero_projectile_frame[35] = 'frame_CHAIN1'
-hero_projectile_frame[36] = 'frame_CHAIN2'
-hero_projectile_frame[37] = 'frame_CHAIN3'
-hero_projectile_frame[38] = 'frame_CHAIN4'
-hero_projectile_frame[39] = 'frame_SICKLE'
-hero_projectile_frame[40] = 'frame_SICKLE1'
-hero_projectile_frame[41] = 'frame_SPEAR1'
-hero_projectile_frame[42] = 'frame_SPEAR2'
-hero_projectile_frame[43] = 'frame_MORNINGSTAR'
-hero_projectile_frame[44] = 'frame_MATTOCK'
-hero_projectile_frame[45] = 'frame_MATTOCK1'
-hero_projectile_frame[46] = 'frame_MATTOCK2'
-hero_projectile_frame[47] = 'frame_MATTOCK3'
-
-hero_projs_animation = ['anim_EXPLOSION',
-                        'anim_SWORD',
-                        'anim_AXE',
-                        'anim_CHAIN',
-                        'anim_SICKLE',
-                        'anim_SPEAR',
-                        'anim_MORNINGSTAR',
-                        'anim_NOTHING',
-                        'anim_CURE',
-                        'anim_PURE',
-                        'anim_MUTE',
-                        'anim_SLEEP',
-                        'anim_FIRE',
-                        'anim_ICE',
-                        'anim_THUNDER',
-                        'anim_NUKE'
-                       ]
-
-#self.equipamiento = {}
-# 0x09 empieza los items de items
-# 0x42 empieza los items de armas
-
-items = []
-items.append('💧Cure')
-items.append('💧X-Cure')
-items.append('💧Ether')
-items.append('💧X-Ether')
-items.append('💧Elixir')
-items.append('💧Pure')
-items.append('💧Eyedrp')
-items.append('💧Soft')
-items.append('💧Moogle')
-items.append('💧Unicorn')
-items.append('🔮Silence')
-items.append('🔮Pillow')
-items.append('0c af e5')
-items.append('0d d7 e5')
-items.append('🔮Flame')
-items.append('🔮Blaze')
-items.append('🔮Blizrd')
-items.append('🔮Frost')
-items.append('🔮Litblt')
-items.append('🔮Thundr')
-items.append('🍬Candy')
-items.append('15 8a a7')
-items.append('🔑Key')
-items.append('🔑Bone')
-items.append('🔑Bronze')
-items.append('19 a4 a2')
-items.append('1a 94 50')
-items.append('1b 8a 8e')
-items.append('1c 8a 8f')
-items.append('1d da d0')
-items.append(' Mirror')
-items.append('1f db c8')
-items.append('20 c8 cb')
-items.append('💧Amanda')
-items.append('22 63 e2')
-items.append('23 dc f2')
-items.append('💧Oil')
-items.append('25 c7 d0')
-items.append('26 c7 d0')
-items.append('27 c7 d0')
-items.append('28 c7 d0')
-items.append('💎Crystal')
-items.append('2a dc f2')
-items.append('💎Nectar')
-items.append('💎Stamina')
-items.append('💎Wisdom')
-items.append('💎Will')
-items.append('2f 99 8b')
-items.append('30 62 e7')
-items.append('💰Gold')
-items.append('💰Fang')
-items.append('33 4a 8b')
-items.append('34 de f2')
-items.append('𐇞Mattok')
-items.append('💰Ruby')
-items.append('💰Opal')
-items.append('38 e3 59')
-
-magias = []
-magias.append('Cure')
-magias.append('Heal')
-magias.append('Mute')
-magias.append('Slep')
-magias.append('Fire')
-magias.append('Ice ')
-magias.append('Lit ')
-magias.append('Nuke')
-
-armas = []
-armas.append('🗡Broad')
-armas.append('🪓Battle')
-armas.append('🔨Sickle')
-armas.append('🔗Chain')
-armas.append('🗡Silver')
-armas.append('🡔Wind')
-armas.append('🪓Were')
-armas.append('💣Star')
-armas.append('🗡Blood')
-armas.append('🗡Dragon')
-armas.append('🔗Flame')
-armas.append('🗡Ice')
-armas.append('🪓Zeus')
-armas.append('🗡Rusty')
-armas.append('🡔Thunder')
-armas.append('🗡XCalibr')
-armas.append('👕Bronze')
-armas.append('👕Iron')
-armas.append('👕Silver')
-armas.append('👕Gold')
-armas.append('👕Flame')
-armas.append('👕Ice')
-armas.append('👕Dragon')
-armas.append('👕Samurai')
-armas.append('👕Opal')
-armas.append('19 e1 e6')
-armas.append('1a e1 e6')
-armas.append('⛨Bronze')
-armas.append('⛨Iron')
-armas.append('⛨Silver')
-armas.append('⛨Gold')
-armas.append('⛨Flame')
-armas.append('⛨Dragon')
-armas.append('⛨Aegis')
-armas.append('⛨Opal')
-armas.append('⛨Ice')
-armas.append('24 99 9c')
-armas.append('25 99 9c')
-armas.append('🎩Bronze')
-armas.append('🎩Iron')
-armas.append('🎩Silver')
-armas.append('🎩Gold')
-armas.append('🎩Opal')
-armas.append('🎩Samurai')
-armas.append('2c 8f 51')
-armas.append('2d 8f 51')
-
-
-#nombresOriginales = False
-nombresOriginales = True
 # si esta seteado mostrar los nombres originales
 if(nombresOriginales):
   # se setea automáticamente si al intentar agregar un item resulta que estaba lleno
@@ -411,6 +118,13 @@ if(nombresOriginales):
   # cuando nos hacen una pregunta si-no
 #  flags[0x7f] = 'ELIGIMOS_NO'
 
+
+# diccionario de monstruos grandes
+bosses = {}
+for i in range(0,0x15):
+  bosses[i] = 'boss_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
   # nombres de los monstruos grandes
   bosses[0x00] = 'boss_VAMPIRE_LEE'
   bosses[0x01] = 'boss_HYDRA'
@@ -434,6 +148,13 @@ if(nombresOriginales):
   bosses[0x13] = 'boss_MANTIS_ANT'
   bosses[0x14] = 'boss_DRAGON_RED'
 
+
+# dictionary of npcs
+npc = {}
+for i in range(0,0xbf):
+  npc[i] = 'npc_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
   # names of the npcs
   npc[0x00] = 'npc_SNOWMAN_STILL'
   npc[0x01] = 'npc_FUJI_FOLLOWING'
@@ -627,29 +348,13 @@ if(nombresOriginales):
   npc[0xbd] = 'npc_MAGIC_SALESMAN'
   npc[0xbe] = 'npc_LAST_GUY'
 
-  hero[0x00] = 'hero_STANDING'
-  hero[0x01] = 'hero_WALKING'
-  hero[0x02] = 'hero_FALLING'
-  hero[0x03] = 'hero_UNUSED_1'
-  hero[0x04] = 'hero_ATTACK_START'
-  hero[0x05] = 'hero_ATTACK_END'
-  hero[0x06] = 'hero_SPECIAL_ATTACK'
-  hero[0x07] = 'hero_ATTACK_2'
-  hero[0x08] = 'hero_ATTACK_3'
-  hero[0x09] = 'hero_ATTACK_4'
-  hero[0x0a] = 'hero_TROLLEY'
-  hero[0x0b] = 'hero_DEAD'
-  hero[0x0c] = 'hero_MOOGLE_STANDING'
-  hero[0x0d] = 'hero_MOOGLE_WALKING'
-  hero[0x0e] = 'hero_MOOGLE_HEAD'
-  hero[0x0f] = 'hero_UNUSED_2'
-  hero[0x10] = 'hero_CHOCOBO_STANDING'
-  hero[0x11] = 'hero_CHOCOBO_WALKING'
-  hero[0x12] = 'hero_CHOCOBOT_STANDING'
-  hero[0x13] = 'hero_CHOCOBOT_WALKING'
-  hero[0x14] = 'hero_CHOCOBOAT_STANDING'
-  hero[0x15] = 'hero_CHOCOBOAT_WALKING'
 
+# dictionary of projectiles
+projectiles = {}
+for i in range(0,40):
+  projectiles[i] = 'proj_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
   projectiles[0x00] = 'proj_GOBLIN_DAGGER'
   projectiles[0x01] = 'proj_VOICE'
   projectiles[0x02] = 'proj_NEEDLE'
@@ -692,7 +397,42 @@ if(nombresOriginales):
   projectiles[0x27] = 'proj_DRAGON_VORTEX'
 
 
+# dictionary of hero sprites
+hero = {}
+for i in range(0,22):
+  hero[i] = 'hero_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  hero[0x00] = 'hero_STANDING'
+  hero[0x01] = 'hero_WALKING'
+  hero[0x02] = 'hero_FALLING'
+  hero[0x03] = 'hero_UNUSED_1'
+  hero[0x04] = 'hero_ATTACK_START'
+  hero[0x05] = 'hero_ATTACK_END'
+  hero[0x06] = 'hero_SPECIAL_ATTACK'
+  hero[0x07] = 'hero_ATTACK_2'
+  hero[0x08] = 'hero_ATTACK_3'
+  hero[0x09] = 'hero_ATTACK_4'
+  hero[0x0a] = 'hero_TROLLEY'
+  hero[0x0b] = 'hero_DEAD'
+  hero[0x0c] = 'hero_MOOGLE_STANDING'
+  hero[0x0d] = 'hero_MOOGLE_WALKING'
+  hero[0x0e] = 'hero_MOOGLE_HEAD'
+  hero[0x0f] = 'hero_UNUSED_2'
+  hero[0x10] = 'hero_CHOCOBO_STANDING'
+  hero[0x11] = 'hero_CHOCOBO_WALKING'
+  hero[0x12] = 'hero_CHOCOBOT_STANDING'
+  hero[0x13] = 'hero_CHOCOBOT_WALKING'
+  hero[0x14] = 'hero_CHOCOBOAT_STANDING'
+  hero[0x15] = 'hero_CHOCOBOAT_WALKING'
 
+
+# diccionario de ventanas/paneles
+windows = {}
+for i in range(0,34):
+  windows[i] = 'win_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
   # nombres de las ventanas/paneles
   windows[0x00] = 'win_START_MENU'
   windows[0x01] = 'win_ITEMS'
@@ -746,86 +486,413 @@ if(nombresOriginales):
 
  
 
-  def getLabel(val):
-    # el primer bit indica si hay que negar la variable
-    neg = val >= 0x80
-    if(neg):
-      val -= 0x80
-    strNeg = '' if not neg else '~'
-#    strVar = 'var[{:02x}] '.format(cond)
-    strVar = flags[val]
-    label = strNeg + strVar
-    return label
 
-  def getVal(label):
-    retVal = -1
-#    print('ejecutando getVal(\'' + label + '\')')
+# diccionario de canciones
+songs = {}
+for i in range(0,31):
+  songs[i] = 'song_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  # nombres de las canciones
+  songs[0x00] = 'song_MUTE'             # 0
+  songs[0x01] = 'song_RISING_SUN'       # 1
+  songs[0x02] = 'song_IN_SORROW'        # 2
+  songs[0x03] = 'song_MANA_MISION'      # 3
+  songs[0x04] = 'song_VILLAGE'          # 4
+  songs[0x05] = 'song_CHOCOBOS_BIRTH'   # 5
+  songs[0x06] = 'song_CHOCOBOS_THEME'   # 6
+  songs[0x07] = 'song_DUNGEON_1'        # 7
+  songs[0x08] = 'song_DUNGEON_2'        # 8
+  songs[0x09] = 'song_DANGER'           # 9
+  songs[0x0a] = 'song_JULIUS_AMBITION'  # 10
+  songs[0x0b] = 'song_ROYAL_PALACE'     # 11
+  songs[0x0c] = 'song_DUNGEON_3'        # 12
+  songs[0x0d] = 'song_LET_THOUGHTS_RIDE_ON_KNOWLEDGE' #13
+  songs[0x0e] = 'song_GLANCE_DUKEDOM'   # 14
+  songs[0x0f] = 'song_FIGHT_1'          # 15
+  songs[0x10] = 'song_FINAL_BATTLE'     # 16
+  songs[0x11] = 'song_JINGLE'           # 17
+  songs[0x12] = 'song_MOOGLES'          # 18
+  songs[0x13] = 'song_FIGHT_2'          # 19
+  songs[0x14] = 'song_OVERWORLD_1'      # 20
+  songs[0x15] = 'song_SUNSET'           # 21
+  songs[0x16] = 'song_MANA_PALACE'      # 22
+  songs[0x17] = 'song_REQUIEM'          # 23
+  songs[0x18] = 'song_DWARVES_THEME'    # 24
+  songs[0x19] = 'song_OVERWORLD_2'      # 25
+  songs[0x1a] = 'song_FIGHTING_ARENA'   # 26
+  songs[0x1b] = 'song_GEMMAS_REALIZATION' # 27
+  songs[0x1c] = 'song_LEVEL_UP'         # 28
+  songs[0x1d] = 'song_TENSION'          # 29
+  songs[0x1e] = 'song_ILL'              # 30
 
-    neg = False
-    # si esta negada
-    if(label.startswith('~')):
-      # lo indico
-      neg = True
-      # y quito el '!' del label 
-      label = label[1:]
 
-    # por cada valor del diccionario de variables
-    for val in flags.keys():
-      # me fijo el label
-      lbl = flags[val]
-      # si lo encontré
-      if(lbl == label):
-        retVal = val
-        # si estaba negada
-        if(neg):
-          # seteamos el primer bit
-          retVal += 0x80
+# diccionario de los efectos de sonido sfx
+sounds = {}
+for i in range(0,38):
+  sounds[i] = 'sfx_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  sounds[0x00] = 'sfx_MUTE'
+  sounds[0x01] = 'sfx_SWORD_SLIDE'
+  sounds[0x02] = 'sfx_SWORD_STRAIGHT'
+  sounds[0x03] = 'sfx_FIRE'
+  sounds[0x04] = 'sfx_BREAK_WALL_IDK'
+  sounds[0x05] = 'sfx_CURE'
+  sounds[0x06] = 'sfx_LESTER_CURED'
+  sounds[0x07] = 'sfx_CUACK'
+  sounds[0x08] = 'sfx_KAMEHAMEHA'
+  sounds[0x09] = 'sfx_STRANGE_FALL_IDK'
+  sounds[0x0a] = 'sfx_BLING'
+  sounds[0x0b] = 'sfx_ENEMY_DEFEATED'
+  sounds[0x0c] = 'sfx_FALLING'
+  sounds[0x0d] = 'sfx_ENEMY_HIT'
+  sounds[0x0e] = 'sfx_WRONG_PHONE'
+  sounds[0x0f] = 'sfx_OPEN_CHEST'
+  sounds[0x10] = 'sfx_CLOSE_DOOR'
+  sounds[0x11] = 'sfx_HUGE_EXPLOSION'
+  sounds[0x12] = 'sfx_ITEM_SELECT'
+  sounds[0x13] = 'sfx_MAGIC_BLEEP'
+  sounds[0x14] = 'sfx_SPLASH'
+  sounds[0x15] = 'sfx_SHIELD_BLOCKING'
+  sounds[0x16] = 'sfx_METAL_CLASHING'
+  sounds[0x17] = 'sfx_NEVERENDING_STEAM_ENGINE'
+  sounds[0x18] = 'sfx_PASSAGE_FOUND'
+  sounds[0x19] = 'sfx_SMALL_EXPLOSION'
+  sounds[0x1a] = 'sfx_MEDIUM_EXPLOSION'
+  sounds[0x1b] = 'sfx_NEVERENDING_HELICOPTER'
+  sounds[0x1c] = 'sfx_CHAIN_IDK'
+  sounds[0x1d] = 'sfx_CHAIN2_IDK'
+  sounds[0x1e] = 'sfx_SICKLE'
+  sounds[0x1f] = 'sfx_MORNING_STAR'
+  sounds[0x20] = 'sfx_DEFEATED'
+  sounds[0x21] = 'sfx_SWORD_SPECIAL'
+  sounds[0x22] = 'sfx_NOSOUND'
+  sounds[0x23] = 'sfx_BEEP'
+  sounds[0x24] = 'sfx_BOOP'
+  sounds[0x25] = 'sfx_FIRE_ATTACKED'
 
-        break
+# dictionary of hero-projectile frames
+hero_projectile_frame = {}
+for i in range(0,48):
+  hero_projectile_frame[i] = 'frame_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  hero_projectile_frame[0] = 'frame_SWORD'
+  hero_projectile_frame[1] = 'frame_KAMEHAMEHA'
+  hero_projectile_frame[2] = 'frame_FIRE'
+  hero_projectile_frame[3] = 'frame_ICE'
+  hero_projectile_frame[4] = 'frame_FIRE1'
+  hero_projectile_frame[5] = 'frame_FIRE2'
+  hero_projectile_frame[6] = 'frame_ICE1'
+  hero_projectile_frame[7] = 'frame_ICE2'
+  hero_projectile_frame[8] = 'frame_ICE3'
+  hero_projectile_frame[9] = 'frame_ICE4'
+  hero_projectile_frame[10] = 'frame_CURE1'
+  hero_projectile_frame[11] = 'frame_CURE2'
+  hero_projectile_frame[12] = 'frame_CURE3'
+  hero_projectile_frame[13] = 'frame_CURE4'
+  hero_projectile_frame[14] = 'frame_PURE'
+  hero_projectile_frame[15] = 'frame_PURE1'
+  hero_projectile_frame[16] = 'frame_PURE2'
+  hero_projectile_frame[17] = 'frame_PURE3'
+  hero_projectile_frame[18] = 'frame_PURE4'
+  hero_projectile_frame[19] = 'frame_BLANK'
+  hero_projectile_frame[20] = 'frame_SLEEP1'
+  hero_projectile_frame[21] = 'frame_SLEEP2'
+  hero_projectile_frame[22] = 'frame_SLEEP3'
+  hero_projectile_frame[23] = 'frame_SLEEP4'
+  hero_projectile_frame[24] = 'frame_MUTE1'
+  hero_projectile_frame[25] = 'frame_MUTE2'
+  hero_projectile_frame[26] = 'frame_MUTE3'
+  hero_projectile_frame[27] = 'frame_MUTE4'
+  hero_projectile_frame[28] = 'frame_NUKE1'
+  hero_projectile_frame[29] = 'frame_NUKE2'
+  hero_projectile_frame[30] = 'frame_THUNDER1'
+  hero_projectile_frame[31] = 'frame_THUNDER2'
+  hero_projectile_frame[32] = 'frame_THUNDER3'
+  hero_projectile_frame[33] = 'frame_AXE'
+  hero_projectile_frame[34] = 'frame_CHAIN'
+  hero_projectile_frame[35] = 'frame_CHAIN1'
+  hero_projectile_frame[36] = 'frame_CHAIN2'
+  hero_projectile_frame[37] = 'frame_CHAIN3'
+  hero_projectile_frame[38] = 'frame_CHAIN4'
+  hero_projectile_frame[39] = 'frame_SICKLE'
+  hero_projectile_frame[40] = 'frame_SICKLE1'
+  hero_projectile_frame[41] = 'frame_SPEAR1'
+  hero_projectile_frame[42] = 'frame_SPEAR2'
+  hero_projectile_frame[43] = 'frame_MORNINGSTAR'
+  hero_projectile_frame[44] = 'frame_MATTOCK'
+  hero_projectile_frame[45] = 'frame_MATTOCK1'
+  hero_projectile_frame[46] = 'frame_MATTOCK2'
+  hero_projectile_frame[47] = 'frame_MATTOCK3'
 
-    return retVal
+# dictionary of hero-projectile frames
+hero_projs_animation = {}
+for i in range(0,48):
+  hero_projs_animation[i] = 'anim_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  hero_projs_animation[0] = 'anim_EXPLOSION'
+  hero_projs_animation[1] = 'anim_SWORD'
+  hero_projs_animation[2] = 'anim_AXE'
+  hero_projs_animation[3] = 'anim_CHAIN'
+  hero_projs_animation[4] = 'anim_SICKLE'
+  hero_projs_animation[5] = 'anim_SPEAR'
+  hero_projs_animation[6] = 'anim_MORNINGSTAR'
+  hero_projs_animation[7] = 'anim_NOTHING'
+  hero_projs_animation[8] = 'anim_CURE'
+  hero_projs_animation[9] = 'anim_PURE'
+  hero_projs_animation[10] = 'anim_MUTE'
+  hero_projs_animation[11] = 'anim_SLEEP'
+  hero_projs_animation[12] = 'anim_FIRE'
+  hero_projs_animation[13] = 'anim_ICE'
+  hero_projs_animation[14] = 'anim_THUNDER'
+  hero_projs_animation[15] = 'anim_NUKE'
 
 
-  def getLabelBoss(val):
-    label = bosses[val]
-    return label
-  def getValBoss(label):
-    # por cada monstruo 
-    for val in bosses.keys():
-      # me fijo el label
-      lbl = bosses[val]
-      # si lo encontré
-      if(lbl == label):
-        retVal = val
-        break
-    return retVal
+# diccionario de magias
+magic = {}
+for i in range(0,8):
+  magic[i] = 'magic_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  magic[0] = 'magic_CURE' 
+  magic[1] = 'magic_HEAL' 
+  magic[2] = 'magic_MUTE' 
+  magic[3] = 'magic_SLEEP' 
+  magic[4] = 'magic_FIRE' 
+  magic[5] = 'magic_ICE' 
+  magic[6] = 'magic_LIT' 
+  magic[7] = 'magic_NUKE' 
 
-  def getLabelSong(val):
-    label = songs[val]
-    return label
-  def getValSong(label):
-    # por cada song
-    for val in songs.keys():
-      # me fijo el label
-      lbl = songs[val]
-      # si lo encontré
-      if(lbl == label):
-        retVal = val
-        break
-    return retVal
 
-  def getLabelSFX(val):
-    label = sounds[val]
-    return label
-  def getValSFX(label):
-    # por cada sfx
-    for val in sounds.keys():
-      # me fijo el label
-      lbl = sounds[val]
-      # si lo encontré
-      if(lbl == label):
-        retVal = val
-        break
-    return retVal
+#self.equipamiento = {}
+# 0x09 empieza los items de items
+# 0x42 empieza los items de armas
+
+item = {}
+for i in range(0,57):
+  item[i] = 'item_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  item[0] = 'item_CURE'
+  item[1] = 'item_X-CURE'
+  item[2] = 'item_ETHER'
+  item[3] = 'item_X-ETHER'
+  item[4] = 'item_ELIXIR'
+  item[5] = 'item_PURE'
+  item[6] = 'item_EYEDROP'
+  item[7] = 'item_SOFT'
+  item[8] = 'item_MOOGLE'
+  item[9] = 'item_UNICORN'
+  item[10] = 'item_SILENCE'
+  item[11] = 'item_PILLOW'
+#  item[12] = 'item_UNUSED_1'
+  item[12] = 'item_FLARE_WAVE'
+#  item[13] = 'item_UNUSED_2'
+  item[13] = 'item_FLARE_BAZOOKA'
+  item[14] = 'item_FLAME'
+  item[15] = 'item_BLAZE'
+  item[16] = 'item_BLIZZARD'
+  item[17] = 'item_FROST'
+  item[18] = 'item_LITBOLT'
+  item[19] = 'item_THUNDER'
+  item[20] = 'item_CANDY'
+#  item[21] = 'item_UNUSED_3'
+  item[21] = 'item_DUMMY_SPARE_2'
+  item[22] = 'item_KEY'
+  item[23] = 'item_KEY_BONE'
+  item[24] = 'item_KEY_BRONZE'
+#  item[25] = 'item_UNUSED_4'
+  item[25] = 'item_FIRE_RING'
+#  item[26] = 'item_UNUSED_5'
+  item[26] = 'item_RUSTED_KEY'
+#  item[27] = 'item_UNUSED_6'
+  item[27] = 'item_BLUE_ORB'
+#  item[28] = 'item_UNUSED_7'
+  item[28] = 'item_RED_ORB'
+#  item[29] = 'item_UNUSED_8'
+  item[29] = 'item_MANA_PENDANT'
+  item[30] = 'item_MIRROR'
+#  item[31] = 'item_UNUSED_9'
+  item[31] = 'item_MYTHRIL'
+#  item[32] = 'item_UNUSED_10'
+  item[32] = 'item_STAR_SAPPHIRE'
+  item[33] = 'item_AMANDA_TEAR'
+#  item[34] = 'item_UNUSED_11'
+  item[34] = 'item_BALANCER'
+#  item[35] = 'item_UNUSED_12'
+  item[35] = 'item_MOON_CRYSTAL'
+  item[36] = 'item_OIL'
+#  item[37] = 'item_UNUSED_13'
+  item[37] = 'item_SCENARIO_SPARE_2'
+#  item[38] = 'item_UNUSED_14'
+  item[38] = 'item_SCENARIO_SPARE_3'
+#  item[39] = 'item_UNUSED_15'
+  item[39] = 'item_SCENARIO_SPARE_4'
+#  item[40] = 'item_UNUSED_16'
+  item[40] = 'item_SCENARIO_SPARE_5'
+  item[41] = 'item_CRYSTAL'
+#  item[42] = 'item_UNUSED_17'
+  item[42] = 'item_MOON_CRYSTAL'
+  item[43] = 'item_NECTAR'
+  item[44] = 'item_STAMINA'
+  item[45] = 'item_WISDOM'
+  item[46] = 'item_WILL'
+#  item[47] = 'item_UNUSED_18'
+  item[47] = 'item_TORCH'
+#  item[48] = 'item_UNUSED_19'
+  item[48] = 'item_DWARF_LAMP'
+  item[49] = 'item_GOLD'
+  item[50] = 'item_FANG'
+#  item[51] = 'item_UNUSED_20'
+  item[51] = 'item_EARTH_DRUM'
+#  item[52] = 'item_UNUSED_21'
+  item[52] = 'item_MOOGLE_FLUTE'
+  item[53] = 'item_MATTOCK'
+  item[54] = 'item_RUBY'
+  item[55] = 'item_OPAL'
+#  item[56] = 'item_UNUSED_22'
+  item[56] = 'item_RESERVE'
+
+equip = {}
+for i in range(0,8):
+  equip[i] = 'equip_{:02x}'.format(i)
+# si esta seteado mostrar los nombres originales
+if(nombresOriginales):
+  equip[0] = 'equip_BROAD_SWORD'
+  equip[1] = 'equip_BATTLE_AXE'
+  equip[2] = 'equip_SICKLE'
+  equip[3] = 'equip_CHAIN'
+  equip[4] = 'equip_SILVER_SWORD'
+  equip[5] = 'equip_WIND_SPEAR'
+  equip[6] = 'equip_WERE_AXE'
+  equip[7] = 'equip_MORNING_STAR'
+  equip[8] = 'equip_BLOOD_SWORD'
+  equip[9] = 'equip_DRAGON_SWORD'
+  equip[10] = 'equip_FLAME_CHAIN'
+  equip[11] = 'equip_ICE_SWORD'
+  equip[12] = 'equip_ZEUS_AXE'
+  equip[13] = 'equip_RUSTY_SWORD'
+  equip[14] = 'equip_THUNDER_SPEAR'
+  equip[15] = 'equip_EXCALIBUR'
+  equip[16] = 'equip_BRONZE_ARMOR'
+  equip[17] = 'equip_IRON_ARMOR'
+  equip[18] = 'equip_SILVER_ARMOR'
+  equip[19] = 'equip_GOLD_ARMOR'
+  equip[20] = 'equip_FLAME_ARMOR'
+  equip[21] = 'equip_ICE_ARMOR'
+  equip[22] = 'equip_DRAGON_ARMOR'
+  equip[23] = 'equip_SAMURAI_ARMOR'
+  equip[24] = 'equip_OPAL_ARMOR'
+  equip[25] = 'equip_ARMOR_3'
+  equip[26] = 'equip_ARMOR_4'
+  equip[27] = 'equip_BRONZE_SHIELD'
+  equip[28] = 'equip_IRON_SHIELD'
+  equip[29] = 'equip_SILVER_SHIELD'
+  equip[30] = 'equip_GOLD_SHIELD'
+  equip[31] = 'equip_FLAME_SHIELD'
+  equip[32] = 'equip_DRAGON_SHIELD'
+  equip[33] = 'equip_AEGIS_SHIELD'
+  equip[34] = 'equip_OPAL_SHIELD'
+  equip[35] = 'equip_ICE_SHIELD'
+  equip[36] = 'equip_SHIELD_3'
+  equip[37] = 'equip_SHIELD_4'
+  equip[38] = 'equip_BRONZE_HELMET'
+  equip[39] = 'equip_IRON_HELMET'
+  equip[40] = 'equip_SILVER_HELMET'
+  equip[41] = 'equip_GOLD_HELMET'
+  equip[42] = 'equip_OPAL_HELMET'
+  equip[43] = 'equip_SAMURAI_HELMET'
+  equip[44] = 'equip_HELMET_3'
+  equip[45] = 'equip_HELMET_4'
+  equip[46] = 'equip_AP'
+  equip[47] = 'equip_DP'
+ 
+
+
+
+def getLabel(val):
+  # el primer bit indica si hay que negar la variable
+  neg = val >= 0x80
+  if(neg):
+    val -= 0x80
+  strNeg = '' if not neg else '~'
+#  strVar = 'var[{:02x}] '.format(cond)
+  strVar = flags[val]
+  label = strNeg + strVar
+  return label
+
+def getVal(label):
+  retVal = -1
+#  print('ejecutando getVal(\'' + label + '\')')
+
+  neg = False
+  # si esta negada
+  if(label.startswith('~')):
+    # lo indico
+    neg = True
+    # y quito el '!' del label 
+    label = label[1:]
+
+  # por cada valor del diccionario de variables
+  for val in flags.keys():
+    # me fijo el label
+    lbl = flags[val]
+    # si lo encontré
+    if(lbl == label):
+      retVal = val
+      # si estaba negada
+      if(neg):
+        # seteamos el primer bit
+        retVal += 0x80
+
+      break
+
+  return retVal
+
+
+def getLabelBoss(val):
+  label = bosses[val]
+  return label
+def getValBoss(label):
+  # por cada monstruo 
+  for val in bosses.keys():
+    # me fijo el label
+    lbl = bosses[val]
+    # si lo encontré
+    if(lbl == label):
+      retVal = val
+      break
+  return retVal
+
+def getLabelSong(val):
+  label = songs[val]
+  return label
+def getValSong(label):
+  # por cada song
+  for val in songs.keys():
+    # me fijo el label
+    lbl = songs[val]
+    # si lo encontré
+    if(lbl == label):
+      retVal = val
+      break
+  return retVal
+
+def getLabelSFX(val):
+  label = sounds[val]
+  return label
+def getValSFX(label):
+  # por cada sfx
+  for val in sounds.keys():
+    # me fijo el label
+    lbl = sounds[val]
+    # si lo encontré
+    if(lbl == label):
+      retVal = val
+      break
+  return retVal
 
 

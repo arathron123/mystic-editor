@@ -285,7 +285,7 @@ class SpriteSheet:
 
 
 
-  def exportTiledXml(self, filepath):
+  def exportTiledXml(self, filepath, level2):
 
     width = self.w*2
     height = self.h*2
@@ -297,7 +297,11 @@ class SpriteSheet:
     root = ET.Element("map", version='1.9', tiledversion="1.9.0", orientation="orthogonal", renderorder="right-down", width=str(width), height=str(height), tilewidth="8", tileheight="8", infinite="0", nextlayerid="3", nextobjectid="14")
 
 #    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/tilesets.tsx')
-    tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/sub_tileset_{:02x}.tsx'.format(self.nroTileset))
+    if(not level2):
+      tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesets/sub_tileset_{:02x}.tsx'.format(self.nroTileset))
+    else:
+      tileset = ET.SubElement(root, "tileset", firstgid="1", source='../tilesetsLevel2/tileset_{:02x}.tsx'.format(self.nroTileset))
+
 
     layer1 = ET.SubElement(root, "layer", id=str(iidd), name="Tile Layer 1", width=str(width), height=str(height))
     iidd += 1

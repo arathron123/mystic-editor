@@ -196,11 +196,15 @@ class Windows:
     self.jsonWindows['magic'] = []
     for i in range(0,8):
       subArray = bank[currentAddr : currentAddr+16]
-      row = self._decodeRow(subArray)
+      row = {}
+      # pongo esto primero para que el comentario quede segundo
+      row['id'] = 0
+      row['comment'] = mystic.variables.magic[i]
+      # decodifico la fila
+      row = self._decodeRow(subArray, row)
+      row['comment'] = mystic.variables.magic[i]
       self.jsonWindows['magic'].append(row)
       currentAddr += 16
-
-
 
     addrItems = self.jsonWindows['windows'][1]['addr1']
     addrItems = int(addrItems,16) - 0x4000
@@ -210,7 +214,12 @@ class Windows:
     self.jsonWindows['items'] = []
     for i in range(0,57):
       subArray = bank[currentAddr : currentAddr+16]
-      row = self._decodeRow(subArray)
+      row = {}
+      # pongo esto primero para que el comentario quede segundo
+      row['id'] = 0
+      row['comment'] = mystic.variables.item[i]
+      # decodifico la fila
+      row = self._decodeRow(subArray, row)
       self.jsonWindows['items'].append(row)
       currentAddr += 16
 
@@ -224,7 +233,13 @@ class Windows:
     for i in range(0,48):
 #    for i in range(0,46): 
       subArray = bank[currentAddr : currentAddr+16]
-      row = self._decodeRow(subArray)
+      row = {}
+      # pongo esto primero para que el comentario quede segundo
+      row['id'] = 0
+      row['comment'] = mystic.variables.equip[i]
+      # decodifico la fila
+      row = self._decodeRow(subArray, row)
+
       self.jsonWindows['equip'].append(row)
       currentAddr += 16
 
@@ -265,9 +280,11 @@ class Windows:
 
 #          print('idItem: ' + str(idItem))
           if(idItem <= 56):
-            itemName = self.jsonWindows['items'][idItem]['name']
+            itemNameOld = self.jsonWindows['items'][idItem]['name']
+            itemName = mystic.variables.item[idItem]
           else:
-            itemName = self.jsonWindows['equip'][idItem-57]['name']
+            itemNameOld = self.jsonWindows['equip'][idItem-57]['name']
+            itemName = mystic.variables.equip[idItem-57]
 #          print('itemName: ' + itemName)
           items.append({'idItem' : idItem, 'comment': itemName})
  
@@ -300,12 +317,19 @@ class Windows:
 
     idShield = bank[addr+5]-1
 
-    strWeapon = self.jsonWindows['equip'][idWeapon]['name']
-    strHelmet = self.jsonWindows['equip'][idHelmet]['name']
-    strAp = self.jsonWindows['equip'][idAp]['name']
-    strArmor = self.jsonWindows['equip'][idArmor]['name']
-    strDp = self.jsonWindows['equip'][idDp]['name']
-    strShield = self.jsonWindows['equip'][idShield]['name']
+#    strWeapon = self.jsonWindows['equip'][idWeapon]['name']
+#    strHelmet = self.jsonWindows['equip'][idHelmet]['name']
+#    strAp = self.jsonWindows['equip'][idAp]['name']
+#    strArmor = self.jsonWindows['equip'][idArmor]['name']
+#    strDp = self.jsonWindows['equip'][idDp]['name']
+#    strShield = self.jsonWindows['equip'][idShield]['name']
+
+    strWeapon = mystic.variables.equip[idWeapon]
+    strHelmet = mystic.variables.equip[idHelmet]
+    strAp = mystic.variables.equip[idAp]
+    strArmor = mystic.variables.equip[idArmor]
+    strDp = mystic.variables.equip[idDp]
+    strShield = mystic.variables.equip[idShield]
 
     self.jsonWindows['initialWeapons']['weapon'] = {'idWeapon' : idWeapon, 'comment' : strWeapon}
     self.jsonWindows['initialWeapons']['helmet'] = {'idHelmet' : idHelmet, 'comment' : strHelmet}
@@ -361,22 +385,21 @@ class Windows:
       idItem = 0xff
       while(idItem != 0x00):
         idItem = bank[currentAddr]
-#        print('nroItem: {:02x}'.format(nroItem))
+#        print('idItem: {:02x}'.format(idItem))
         currentAddr += 1
-
-        if(idItem <= 8):
-          itemNameOld = mystic.variables.magias[idItem-1]
-          itemName = self.jsonWindows['magic'][idItem-1]['name']
-
-        else:
-          itemNameOld = mystic.variables.items[idItem-9]
-          itemName = self.jsonWindows['items'][idItem-9]['name']
 
         # if it is not the terminator 0x00
         if(idItem != 0x00):
+
+          if(idItem <= 8):
+            itemNameOld = self.jsonWindows['magic'][idItem-1]['name']
+            itemName = mystic.variables.magic[idItem-1]
+          else:
+            itemNameOld = self.jsonWindows['items'][idItem-9]['name']
+            itemName = mystic.variables.item[idItem-9]
+
 #          items.append( {'idItem' : idItem, 'comment' : itemName, 'commentOld' : itemNameOld } )
           items.append( {'idItem' : idItem, 'comment' : itemName} )
-
 
       itemList['items'] = items
 
@@ -604,8 +627,7 @@ class Windows:
 
 
 
-  def _decodeRow(self, array):
-    row = {}
+  def _decodeRow(self, array, row):
     row['id'] = array[0]
 
     subArray = array[1:8+1]

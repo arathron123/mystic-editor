@@ -19,7 +19,7 @@ import mystic.address
 import mystic.battery
 import mystic.romexpand
 
-VERSION = '0.95.13'
+VERSION = '0.95.14'
 
 #
 # dictionary of the mystic spanglish nomenclature
@@ -73,15 +73,32 @@ def exportREADME():
   lines.append('To encode the rom run')
   lines.append('**python3 mystic-editor.py -e**')
   lines.append('')
-  lines.append('If you want more control, you can specify the rom-file and address-configuration file like this example')
-  lines.append('**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en.txt -d**')
+  lines.append('Optional Arguments:')
+  lines.append('--rom [filePath] specifies the rom file to decode, example:')
+  lines.append('**python3 mystic-editor.py --rom stockRoms/en.gb -e**')
   lines.append('')
-  lines.append('If you want to expand the rom to 32 banks add the --romexpand argument before encoding like this example')
-  lines.append('**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en_romexpand.txt --romexpand -e**')
+  lines.append('--addr [filePath] specifies the address-configuration file to encode, example:')
+  lines.append('**python3 mystic-editor.py --addr addr_en.js -e**')
   lines.append('')
-  lines.append('Optional argument when encoding: --fix-checksum (it fixes the header and global checksums of the rom)')
+  lines.append('-x (or --romexpand) encodes an expanded rom with more banks, example:')
+  lines.append('**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr/addr_en_romexpand.js --romexpand -e**')
   lines.append('')
-  lines.append('Also optional: --ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)')
+  lines.append('-m (or --mscripts) decodes/encodes the scripts into mscripts.txt instead of jscripts.js, example:')
+  lines.append('**python3 mystic-editor.py -dm**')
+  lines.append('')
+  lines.append('-t (or --tilesetsLevel2) decodes/encodes the tilesetsLevel2 folder, overwriting the big tilesets.png file, example:')
+  lines.append('**python3 mystic-editor.py -dt**')
+  lines.append('')
+  lines.append('-c (or --color) encodes a gameboy color rom (work in progress), example:')
+  lines.append('**python3 mystic-editor.py -ec**')
+  lines.append('')
+  lines.append('-f (or --fix-checksum) fixes the header and global checksums of the rom, example:')
+  lines.append('**python3 mystic-editor.py -ef**')
+  lines.append('')
+  lines.append('-i (or --ips) creates an .ips patch of the newRom.gb, example:')
+  lines.append('**python3 mystic-editor.py -ei**')
+  lines.append('')
+  lines.append('--ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)')
   lines.append('')
   lines.append('Feel free to join our discord server')
   lines.append('https://discord.gg/mdTDMKh5FR')
@@ -124,14 +141,22 @@ def testPlayground(romPath, basePath):
 #  print('comprimido strHex: ' + strHex)
 
 
-
-
-
-  # exporto los tilesets
 #  mystic.romSplitter.exportTilesets()
 
+  tilesetsLevel2 = False
+#  tilesetsLevel2 = True
+#  if(tilesetsLevel2):
+    # exporto los multi-tilesets
+#    mystic.romSplitter.exportFont()
+#    mystic.romSplitter.exportMultiTilesets()
+#    mystic.romSplitter.exportSpriteSheetPersonajes()
+
   # exporto los cuatro spriteSheets 
-#  mystic.romSplitter.exportSpriteSheets()
+#  mystic.romSplitter.exportSpriteSheets(tilesetsLevel2)
+
+#  mystic.romSplitter.burnFont()
+#  mystic.romSplitter.burnMultiTilesets()
+#  mystic.romSplitter.burnSpriteSheetPersonajes()
 
 
   # exporto lo gráficos (cada .bin en cuatro .png)
@@ -157,12 +182,8 @@ def testPlayground(romPath, basePath):
 
 
   # exports the game windows (Equip, Stats, Magic, etc)
-  mystic.romSplitter.exportWindows()
-  mystic.romSplitter.burnWindows(basePath + '/windows/windows.js')
-#  mystic.romSplitter.burnWindows('./en/windows/windows.js')
-#  mystic.romSplitter.burnWindows('./de/windows/windows.js')
-#  mystic.romSplitter.burnWindows('./fr/windows/windows.js')
-#  mystic.romSplitter.burnWindows('./jp/windows/windows.js')
+#  mystic.romSplitter.exportWindows()
+#  mystic.romSplitter.burnWindows(basePath + '/windows/windows.js')
 
 #  mystic.romSplitter.exportWindowsTextLabels()
 #  mystic.romSplitter.burnWindowsTextLabels('./en/items/windowsTextLabels.js')
@@ -497,29 +518,9 @@ def testPlayground(romPath, basePath):
   # la escucho
 #  mystic.romSplitter.testRom('./de/gbs.gb', 'vba')
 
-  # generates de README.md with the current version
-#  exportREADME()
 
 
-#################################
-def main(argv):
-  print('Welcome to mystic-editor')
-
-  # hago copia de seguridad de las roms stock que encuentre en el directorio actual, y asumo que quiere la rom que encuentre
-  romPath = mystic.language.protectStockRoms()
-
-
-  argFlags = []
-  # we set up the short argument flags (like '-d' for decoding)
-  for arg in argv:
-    if(arg.startswith('-') and not arg.startswith('--')):
-      for char in arg[1:]:
-        argFlags.append(char)
-
-  # if it want to extract FFL music data
-  if('--ffl2' in argv):
-    print('FFL2 extractor')
-
+def _ffl2Extract(argv, argFlags):
     idx = argv.index('--ffl2')
     # agarro el romPath
     romPath = argv[idx+1]
@@ -588,6 +589,233 @@ def main(argv):
       f.close()
       
 
+
+def _decode(argv, argFlags):
+    # limpio el banks/
+    mystic.romSplitter.clean()
+    # creo el banks/
+    mystic.romSplitter.split()
+
+    # exporto lo gráficos (cada .bin en cuatro .png)
+#    mystic.romSplitter.exportGfx()
+
+    print('exporting dictionary...')
+    mystic.romSplitter.exportDictionary()
+
+
+    # exports the game windows (Equip, Stats, Magic, etc) and items
+    print('exporting windows...')
+    mystic.romSplitter.exportWindows()
+
+    print('exporting tilesets...')
+    # exporto los tilesets
+    mystic.romSplitter.exportTilesets()
+
+    tilesetsLevel2 = False
+    # if it want to export the tilesets as multiple images (overwriting the big tileset)
+    if('t' in argFlags or '--tilesetsLevel2' in argv):
+      print('exporting tilesets level 2...')
+      tilesetsLevel2 = True
+      mystic.romSplitter.exportFont()
+      mystic.romSplitter.exportMultiTilesets()
+      # exporto los spriteSheet de personajes
+      mystic.romSplitter.exportSpriteSheetPersonajes()
+      # TODO: Esto no está terminado
+#      print('exportando spriteSheet de bosses')
+#      mystic.romSplitter.exportSpriteSheetMonster()
+
+    # exporto los cuatro spriteSheets 
+    mystic.romSplitter.exportSpriteSheets(tilesetsLevel2)
+
+
+    # exporto la tabla de experiencia
+    mystic.romSplitter.exportExpTable()
+
+    print('exporting NPCs...')
+    mystic.romSplitter.exportNpc()
+    mystic.romSplitter.exportHero()
+
+    print('exporting projectiles...')
+    # exporto los proyectiles
+    mystic.romSplitter.exportProjectiles()
+    mystic.romSplitter.exportHeroProjectiles()
+
+    print('exporting bosses...')
+    # exporto los monstruos grandes
+    mystic.romSplitter.exportBosses()
+
+    # exporto el texto
+    mystic.romSplitter.exportTexto()
+
+    print('exporting jscripts...')
+    mystic.romSplitter.exportJScripts()
+    if('m' in argFlags or '--mscripts' in argv):
+      print('exporting mscripts...')
+      mystic.romSplitter.exportMScripts()
+#      mystic.romSplitter.exportJScripts()
+
+
+    print('exporting maps...')
+    # exporto todos los mapas
+#    mystic.romSplitter.exportMapas(exportPngFile=True)
+    mystic.romSplitter.exportMapas(exportPngFile=False)
+
+    print('exporting songs...')
+    # exporto la música
+#    mystic.romSplitter.exportSongs(exportLilypond=False)
+    mystic.romSplitter.exportSongs(exportLilypond=True)
+
+    # exporto todo el audio en formato json
+    mystic.romSplitter.exportAudioJson()
+
+    print('exporting sounds...')
+    # exporto los efectos de sonido sfx
+    mystic.romSplitter.exportSounds()
+
+
+
+def _encode(argv, argFlags, romPath):
+
+    basePath = mystic.address.basePath
+
+    # quemo el nroScript inicial (default 0x0003)
+#    entraTopple = 0x0271
+#    mystic.romSplitter.burnInitialScript(entraTopple)
+
+    if('x' in argFlags or '--romexpand' in argv):
+      # cambio el MBC y expando la rom a 32 banks
+      mystic.romexpand.romExpand()
+
+    if('c' in argFlags or '--color' in argv):
+      # cambio el MBC y expando la rom a 32 banks, y coloreamos sprites
+      mystic.romexpand.romExpandDX()
+
+
+
+    print('burning dictionary...')
+    # burn the dictionary
+    mystic.romSplitter.burnDictionary(basePath+'/dictionary/dictionary.js')
+
+    # burns the game windows (Equip, Stats, Magic, etc) and items
+    print('burning windows...')
+    mystic.romSplitter.burnWindows(basePath+'/windows/windows.js')
+
+
+    print('burning tilesets...')
+    mystic.romSplitter.burnTilesets()
+
+    tilesetsLevel2 = False
+    if('t' in argFlags or '--tilesetsLevel2' in argv):
+      print('burning tilesets level 2...')
+      tilesetsLevel2 = True
+      # exporto los multi-tilesets
+      mystic.romSplitter.burnFont()
+      mystic.romSplitter.burnMultiTilesets()
+      mystic.romSplitter.burnSpriteSheetPersonajes()
+
+    # y tabla de experiencia
+    mystic.romSplitter.burnExpTable(basePath+'/exp.txt')
+
+    print('burning spriteSheets...')
+    mystic.romSplitter.burnSpriteSheets()
+#    mystic.romSplitter.burnSpriteSheetPersonajes()
+
+    print('burning NPCs...')
+    mystic.romSplitter.burnNpc(basePath + '/npc/npcs.js')
+    mystic.romSplitter.burnHero(basePath + '/npc/hero.js')
+
+    print('burning projectiles...')
+    # exporto los proyectiles
+    mystic.romSplitter.burnProjectiles(basePath + '/projectiles/projectiles.js')
+    mystic.romSplitter.burnHeroProjectiles(basePath + '/projectiles/heroProjs.js')
+
+    print('burning bosses...')
+    # quemo los monstruos grandes
+    mystic.romSplitter.burnBosses(basePath + '/bosses/bosses.js')
+
+    print('burning maps...')
+#    mystic.romSplitter.burnMapas(basePath + '/mapas/mapas.txt')
+#    mystic.romSplitter.burnMapasTiled()
+    mystic.romSplitter.burnMapasTiledXml()
+#    mystic.romSplitter.burnMapasJs()
+
+
+    if('m' in argFlags or '--mscripts' in argv):
+      print('burning mscripts...')
+      mystic.romSplitter.burnMScripts(basePath + '/scripts/mscripts.txt')
+    else:
+      print('burning jscripts...')
+      mystic.romSplitter.burnJScripts(basePath + '/scripts/jscripts.js')
+
+
+    print('burning songs...')
+    nroBank, vaPorAddr = mystic.address.addrMusic
+#    print('addrMusic {:04x}'.format(vaPorAddr))
+
+    # trata de mantener compatibilidad binaria con la rom original
+    vaPorAddr = mystic.romSplitter.burnSongs(basePath+'/audio/01_songs.txt', nroBank, vaPorAddr)
+#    print('vaPorAddr {:04x}'.format(vaPorAddr))
+
+    print('burning sounds...')
+    # quemo los efectos de sonido sfx
+    mystic.romSplitter.burnSounds(filepath=basePath+'/audio/05_sounds.txt')
+
+
+    # exporto la gbs rom con música
+    mystic.romSplitter.exportSongsRom(basePath+'/songs.gb')
+    # exporto la gbs rom con efectos de sonido
+    mystic.romSplitter.exportSoundsRom(basePath+'/sounds.gb')
+
+
+    if('f' in argFlags or '--fix-checksums' in argv):
+      mystic.romSplitter.fixChecksums()
+
+    # exporto nueva rom
+    mystic.romSplitter.exportRom(basePath + '/newRom.gb')
+
+#    lang = mystic.address.language
+#    strLang = mystic.language.stockRomsLang[lang]
+#    print('strLang: ' + strLang)
+#    pathStock = './stockRoms/' + strLang + '.gb'
+    pathStock = romPath
+    pathNew = basePath + '/newRom.gb'
+
+    if('i' in argFlags or '--ips' in argv):
+      # exporto el .ips
+      mystic.romSplitter.exportIps(pathStock, pathNew, basePath + '/newRom.ips')
+
+    print('comparing ' + pathStock + ' with ' + pathNew)
+    iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
+    print('roms coincide = ' + str(iguales))
+
+    # la juego
+#    mystic.romSplitter.testRom(basePath + '/newRom.gb', 'vba')
+#    mystic.romSplitter.testRom(basePath + '/newRom.gb', 'mgba')
+
+#    shutil.copyfile(basePath + '/newRom.gb', '/home/arathron/RetroPie/roms/gb/newRom.gb')
+#    mystic.romSplitter.testRom('/home/arathron/RetroPie/roms/gb/newRom.gb', 'vba-m')
+
+
+
+
+#################################
+def main(argv):
+  print('Welcome to mystic-editor')
+
+  # hago copia de seguridad de las roms stock que encuentre en el directorio actual, y asumo que quiere la rom que encuentre
+  romPath = mystic.language.protectStockRoms()
+
+  argFlags = []
+  # we set up the short argument flags (like '-d' for decoding)
+  for arg in argv:
+    if(arg.startswith('-') and not arg.startswith('--')):
+      for char in arg[1:]:
+        argFlags.append(char)
+
+  # if it want to extract FFL music data
+  if('--ffl2' in argv):
+    print('FFL2 extractor')
+    _ffl2Extract(argv, argFlags)
     # termino el script
     sys.exit(0)
 
@@ -667,205 +895,48 @@ def main(argv):
   if('d' in argFlags or '--decode' in argv):
 
     print('decoding ' + mystic.address.romPath + '...')
+    # decoding
+    _decode(argv, argFlags)
 
-    # limpio el banks/
-    mystic.romSplitter.clean()
-    # creo el banks/
-    mystic.romSplitter.split()
+    # encoding
+    _encode(argv, argFlags, romPath)
+    # copio el configAddrPath
+    shutil.copyfile(configAddrPath, basePath+'/'+configAddrFile)
 
-    # exporto lo gráficos (cada .bin en cuatro .png)
-#    mystic.romSplitter.exportGfx()
-
-    print('exporting dictionary...')
-    mystic.romSplitter.exportDictionary()
-
-
-    # exports the game windows (Equip, Stats, Magic, etc) and items
-    print('exporting windows...')
-    mystic.romSplitter.exportWindows()
-
-    print('exporting tilesets...')
-    # exporto los tilesets
-    mystic.romSplitter.exportTilesets()
-
-#    mystic.romSplitter.exportFont()
-    # exporto los cuatro spriteSheets 
-    mystic.romSplitter.exportSpriteSheets()
-    # exporto los spriteSheet de personajes
-#    mystic.romSplitter.exportSpriteSheetPersonajes()
-    # TODO: Esto no está terminado
-#    print('exportando spriteSheet de bosses')
-#    mystic.romSplitter.exportSpriteSheetMonster()
-
-    # exporto la tabla de experiencia
-    mystic.romSplitter.exportExpTable()
+    # exporto las estadísticas del rom como decode (y primer encode)
+    mystic.romStats.exportData('rom_info_decode')
+    mystic.romStats.exportData('rom_info_encode')
 
 
-    print('exporting NPCs...')
-    mystic.romSplitter.exportNpc()
-    mystic.romSplitter.exportHero()
 
-    print('exporting projectiles...')
-    # exporto los proyectiles
-    mystic.romSplitter.exportProjectiles()
-    mystic.romSplitter.exportHeroProjectiles()
-
-    print('exporting bosses...')
-    # exporto los monstruos grandes
-    mystic.romSplitter.exportBosses()
-
-    # exporto el texto
-    mystic.romSplitter.exportTexto()
-
-
-    if('m' in argFlags or '--mscripts' in argv):
-      print('exportando mscripts...')
-      mystic.romSplitter.exportMScripts()
-#      mystic.romSplitter.exportJScripts()
-    else:
-      print('exporting jscripts...')
-      mystic.romSplitter.exportJScripts()
-
-    print('exporting maps...')
-    # exporto todos los mapas
-#    mystic.romSplitter.exportMapas(exportPngFile=True)
-    mystic.romSplitter.exportMapas(exportPngFile=False)
-
-    print('exporting songs...')
-    # exporto la música
-#    mystic.romSplitter.exportSongs(exportLilypond=False)
-    mystic.romSplitter.exportSongs(exportLilypond=True)
-
-    # exporto todo el audio en formato json
-    mystic.romSplitter.exportAudioJson()
-
-    print('exporting sounds...')
-    # exporto los efectos de sonido sfx
-    mystic.romSplitter.exportSounds()
-
-    # exporto las estadísticas del rom
-    mystic.romStats.exportPng()
-    mystic.romStats.exportData()
 
     # termino el script
     sys.exit(0)
-
 
   elif('e' in argFlags or '--encode' in argv):
     print('encoding ' + romPath + '...')
 
+    # encoding
+    _encode(argv, argFlags, romPath)
     # copio el configAddrPath
     shutil.copyfile(configAddrPath, basePath+'/'+configAddrFile)
 
-    # quemo el nroScript inicial (default 0x0003)
-#    entraTopple = 0x0271
-#    mystic.romSplitter.burnInitialScript(entraTopple)
+    # exporto las estadísticas del rom
+    mystic.romStats.exportData('rom_info_encode')
 
-    if('x' in argFlags or '--romexpand' in argv):
-      # cambio el MBC y expando la rom a 32 banks
-      mystic.romexpand.romExpand()
-
-    print('burning dictionary...')
-    # burn the dictionary
-    mystic.romSplitter.burnDictionary(basePath+'/dictionary/dictionary.js')
-
-    # burns the game windows (Equip, Stats, Magic, etc) and items
-    print('burning windows...')
-    mystic.romSplitter.burnWindows(basePath+'/windows/windows.js')
-
-#    mystic.romSplitter.burnFont()
-    mystic.romSplitter.burnTilesets()
-
-    # y tabla de experiencia
-    mystic.romSplitter.burnExpTable(basePath+'/exp.txt')
-
-    print('burning spriteSheets...')
-    mystic.romSplitter.burnSpriteSheets()
-#    mystic.romSplitter.burnSpriteSheetPersonajes()
-
-    print('burning NPCs...')
-    mystic.romSplitter.burnNpc(basePath + '/npc/npcs.js')
-    mystic.romSplitter.burnHero(basePath + '/npc/hero.js')
-
-    print('burning projectiles...')
-    # exporto los proyectiles
-    mystic.romSplitter.burnProjectiles(basePath + '/projectiles/projectiles.js')
-    mystic.romSplitter.burnHeroProjectiles(basePath + '/projectiles/heroProjs.js')
-
-    print('burning bosses...')
-    # quemo los monstruos grandes
-    mystic.romSplitter.burnBosses(basePath + '/bosses/bosses.js')
-
-    print('burning maps...')
-#    mystic.romSplitter.burnMapas(basePath + '/mapas/mapas.txt')
-#    mystic.romSplitter.burnMapasTiled()
-    mystic.romSplitter.burnMapasTiledXml()
-#    mystic.romSplitter.burnMapasJs()
-
-
-    if('m' in argFlags or '--mscripts' in argv):
-      print('burning mscripts...')
-      mystic.romSplitter.burnMScripts(basePath + '/scripts/mscripts.txt')
-    else:
-      print('burning jscripts...')
-      mystic.romSplitter.burnJScripts(basePath + '/scripts/jscripts.js')
-
-
-    print('burning songs...')
-    nroBank, vaPorAddr = mystic.address.addrMusic
-#    print('addrMusic {:04x}'.format(vaPorAddr))
-
-    # trata de mantener compatibilidad binaria con la rom original
-    vaPorAddr = mystic.romSplitter.burnSongs(basePath+'/audio/01_songs.txt', nroBank, vaPorAddr)
-#    print('vaPorAddr {:04x}'.format(vaPorAddr))
-
-    print('burning sounds...')
-    # quemo los efectos de sonido sfx
-    mystic.romSplitter.burnSounds(filepath=basePath+'/audio/05_sounds.txt')
-
-
-    # exporto la gbs rom con música
-    mystic.romSplitter.exportSongsRom(basePath+'/songs.gb')
-    # exporto la gbs rom con efectos de sonido
-    mystic.romSplitter.exportSoundsRom(basePath+'/sounds.gb')
-
-
-    if('c' in argFlags or '--fix-checksums' in argv):
-      mystic.romSplitter.fixChecksums()
-
-    # exporto nueva rom
-    mystic.romSplitter.exportRom(basePath + '/newRom.gb')
-
-#    lang = mystic.address.language
-#    strLang = mystic.language.stockRomsLang[lang]
-#    print('strLang: ' + strLang)
-#    pathStock = './stockRoms/' + strLang + '.gb'
-    pathStock = romPath
-    pathNew = basePath + '/newRom.gb'
-
-    # exporto el .ips
-    mystic.romSplitter.exportIps(pathStock, pathNew, basePath + '/newRom.ips')
-
-    print('comparing ' + pathStock + ' with ' + pathNew)
-    iguales = mystic.util.compareFiles(pathStock, pathNew, 0x0000, 0x40000)
-    print('roms coincide = ' + str(iguales))
-
-    # la juego
-#    mystic.romSplitter.testRom(basePath + '/newRom.gb', 'vba')
-#    mystic.romSplitter.testRom(basePath + '/newRom.gb', 'mgba')
-
-#    shutil.copyfile(basePath + '/newRom.gb', '/home/arathron/RetroPie/roms/gb/newRom.gb')
-#    mystic.romSplitter.testRom('/home/arathron/RetroPie/roms/gb/newRom.gb', 'vba-m')
 
 
     # termino el script
     sys.exit(0)
+
 
   else:
     printHelp()
 
   # si quiero testear algo
-  testPlayground(romPath, basePath)
+#  testPlayground(romPath, basePath)
+  # generates de README.md with the current version
+#  exportREADME()
 
 
 if __name__ == "__main__":

@@ -44,15 +44,6 @@ class MScripts:
 
     bankDic = mystic.romSplitter.banks[nroBank]
 
-
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
-    length = 2*cantScripts
-    # agrego info al stats
-    mystic.romStats.appendDato(nroBank, address, address+length, (rr, gg, bb), 'diccionario de addr de scripts')
-
     # por cada nroScript
     for nroScript in range(0,cantScripts):
 
@@ -94,11 +85,6 @@ class MScripts:
       self.scripts.append(script)
 #      print('script: ' + str(script))
 
-      import random
-      rr = random.randint(0,0xff)
-      gg = random.randint(0,0xff)
-      bb = random.randint(0,0xff)
-
       banco = 0x0d
       addr0 = script.addr
       addr1 = vaPorAddr
@@ -121,8 +107,6 @@ class MScripts:
         addr1 -= 3*0x4000
 
 #      print('script banco: {:02x} addr0: {:04x} addr1: {:04x}'.format(banco, addr0, addr1))
-      mystic.romStats.appendDato(banco, addr0, addr1, (rr, gg, bb), 'un script')
-
 #      print('romstats {:04x} {:04x}'.format(script.addr, vaPorAddr))
 
 

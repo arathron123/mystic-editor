@@ -23,9 +23,10 @@ import mystic.ippy
 #self.rom = []
 # los bancos
 banks = []
-# los cinco tilesets
-#tilesets = []
+# the big tilesets data
 tilesets = None
+# los cinco tilesets
+tilesetsLevel2 = []
 # los cinco spriteSheets
 spriteSheets = []
 # los mapas
@@ -508,6 +509,7 @@ def exportDictionary():
   f.close()
 
 
+
 def burnDictionary(filepath):
 
   f = open(filepath, 'r', encoding="utf-8")
@@ -531,10 +533,23 @@ def burnDictionary(filepath):
 
   mystic.romSplitter.burnBank(numBank, addrDictionary, arrayDict)
 
+  basePath = mystic.address.basePath
+  path = basePath + '/dictionary'
+  initAddr = 0x4000*numBank + addrDictionary
+  dataSize = len(arrayDict)
+  dataFilepath = path + '/dictionary.js'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
 
 def exportFont():
 
   basePath = mystic.address.basePath
+  path = basePath + '/tilesetsLevel2'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
+
   bank = mystic.romSplitter.banks[8]
   # creo el tileset
   tileset = mystic.tileset.Tileset(16,9)
@@ -542,37 +557,31 @@ def exportFont():
   array = bank[0x1000*2+7*0x100:0x1000*(2+1)]
 
   tileset.decodeRom(array)
-  tileset.exportPngFile(basePath + '/font.png')
+  tileset.exportPngFile(basePath + '/tilesetsLevel2/font.png')
 
 def burnFont():
 
   basePath = mystic.address.basePath
-
   tileset = mystic.tileset.Tileset(16,9)
-  tileset.importPngFile(basePath + '/font.png')
+  tileset.importPngFile(basePath + '/tilesetsLevel2/font.png')
   array = tileset.encodeRom()
 
   mystic.romSplitter.burnBank(8, 0x1000*2+7*0x100, array)
 
 
-def exportTilesetsOld():
+def exportMultiTilesets():
   """ exporta los cinco tilesets """
 
   basePath = mystic.address.basePath
-  path = basePath + '/tilesets'
+  path = basePath + '/tilesetsLevel2'
   # si el directorio no existía
   if not os.path.exists(path):
     # lo creo
     os.makedirs(path)
 
-  mystic.romSplitter.tilesets = []
+  mystic.romSplitter.tilesetsLevel2 = []
   # para cada uno de los cinco tilesets
   for nroTileset in range(0,5):
-
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
 
     # para los primeros 4 tilesets
     if(nroTileset < 4):
@@ -581,9 +590,6 @@ def exportTilesetsOld():
       array = banco12[0x1000*nroTileset:0x1000*(nroTileset+1)]
       tileset.decodeRom(array)
 
-      # agrego info al stats
-      mystic.romStats.appendDato(0x0c, 0x1000*nroTileset, 0x1000*(nroTileset+1) , (rr, gg, bb), 'un tileset')
-
     # sino, para el 5to tileset
     else:
       tileset = mystic.tileset.Tileset(16,13)
@@ -591,13 +597,33 @@ def exportTilesetsOld():
       array = banco11[0x0000:0x0d00]
       tileset.decodeRom(array)
 
-      # agrego info al stats
-      mystic.romStats.appendDato(0x0b, 0x0000, 0x0d00, (rr, gg, bb), 'un tileset')
-
     tileset.exportPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
     tileset.exportTiledXml(path + '/tileset_{:02}.tsx'.format(nroTileset))
 
-    mystic.romSplitter.tilesets.append(tileset)
+    mystic.romSplitter.tilesetsLevel2.append(tileset)
+
+def burnMultiTilesets():
+
+  basePath = mystic.address.basePath
+  path = basePath + '/tilesetsLevel2'
+ 
+  # para cada uno de los cinco tilesets
+  for nroTileset in range(0,5):
+
+    # para los primeros 4 tilesets
+    if(nroTileset < 4):
+      tileset = mystic.tileset.Tileset(16,16)
+      tileset.importPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
+      array = tileset.encodeRom()
+      mystic.romSplitter.burnBank(12, 0x1000*nroTileset, array)
+
+    # sino, para el 5to tileset
+    else:
+      tileset = mystic.tileset.Tileset(16,13)
+      tileset.importPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
+      array = tileset.encodeRom()
+      mystic.romSplitter.burnBank(11, 0x0000, array)
+
 
 
 def exportTilesets():
@@ -623,11 +649,6 @@ def exportTilesets():
   tileset.decodeRom(array)
   tileset.exportPngFile(path + '/tilesets.png')
   tileset.exportTiledXml(path + '/tilesets.tsx')
-
-  initAddr = 8*0x4000
-  dataSize = 0x1000*4*5
-  dataFilepath = path + '/tilesets.png'
-  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
   # set the tilesets on the romSplitter
   mystic.romSplitter.tilesets = tileset
@@ -700,9 +721,10 @@ def burnTilesets():
 
   basePath = mystic.address.basePath
   path = basePath + '/tilesets'
+  dataFilepath = path + '/tilesets.png'
 
   tileset = mystic.tileset.Tileset(16,16*4*5)
-  tileset.importPngFile(path + '/tilesets.png')
+  tileset.importPngFile(dataFilepath)
   array = tileset.encodeRom()
 
   # we burn the tilesets into the banks (skipping the disabled tiles)
@@ -712,27 +734,67 @@ def burnTilesets():
   mystic.romSplitter.burnBank(11, 0x0000, array[0x4000*3:0x4000*4])
   mystic.romSplitter.burnBank(12, 0x0000, array[0x4000*4:0x4000*5])
 
-def burnTilesetsOld():
+  initAddr = 0x4000*8 + 0x1A00
+  dataSize = len(array[0x1A00:0x4000])
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  initAddr = 0x4000*9 + 0x0900
+  dataSize = len(array[0x4900:0x4000*2])
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  initAddr = 0x4000*10
+  dataSize = 0x4000
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  initAddr = 0x4000*11
+  dataSize = 0x4000
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  initAddr = 0x4000*12
+  dataSize = 0x4000
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+
+def exportSpriteSheets(level2):
+  """ exporta los spritesheets.  If level2 == True, it uses the optional tilesetsLevel2 """
 
   basePath = mystic.address.basePath
-  path = basePath + '/tilesets'
- 
-  # para cada uno de los cinco tilesets
-  for nroTileset in range(0,5):
+  path = basePath + '/spriteSheets'
+  # si el directorio no existía
+  if not os.path.exists(path):
+    # lo creo
+    os.makedirs(path)
 
-    # para los primeros 4 tilesets
-    if(nroTileset < 4):
-      tileset = mystic.tileset.Tileset(16,16)
-      tileset.importPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
-      array = tileset.encodeRom()
-      mystic.romSplitter.burnBank(12, 0x1000*nroTileset, array)
+  sheetNames = ['worldmap', 'city', 'inner', 'cave', 'title']
+  mystic.romSplitter.spriteSheets = []
+  # para cada una de los cinco spriteSheets 
+  for nroSpriteSheet in range(0,5):
 
-    # sino, para el 5to tileset
-    else:
-      tileset = mystic.tileset.Tileset(16,13)
-      tileset.importPngFile(path + '/tileset_{:02}.png'.format(nroTileset))
-      array = tileset.encodeRom()
-      mystic.romSplitter.burnBank(11, 0x0000, array)
+    sheet = mystic.spriteSheet.SpriteSheet(16,8,nroSpriteSheet,sheetNames[nroSpriteSheet])
+
+    nroBank,addr = mystic.address.spriteSheetsAddr[nroSpriteSheet]
+    cant = mystic.address.cantSpritesInSheet[nroSpriteSheet]
+    bank08 = mystic.romSplitter.banks[nroBank]
+
+    array = bank08[addr:addr+6*cant]
+    sheet.decodeRom(array)
+    # lo agrego a la lista
+    mystic.romSplitter.spriteSheets.append(sheet)
+
+    lines = sheet.encodeTxt()
+    string = '\n'.join(lines)
+    f = open(basePath + '/spriteSheets/sheet_{:02}_noedit.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
+    f.write(string)
+    f.close()
+
+    sheet.exportPngFile(basePath + '/spriteSheets/sheet_{:02}_noedit.png'.format(nroSpriteSheet))
+
+#    sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+#    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
+    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}'.format(nroSpriteSheet), level2)
+    sheet.exportJs(basePath + '/spriteSheets/sheet_{:02}.js'.format(nroSpriteSheet))
+
+#    sheet.exportPyxelEdit(basePath + '/spriteSheets/sheet_{:02}.pyxel'.format(nroSpriteSheet))
 
 def burnSpriteSheets():
 
@@ -760,65 +822,17 @@ def burnSpriteSheets():
     strArray = mystic.util.strHexa(array)
 #    print('array: ' + strArray)
 
-    nroBank,addr = mystic.address.spriteSheetsAddr[nroSpriteSheet]
+    numBank,addr = mystic.address.spriteSheetsAddr[nroSpriteSheet]
     cant = mystic.address.cantSpritesInSheet[nroSpriteSheet]
 #    bank08 = mystic.romSplitter.banks[8]
 #    array = bank08[addr:addr+6*cant]
 
-    mystic.romSplitter.burnBank(nroBank, addr, array)
- 
+    mystic.romSplitter.burnBank(numBank, addr, array)
 
-def exportSpriteSheets():
-  """ exporta los spritesheets """
-
-  basePath = mystic.address.basePath
-  path = basePath + '/spriteSheets'
-  # si el directorio no existía
-  if not os.path.exists(path):
-    # lo creo
-    os.makedirs(path)
-
-  sheetNames = ['worldmap', 'city', 'inner', 'cave', 'title']
-  mystic.romSplitter.spriteSheets = []
-  # para cada una de los cinco spriteSheets 
-  for nroSpriteSheet in range(0,5):
-
-    sheet = mystic.spriteSheet.SpriteSheet(16,8,nroSpriteSheet,sheetNames[nroSpriteSheet])
-
-    nroBank,addr = mystic.address.spriteSheetsAddr[nroSpriteSheet]
-    cant = mystic.address.cantSpritesInSheet[nroSpriteSheet]
-    bank08 = mystic.romSplitter.banks[nroBank]
-
-    array = bank08[addr:addr+6*cant]
-    sheet.decodeRom(array)
-    # lo agrego a la lista
-    mystic.romSplitter.spriteSheets.append(sheet)
-
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
-    mystic.romStats.appendDato(nroBank, addr, addr+6*cant, (rr, gg, bb), 'sprite sheet')
-
-    initAddr = nroBank*0x4000 + addr
+    initAddr = 0x4000*numBank + addr
     dataSize = len(array)
     dataFilepath = basePath + '/spriteSheets/sheet_{:02}.js'.format(nroSpriteSheet)
     mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
-
-    lines = sheet.encodeTxt()
-    string = '\n'.join(lines)
-    f = open(basePath + '/spriteSheets/sheet_{:02}_noedit.txt'.format(nroSpriteSheet), 'w', encoding="utf-8")
-    f.write(string)
-    f.close()
-
-    sheet.exportPngFile(basePath + '/spriteSheets/sheet_{:02}_noedit.png'.format(nroSpriteSheet))
-
-#    sheet.exportTiled(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
-#    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}.tsx'.format(nroSpriteSheet))
-    sheet.exportTiledXml(basePath + '/spriteSheets/sheet_{:02}'.format(nroSpriteSheet))
-    sheet.exportJs(basePath + '/spriteSheets/sheet_{:02}.js'.format(nroSpriteSheet))
-
-#    sheet.exportPyxelEdit(basePath + '/spriteSheets/sheet_{:02}.pyxel'.format(nroSpriteSheet))
 
 
 def exportWindows():
@@ -872,33 +886,75 @@ def burnWindows(filepath):
 
   arrayWindows, arrayLevelUp, arrayWindowsAddr, arrayItems, arrayInitialWeapons, arrayDoor, arrayLabels, arrayLabels2, arrayIntro = wins.encodeRom()
 
+  basePath = mystic.address.basePath
+  path = basePath + '/windows'
+  dataFilepath = path + '/windows.js'
+
+
+
 #  print('arrayWindows: \n' + mystic.util.strHexa(arrayWindows))
-  nroBank,addrWindows = mystic.address.addrWindows
-  mystic.romSplitter.burnBank(nroBank, addrWindows, arrayWindows)
+  numBank,addrWindows = mystic.address.addrWindows
+  mystic.romSplitter.burnBank(numBank, addrWindows, arrayWindows)
 
-  nroBank,addrLevelUp = mystic.address.addrLevelUp
-  mystic.romSplitter.burnBank(nroBank, addrLevelUp, arrayLevelUp)
+  initAddr = 0x4000*numBank + addrWindows
+  dataSize = len(arrayWindows)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
-  nroBank,addrWindowsAddr = mystic.address.addrWindowsAddr
-  mystic.romSplitter.burnBank(nroBank, addrWindowsAddr, arrayWindowsAddr)
+  numBank,addrLevelUp = mystic.address.addrLevelUp
+  mystic.romSplitter.burnBank(numBank, addrLevelUp, arrayLevelUp)
 
-  nroBank,addrMagic = mystic.address.addrMagic
-  mystic.romSplitter.burnBank(nroBank, addrMagic, arrayItems)
+  initAddr = 0x4000*numBank + addrLevelUp
+  dataSize = len(arrayLevelUp)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
-  nroBank,addrInitialWeapons = mystic.address.addrInitialWeapons
-  mystic.romSplitter.burnBank(nroBank, addrInitialWeapons, arrayInitialWeapons)
+  numBank,addrWindowsAddr = mystic.address.addrWindowsAddr
+  mystic.romSplitter.burnBank(numBank, addrWindowsAddr, arrayWindowsAddr)
 
-  nroBank,addrDoor = mystic.address.addrDoorTileLocations
-  mystic.romSplitter.burnBank(nroBank, addrDoor, arrayDoor)
+  initAddr = 0x4000*numBank + addrWindowsAddr
+  dataSize = len(arrayWindowsAddr)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
-  nroBank,addrLabels = mystic.address.addrWindowsLabels
-  mystic.romSplitter.burnBank(nroBank, addrLabels, arrayLabels)
+  numBank,addrMagic = mystic.address.addrMagic
+  mystic.romSplitter.burnBank(numBank, addrMagic, arrayItems)
 
-  nroBank,addrLabels2 = mystic.address.addrWindowsLabels2
-  mystic.romSplitter.burnBank(nroBank, addrLabels2, arrayLabels2)
+  initAddr = 0x4000*numBank + addrMagic
+  dataSize = len(arrayItems)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
-  nroBank,addrIntro = mystic.address.addrIntro
-  mystic.romSplitter.burnBank(nroBank, addrIntro, arrayIntro)
+  numBank,addrInitialWeapons = mystic.address.addrInitialWeapons
+  mystic.romSplitter.burnBank(numBank, addrInitialWeapons, arrayInitialWeapons)
+
+  initAddr = 0x4000*numBank + addrInitialWeapons
+  dataSize = len(arrayInitialWeapons)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  numBank,addrDoor = mystic.address.addrDoorTileLocations
+  mystic.romSplitter.burnBank(numBank, addrDoor, arrayDoor)
+
+  initAddr = 0x4000*numBank + addrDoor
+  dataSize = len(arrayDoor)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  numBank,addrLabels = mystic.address.addrWindowsLabels
+  mystic.romSplitter.burnBank(numBank, addrLabels, arrayLabels)
+
+  initAddr = 0x4000*numBank + addrLabels
+  dataSize = len(arrayLabels)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  numBank,addrLabels2 = mystic.address.addrWindowsLabels2
+  mystic.romSplitter.burnBank(numBank, addrLabels2, arrayLabels2)
+
+  initAddr = 0x4000*numBank + addrLabels2
+  dataSize = len(arrayLabels2)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  numBank,addrIntro = mystic.address.addrIntro
+  mystic.romSplitter.burnBank(numBank, addrIntro, arrayIntro)
+
+  initAddr = 0x4000*numBank + addrIntro
+  dataSize = len(arrayIntro)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 def exportBosses():
@@ -947,10 +1003,17 @@ def burnBosses(filepath):
   bosses = mystic.bosses.Bosses()
   bosses.jsonBosses = jsonBosses
 
-  nroBank,addrBoss = mystic.address.addrBoss
+  numBank,addrBoss = mystic.address.addrBoss
   array = bosses.encodeRom(addrBoss)
 
-  mystic.romSplitter.burnBank(nroBank, addrBoss, array)
+  mystic.romSplitter.burnBank(numBank, addrBoss, array)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/bosses'
+  initAddr = 0x4000*numBank + addrBoss
+  dataSize = len(array)
+  dataFilepath = path + '/bosses.js'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 def exportHeroProjectiles():
@@ -976,12 +1039,6 @@ def exportHeroProjectiles():
   lastAddr = addrHeroProjs + len(array)
 #  print('addrHeroProjs: {:04x}'.format(addrHeroProjs))
 #  print('lastAddr: {:04x}'.format(lastAddr))
-  import random
-  rr = random.randint(0,0xff)
-  gg = random.randint(0,0xff)
-  bb = random.randint(0,0xff)
-  # agrego info al stats
-  mystic.romStats.appendDato(0x01, addrHeroProjs, lastAddr , (rr, gg, bb), 'hero projectiles databases')
 
   import json
   # for allowing kana characters in json ensure_ascii=False
@@ -1015,6 +1072,13 @@ def burnHeroProjectiles(filepath):
 
   array = heroProj.encodeRom(addrHeroProjs)
   mystic.romSplitter.burnBank(numBank, addrHeroProjs, array)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/projectiles'
+  initAddr = 0x4000*numBank + addrHeroProjs
+  dataSize = len(array)
+  dataFilepath = path + '/heroProjs.js'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 
@@ -1069,6 +1133,13 @@ def burnProjectiles(filepath):
 
   array = projectiles.encodeRom(addrProjectiles)
   mystic.romSplitter.burnBank(numBank, addrProjectiles, array)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/projectiles'
+  initAddr = 0x4000*numBank + addrProjectiles
+  dataSize = len(array)
+  dataFilepath = path + '/projectiles.js'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 
@@ -1128,6 +1199,21 @@ def burnNpc(filepath):
 
   mystic.romSplitter.burnBank(numBank0, addrSnowman, arraySpriteGroup1)
   mystic.romSplitter.burnBank(numBank, addrNpc, array)
+
+
+  basePath = mystic.address.basePath
+  path = basePath + '/npc'
+  dataFilepath = path + '/npcs.js'
+
+  initAddr = 0x4000*numBank + addrNpc
+  dataSize = len(array)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+  initAddr = 0x4000*numBank0 + addrSnowman
+  dataSize = len(arraySpriteGroup1)
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+
 
       
 def exportGolpes():
@@ -1293,31 +1379,21 @@ def exportSongs(exportLilypond=False):
     f.write(strCancion)
     f.close()
 
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
     addr = cancion.melody2.addr
     length = len(cancion.melody2.encodeRom())
-    # agrego info al stats
-    mystic.romStats.appendDato(0x0f, addr-0x4000, addr-0x4000 + length , (rr, gg, bb), 'una canción')
 
     addr = cancion.melody1.addr
     length = len(cancion.melody1.encodeRom())
-    # agrego info al stats
-    mystic.romStats.appendDato(0x0f, addr-0x4000, addr-0x4000 + length , (rr, gg, bb), 'una canción')
 
     addr = cancion.melody3.addr
     length = len(cancion.melody3.encodeRom())
-    # agrego info al stats
-    mystic.romStats.appendDato(0x0f, addr-0x4000, addr-0x4000 + length , (rr, gg, bb), 'una canción')
 
     # si quiere que compile lilypond
     if(exportLilypond):
       # exporto lilypond!
       cancion.exportLilypond()
 
-def burnSongs(filepath, nroBank, addrMusic):
+def burnSongs(filepath, numBank, addrMusic):
   """ burn the songs into the rom """
 
   canciones = mystic.music.Canciones()
@@ -1338,7 +1414,14 @@ def burnSongs(filepath, nroBank, addrMusic):
 #  nroBank,addrMusic = mystic.address.addrMusic
   arrayMusic = canciones.encodeRom(addrMusic)
   # burn into the rom
-  mystic.romSplitter.burnBank(nroBank, addrMusic, arrayMusic)
+  mystic.romSplitter.burnBank(numBank, addrMusic, arrayMusic)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  initAddr = 0x4000*numBank + addrMusic
+  dataSize = len(arrayMusic)
+  dataFilepath = path + '/01_songs.txt'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
   vaPorAddr = addrMusic + len(arrayMusic)
   return vaPorAddr
@@ -1511,13 +1594,22 @@ def burnSounds(filepath):
 
   # address of the pointer table
 #  nroBank,addrMusic = mystic.address.addrSounds
-  nroBank,addrSounds = 0x0f, 0x3b3c
+  numBank,addrSounds = 0x0f, 0x3b3c
   arraySounds = sounds.encodeRom(addrSounds)
 
 #  print('arraySounds: ' + mystic.util.strHexa(arraySounds))
   # burn into the rom
   mystic.romSplitter.burnBank(0xf, addrSounds, arraySounds)
 #  mystic.romSplitter.burnBank(0xf, 0x3bd0, arraySounds)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/audio'
+  initAddr = 0x4000*numBank + addrSounds
+  dataSize = len(arraySounds)
+  dataFilepath = path + '/05_sounds.txt'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+
 
 
 def exportHero():
@@ -1638,6 +1730,13 @@ def burnHero(filepath):
   array.extend(arraySortTiles)
 
   mystic.romSplitter.burnBank(numBank, addrHero, array)
+
+  basePath = mystic.address.basePath
+  path = basePath + '/npc'
+  initAddr = 0x4000*numBank + addrHero
+  dataSize = len(array)
+  dataFilepath = path + '/hero.js'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 def exportSpriteSheetMonster():
@@ -1862,29 +1961,32 @@ def exportSpriteSheetPersonajes():
   """ exporta los spriteSheet de personajes """
 
   basePath = mystic.address.basePath
-  path = basePath + '/spriteSheetPersonajes'
+#  path = basePath + '/spriteSheetPersonajes'
+  path = basePath + '/tilesetsLevel2'
 
   # si el directorio no existía
   if not os.path.exists(path):
     # lo creo
     os.makedirs(path)
 
-  for banco in range(0,0x10):
-    for nro in range(0,4):
+#  if(True):
+  if(False):
+    for banco in range(0,0x10):
+      for nro in range(0,4):
 
-      bank = mystic.romSplitter.banks[banco]
-      array = bank[0x1000*nro:0x1000*(nro+1)]
+        bank = mystic.romSplitter.banks[banco]
+        array = bank[0x1000*nro:0x1000*(nro+1)]
 
-      w, h = 8,8
-#      w, h = 4,16
-      sheetPers = mystic.spritePersonaje.SpriteSheetPersonaje(w,h)
+        w, h = 8,8
+#        w, h = 4,16
+        sheetPers = mystic.spritePersonaje.SpriteSheetPersonaje(w,h)
 
-      sheetPers.decodeRom(array)
-      sheetData = sheetPers.encodePng()
+        sheetPers.decodeRom(array)
+        sheetData = sheetPers.encodePng()
 
-      filepath = basePath + '/banks/bank_{:02}/sheetPers_{:02}_{:02}.png'.format(banco, banco, nro)
-      # lo exporto a png
-      mystic.util.arrayToPng(sheetData, 16*w, 16*h, filepath)
+        filepath = basePath + '/banks/bank_{:02}/sheetPers_{:02}_{:02}.png'.format(banco, banco, nro)
+        # lo exporto a png
+        mystic.util.arrayToPng(sheetData, 16*w, 16*h, filepath)
 
   i = 1
   banco = 8
@@ -1936,19 +2038,14 @@ def exportSpriteSheetPersonajes():
     filepath = path + '/sheetPers_{:02}_{:02}.png'.format(banco, i)
     mystic.util.arrayToPng(sheetData, 16*w, 16*h, filepath)
 
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
-    # agrego info al stats
-    mystic.romStats.appendDato(banco, addr, addr + 0x1000, (rr, gg, bb), 'un spriteSheetPersonaje')
-
     i += 1
 
 def burnSpriteSheetPersonajes():
 
   basePath = mystic.address.basePath
-  path = basePath + '/spriteSheetPersonajes'
+#  path = basePath + '/spriteSheetPersonajes'
+  path = basePath + '/tilesetsLevel2'
+
 
   i = 1
   banco = 8
@@ -2057,14 +2154,6 @@ def exportMapas(exportPngFile):
 #    mystic.util.arrayToFile(subArray, filepath)
 #    iguales = mystic.util.compareFiles(basePath + '/banks/bank_{:02x}/bank_{:02x}.bin'.format(mapa.mapBank, mapa.mapBank), path + '/mapa_{:02}_{:02x}.bin'.format(mapa.nroMapa, mapa.nroMapa), mapa.mapAddr, len(subArray))
 #    print('mapa {:02x} iguales = '.format(mapa.nroMapa) + str(iguales))
-
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
-    length = len(subArray)
-    # agrego info al stats
-    mystic.romStats.appendDato(mapa.mapBank, mapa.mapAddr, mapa.mapAddr+length, (rr, gg, bb), 'a map')
 
 
 def burnMapas(filepath):
@@ -2285,6 +2374,18 @@ def _burnMapas(mapas):
     subArray = mapa.encodeRom(mapa.mapAddr)
     # lo quemo en la rom
     mystic.romSplitter.burnBank(mapa.mapBank, mapa.mapAddr, subArray)
+
+#    print('burning map {:02x} at {:02x}:{:04x}'.format(sortedNro, mapa.mapBank, mapa.mapAddr))
+#    print('burning map at {:02x}:{:04x}'.format(mapa.mapBank, mapa.mapAddr))
+
+    basePath = mystic.address.basePath
+    path = basePath + '/maps'
+    initAddr = 0x4000*mapa.mapBank + mapa.mapAddr
+    dataSize = len(subArray)
+    dataFilepath = path + '/map_{:02}_{:02x}.tmx'.format(sortedNro, sortedNro)
+    mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
+
 
 #    print('i: {:02x} vaPorAddr: {:02x}:{:04x} mapAddr: {:02x}:{:04x}'.format(sortedNro, vaPorBank, vaPorAddr, mapa.mapBank, mapa.mapAddr))
 
@@ -2520,6 +2621,14 @@ def burnJScripts(filepath):
 
     # quemo los banks 0x0d y 0x0e
     mystic.romSplitter.burnBank(vaPorBank, 0x0000, encodedBank)
+
+    basePath = mystic.address.basePath
+    path = basePath + '/scripts'
+    initAddr = 0x4000*vaPorBank + 0x0000
+    dataSize = len(encodedBank)
+    dataFilepath = path + '/jscripts.js'
+    mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
+
     vaPorBank += 1
  
   # quemo los banks 0x0d y 0x0e
@@ -2591,14 +2700,6 @@ def exportExpTable():
   f.write(string)
   f.close()
 
-  import random
-  rr = random.randint(0,0xff)
-  gg = random.randint(0,0xff)
-  bb = random.randint(0,0xff)
-  length = 3*101
-  # agrego info al stats
-  mystic.romStats.appendDato(0x08, addr, addr+length, (rr, gg, bb), 'exp table')
-
 
 def burnExpTable(filepath):
   """ quema el exp.txt en la rom """
@@ -2621,14 +2722,20 @@ def burnExpTable(filepath):
 
 #    print('exp: {:06x}: {:02x} {:02x} {:02x}'.format(exp, byte1, byte2, byte3))
 
-  nroBank,addr = mystic.address.addrExpTable
-#  print('current addr: {:04x}'.format(addr))
+  numBank,addrExp = mystic.address.addrExpTable
 
   strArray = mystic.util.strHexa(array)
 #  print('strArray: ' + strArray)
 
   # lo quemo en el banco
-  mystic.romSplitter.burnBank(nroBank, addr, array)
+  mystic.romSplitter.burnBank(numBank, addrExp, array)
+
+  basePath = mystic.address.basePath
+  path = basePath
+  initAddr = 0x4000*numBank + addrExp
+  dataSize = len(array)
+  dataFilepath = path + '/exp.txt'
+  mystic.romStats.appendData(initAddr, dataSize, dataFilepath)
 
 
 def exportSolarus():

@@ -24,7 +24,7 @@ class HeroProjectiles:
     for i in range(0,16):
       weaponAnim = {}
 #      weaponAnim['comment'] = mystic.variables.armas[i].encode('ascii', 'ignore').decode()
-      weaponAnim['comment'] = mystic.variables.armas[i]
+      weaponAnim['comment'] = mystic.variables.equip[i]
       data = bank[currentAddr]
       frame = data//0x10
       idAnimation = data%0x10
@@ -42,9 +42,9 @@ class HeroProjectiles:
       itemAnim = {}
 
       if(i < 8):
-        label = mystic.variables.magias[i].encode('ascii', 'ignore').decode()
+        label = mystic.variables.magic[i].encode('ascii', 'ignore').decode()
       else:
-        label = mystic.variables.items[i-8].encode('ascii', 'ignore').decode()
+        label = mystic.variables.item[i-8].encode('ascii', 'ignore').decode()
 
       itemAnim['comment'] = label
       data = bank[currentAddr]

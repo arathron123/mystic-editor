@@ -16,12 +16,6 @@ class Mapas:
 
     bank08 = mystic.romSplitter.banks[0x08]
 
-    import random
-    rr = random.randint(0,0xff)
-    gg = random.randint(0,0xff)
-    bb = random.randint(0,0xff)
-    mystic.romStats.appendDato(0x08, 0x0000, 0x0000 + 16*11 , (rr, gg, bb), 'header de los mapas')
-
     # para cada mapa
     for nroMapa in range(0,0x10):
 

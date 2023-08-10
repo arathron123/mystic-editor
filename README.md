@@ -1,6 +1,6 @@
 # mystic-editor
 
-Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.13
+Hi! This is a Mystic Quest (also known as Final Fantasy Adventure) gameboy game editor version 0.95.14
 
 Tutorial video here: 
 https://www.youtube.com/watch?v=XKPYtgKAiQw
@@ -21,15 +21,32 @@ A folder named **en** (for english) will be created with all the maps, scripts, 
 To encode the rom run
 **python3 mystic-editor.py -e**
 
-If you want more control, you can specify the rom-file and address-configuration file like this example
-**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en.txt -d**
+Optional Arguments:
+--rom [filePath] specifies the rom file to decode, example:
+**python3 mystic-editor.py --rom stockRoms/en.gb -e**
 
-If you want to expand the rom to 32 banks add the --romexpand argument before encoding like this example
-**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr_en_romexpand.txt --romexpand -e**
+--addr [filePath] specifies the address-configuration file to encode, example:
+**python3 mystic-editor.py --addr addr_en.js -e**
 
-Optional argument when encoding: --fix-checksum (it fixes the header and global checksums of the rom)
+-x (or --romexpand) encodes an expanded rom with more banks, example:
+**python3 mystic-editor.py --rom stockRoms/en.gb --addr addr/addr_en_romexpand.js --romexpand -e**
 
-Also optional: --ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)
+-m (or --mscripts) decodes/encodes the scripts into mscripts.txt instead of jscripts.js, example:
+**python3 mystic-editor.py -dm**
+
+-t (or --tilesetsLevel2) decodes/encodes the tilesetsLevel2 folder, overwriting the big tilesets.png file, example:
+**python3 mystic-editor.py -dt**
+
+-c (or --color) encodes a gameboy color rom (work in progress), example:
+**python3 mystic-editor.py -ec**
+
+-f (or --fix-checksum) fixes the header and global checksums of the rom, example:
+**python3 mystic-editor.py -ef**
+
+-i (or --ips) creates an .ips patch of the newRom.gb, example:
+**python3 mystic-editor.py -ei**
+
+--ffl2 path/to/ffl2.gb  (it decodes music from english version of FFL 2 rom with md5sum **2bb0df1b672253aaa5f9caf9aab78224**)
 
 Feel free to join our discord server
 https://discord.gg/mdTDMKh5FR

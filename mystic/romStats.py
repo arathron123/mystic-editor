@@ -16,21 +16,76 @@ def _globalAddrToStrAddr(globalAddr):
   strAddr = '{:02x}:{:04x}'.format(numBank, offset)
   return strAddr
 
+def _getLastBank():
+  """ returns the last bank number being used """
 
-def exportData():
+  lastBank = -1
+
+  for iniAddr, dataSize, dataFilepath in data:
+    numBank = iniAddr // 0x4000
+    if(numBank > lastBank):
+      lastBank = numBank
+
+  return lastBank
+
+def _getJsonData(jsonData):
 
 #  print('data: ' + str(data))
   sortedData = sorted(data)
 #  print('sortedData: ' + str(sortedData))
 
   for d in sortedData:
-    initAddr = d[0]
+    iniAddr = d[0]
     dataSize = d[1]
     dataFilepath = d[2]
-    strInitAddr = _globalAddrToStrAddr(initAddr)
-    strEndAddr = _globalAddrToStrAddr(initAddr+dataSize-1)
+    strIniAddr = _globalAddrToStrAddr(iniAddr)
+    strEndAddr = _globalAddrToStrAddr(iniAddr+dataSize-1)
+#    print('initAddr: ' + strInitAddr + ' endAddr: ' + strEndAddr + ' filepath: '.format(iniAddr, dataSize) + dataFilepath)
+#    jsonData.append({'iniAddr' : strIniAddr, 'endAddr' : strEndAddr, 'filepath' : dataFilepath})
 
-#    print('initAddr: ' + strInitAddr + ' endAddr: ' + strEndAddr + ' filepath: '.format(initAddr, dataSize) + dataFilepath)
+    numBank = iniAddr // 0x4000
+    oIniAddr = iniAddr % 0x4000
+    oEndAddr = oIniAddr + dataSize
+    strOIniAddr = '{:04x}'.format(oIniAddr)
+    strOEndAddr = '{:04x}'.format(oEndAddr)
+
+#    print('insertando en banco: ' + str(numBank))
+    jsonData[numBank]['data'].append( {'iniAddr' : strOIniAddr, 'endAddr' : strOEndAddr, 'filePath' : dataFilepath } )
+
+
+  return jsonData
+
+
+def _exportJson(rom_info, jsonData):
+
+  basePath = mystic.address.basePath
+
+  import json
+  # for allowing kana characters in json ensure_ascii=False
+  strJson = json.dumps(jsonData, indent=2, ensure_ascii=False)
+#  strJson = json.dumps(data)
+  f = open(basePath+'/' + rom_info + '.js', 'w', encoding="utf-8")
+  f.write(rom_info + ' = \n' + strJson)
+  f.close()
+
+
+
+def exportData(rom_info):
+
+  jsonData = []
+
+  lastBank = _getLastBank()
+
+#  print('lastBank: ' + str(lastBank))
+
+  # comienzo con los bancos vacios
+  for i in range(0,lastBank+1):
+    jsonData.append({'bank' : i, 'data' : []})
+
+
+  jsonData = _getJsonData(jsonData)
+  _exportJson(rom_info, jsonData)
+
 
 ##################################### all bellow this is deprecated and should be deleted
 
@@ -47,9 +102,9 @@ for k in range(0,0x10):
 datos = []
 
 
-def appendDato(banco, iniAddr, finAddr, color, descrip):
-  """ agrega un dato a la info de los bancos """
-  datos.append( (banco, iniAddr, finAddr, color, descrip) )
+#def appendDato(banco, iniAddr, finAddr, color, descrip):
+#  """ agrega un dato a la info de los bancos """
+#  datos.append( (banco, iniAddr, finAddr, color, descrip) )
 
 def exportPng():
 
