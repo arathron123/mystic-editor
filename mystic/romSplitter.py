@@ -498,7 +498,7 @@ def exportDictionary():
 #    jsonDict[strHex] = chary
 #    jsonDict[i] = chary
 
-  jsonDict = mystic.dictionary.dict
+  jsonDict = mystic.dictionary.dictCompress
 
   import json
   # for allowing kana characters in json ensure_ascii=False

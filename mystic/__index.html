@@ -299,7 +299,7 @@ img {
 <div class="maindiv" id="tilesets" style="display:none;">
 <h1 style="color:red;">Tilesets</h1>
 
-<img id="imgTilesets" style="display:none;" width="256" src="../en/tilesets/tilesets.png" />
+<!--img id="imgTilesets" style="display:none;" width="256" src="../en/tilesets/tilesets.png" /-->
 <canvas id="canvasTilesets" width="256" height="5120" style="border: 4px solid green;"></canvas>
 
 <h3>Water canvas</h3>
@@ -482,6 +482,8 @@ script.src = basePath + '/spriteSheets/sheet_00.js';
 document.body.appendChild(script);
 */
 
+document.write("<img id='imgTilesets' style='display:none;' width='256' src='" + basePath + "/tilesets/tilesets.png' />");
+
 document.write("<script type='text/javascript' src='"+ basePath + '/scripts/jscripts.js' + "'><\/script>");
 
 document.write("<script type='text/javascript' src='"+ basePath + '/rom_info_decode.js' + "'><\/script>");
@@ -564,8 +566,6 @@ var canvasTilesets = document.getElementById("canvasTilesets");
 var contextTilesets = canvasTilesets.getContext("2d");
 // para que dibuje pixelado (y no blurry)
 contextTilesets.imageSmoothingEnabled = false;
-// dibujo el tileset en su canvas
-contextTilesets.drawImage(imgTilesets, 0,0, 256, 5120);
 
 
 //var imgTileset00 = document.getElementById("tileset_00");
@@ -1230,6 +1230,9 @@ function drawCharTextPreview(char, posX, posY) {
 
 // The function gets called when the window is fully loaded
 window.onload = function() {
+
+  // dibujo el tileset en su canvas
+  contextTilesets.drawImage(imgTilesets, 0,0, 256, 5120);
 
 
   // cargo los spriteSheets
@@ -2406,6 +2409,3 @@ function render() {
 
 </body>
 </html>
-
-
-

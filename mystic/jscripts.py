@@ -795,7 +795,7 @@ class Comando:
     self.size = 0 
 
     # si es texto
-    if(str(self.nro) in mystic.dictionary.keys()):
+    if(str(self.nro) in mystic.dictionary.keys(True)):
 
       # agarro el char (o par de chars)
       char = mystic.dictionary.decodeByte(self.nro, True)

@@ -696,7 +696,9 @@ class Windows:
     subArray.append(row['id'])
 
     name = row['name']
+#    print('------name: ' + name)
     values = mystic.dictionary.tryCompress(name, False)
+#    print('values: ' + mystic.util.strHexa(values))
     subArray.extend(values)
 
     sMagicBits = row['[0]multiuse [1]unsellable [2]unknown [3-7]mana_cost']
