@@ -277,7 +277,6 @@ class Tileset:
         row.append(3)
       s.append(row)
 
-
     r = png.Reader(filepath)
     w,h,rows,info = r.read()
     i,j = 0,0

@@ -491,40 +491,15 @@ def exportDictionary():
 
   mystic.dictionary.decodeRom()
 
-#  jsonDict = {}
-#  for i in range(0,0x100):
-#    chary = mystic.dictionary.decodeByte(i)
-#    strHex = '{:02x}'.format(i)
-#    jsonDict[strHex] = chary
-#    jsonDict[i] = chary
+  # export the .js
+  mystic.dictionary.exportJs(path + '/dictionary.js')
 
-  jsonDict = mystic.dictionary.dictCompress
-
-  import json
-  # for allowing kana characters in json ensure_ascii=False
-  strJson = json.dumps(jsonDict, indent=2, ensure_ascii=False)
-#  strJson = json.dumps(data)
-  f = open(path + '/dictionary.js', 'w', encoding="utf-8")
-  f.write('textDictionary = \n' + strJson)
-  f.close()
 
 
 
 def burnDictionary(filepath):
-
-  f = open(filepath, 'r', encoding="utf-8")
-  lines = f.readlines()
-  f.close()
-  # elimino el primer renglón (no es json)
-  lines.pop(0)
-  data = '\n'.join(lines)
-
-#  print('data: ' + data)
-
-  import json
-  jsonDict = json.loads(data)
-#  print('jsonDict: ' + str(jsonDict))
-  mystic.dictionary.dict = jsonDict
+  # import the .js
+  mystic.dictionary.importJs(filepath)
 
   numBank,addrDictionary = mystic.address.addrDictionary
 

@@ -342,6 +342,8 @@ def tryCompressWord(string, compress):
   else:
     dictio = mystic.dictionary.dictNoCompress
 
+#  print('dictio: ' + str(dictio))
+
   # we search over the compressed words
   for cCode in range(0,0x100):
     palabra = dictio[str(cCode)]
@@ -368,7 +370,8 @@ def encodeRom():
   codes = _getCompressedCodes()
 
   for code in codes:
-    string = dict[str(code)]
+    string = mystic.dictionary.dictCompress[str(code)]
+#    print('string: ' + str(string))
     subArray = []
     for char in string:
 #      print('char: ' + char)
@@ -408,4 +411,41 @@ def _getCompressedCodes():
     compressedCodes.extend( range(0x20,0x40) )
 
   return compressedCodes
+
+
+def exportJs(filepath):
+
+  jsonDict = mystic.dictionary.dictCompress
+
+  import json
+  # for allowing kana characters in json ensure_ascii=False
+  strJson = json.dumps(jsonDict, indent=2, ensure_ascii=False)
+#  strJson = json.dumps(data)
+  f = open(filepath, 'w', encoding="utf-8")
+  f.write('textDictionary = \n' + strJson)
+  f.close()
+
+def importJs(filepath):
+
+  # first we decode the dictionary from the rom (to have the no-compress version)
+  decodeRom()
+
+  f = open(filepath, 'r', encoding="utf-8")
+  lines = f.readlines()
+  f.close()
+  # elimino el primer renglón (no es json)
+  lines.pop(0)
+  data = '\n'.join(lines)
+
+#  print('data: ' + data)
+
+  import json
+  jsonDict = json.loads(data)
+#  print('jsonDict: ' + str(jsonDict))
+  mystic.dictionary.dictCompress = jsonDict
+#  mystic.dictionary.dictNoCompress = jsonDict
+
+#  print('-----dictCompress: ' + str(mystic.dictionary.dictCompress))
+#  print('-----dictNoCompress: ' + str(mystic.dictionary.dictNoCompress))
+
 

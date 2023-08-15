@@ -602,7 +602,6 @@ def _decode(argv, argFlags):
     print('exporting dictionary...')
     mystic.romSplitter.exportDictionary()
 
-
     # exports the game windows (Equip, Stats, Magic, etc) and items
     print('exporting windows...')
     mystic.romSplitter.exportWindows()
@@ -873,19 +872,6 @@ def main(argv):
 
 
   mystic.romSplitter.loadBanksFromFile(mystic.address.romPath)
-  # decodifico el diccionario (compress)
-  mystic.dictionary.decodeRom()
-
-#  for i in range(0,0x100):
-#    chary = mystic.dictionary.decodeByte(i)
-#    print('{:02x} '.format(i) + chary)
-#  sys.exit(0)
-
-
-#  string = 'ちからつきたジェマ'
-#  values = mystic.dictionary.tryJpCompress(string)
-#  strHex = mystic.util.strHexa(values)
-#  print('comprimido strHex: ' + strHex)
 
   basePath = mystic.address.basePath
   print('basePath: ' + basePath)
